@@ -1,10 +1,10 @@
 const PNG_LAYOUTS={
-  square:{label:'Square — Instagram / LinkedIn',ratio:1,w:1080,h:1080,className:'layout-square'},
-  portrait:{label:'Portrait — Instagram / Facebook / LinkedIn',ratio:4/5,w:1080,h:1350,className:'layout-portrait'},
-  story:{label:'Story — Instagram / TikTok / YouTube Shorts',ratio:9/16,w:1080,h:1920,className:'layout-story'},
-  landscape:{label:'Landscape — YouTube / X',ratio:16/9,w:1920,h:1080,className:'layout-landscape'},
-  socialwide:{label:'Wide — LinkedIn / social link preview',ratio:1.91,w:1200,h:628,className:'layout-socialwide'},
-  pinterest:{label:'Pinterest — Standard Pin',ratio:2/3,w:1000,h:1500,className:'layout-pinterest'}
+  square:{ratioLabel:'1:1',ratio:1,w:1080,h:1080,className:'layout-square'},
+  portrait:{ratioLabel:'4:5',ratio:4/5,w:1080,h:1350,className:'layout-portrait'},
+  story:{ratioLabel:'9:16',ratio:9/16,w:1080,h:1920,className:'layout-story'},
+  landscape:{ratioLabel:'16:9',ratio:16/9,w:1920,h:1080,className:'layout-landscape'},
+  socialwide:{ratioLabel:'1.91:1',ratio:1.91,w:1200,h:628,className:'layout-socialwide'},
+  pinterest:{ratioLabel:'2:3',ratio:2/3,w:1000,h:1500,className:'layout-pinterest'}
 };
 let pngLayout='square';
 function pngSelected(){return Object.fromEntries([...document.querySelectorAll('[data-module]')].map(x=>[x.dataset.module,!!x.checked]));}
@@ -27,5 +27,5 @@ function pngOpen(){pngBuild();$('#pngModal').classList.remove('hidden');$('#pngM
 function pngClose(){$('#pngModal').classList.add('hidden');$('#pngModal').setAttribute('aria-hidden','true');}
 async function pngDownload(){pngBuild();const layout=PNG_LAYOUTS[pngLayout],source=$('#shareCard'),clone=source.cloneNode(true);clone.removeAttribute('id');clone.classList.add('export-card');clone.style.position='fixed';clone.style.left='-100000px';clone.style.top='0';clone.style.width=layout.w+'px';clone.style.height=layout.h+'px';clone.style.minHeight='0';document.body.appendChild(clone);try{await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const canvas=await html2canvas(clone,{backgroundColor:'#09090b',scale:1,useCORS:false,allowTaint:false,logging:false,imageTimeout:10000,width:layout.w,height:layout.h,windowWidth:layout.w,windowHeight:layout.h});const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Browser could not encode the PNG.')),'image/png'));const url=URL.createObjectURL(blob),link=document.createElement('a');link.download=`${data.user.login}-gitbrag-${pngLayout}.png`;link.href=url;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){console.error(e);alert(`Could not create the PNG. ${e?.message||'Please try again.'}`)}finally{clone.remove()}}
 function pngRefresh(){if(!$('#pngModal').classList.contains('hidden'))pngPreview();}
-function pngInit(){const select=$('#pngLayout');if(select){select.innerHTML=Object.entries(PNG_LAYOUTS).map(([key,v])=>`<option value="${key}">${v.label} · ${v.w}×${v.h}</option>`).join('');select.value=pngLayout;select.onchange=()=>{pngLayout=select.value;pngRefresh()}}document.querySelectorAll('[data-module]').forEach(x=>x.addEventListener('change',pngRefresh));$('.periods').addEventListener('click',()=>setTimeout(pngRefresh,0));$('#pngBtn').onclick=pngOpen;$('#closePng').onclick=pngClose;$('.modal-backdrop').onclick=pngClose;$('#downloadPng').onclick=pngDownload;}
+function pngInit(){const pills=$('#pngRatios');if(pills){pills.innerHTML=Object.entries(PNG_LAYOUTS).map(([key,v])=>`<button type="button" class="ratio-pill${key===pngLayout?' active':''}" data-ratio="${key}" aria-label="${v.ratioLabel}">${v.ratioLabel}</button>`).join('');pills.querySelectorAll('.ratio-pill').forEach(btn=>btn.onclick=()=>{pngLayout=btn.dataset.ratio;pills.querySelectorAll('.ratio-pill').forEach(x=>x.classList.toggle('active',x===btn));pngRefresh();});}document.querySelectorAll('[data-module]').forEach(x=>x.addEventListener('change',pngRefresh));$('.periods').addEventListener('click',()=>setTimeout(pngRefresh,0));$('#pngBtn').onclick=pngOpen;$('#closePng').onclick=pngClose;$('.modal-backdrop').onclick=pngClose;$('#downloadPng').onclick=pngDownload;}
 pngInit();
