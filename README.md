@@ -1,6 +1,6 @@
 # Gitbrag
 
-Gitbrag is a lightweight, GitHub Pages-friendly dashboard that turns a GitHub profile into a Spotify Wrapped-style stats page.
+Gitbrag is a lightweight, GitHub Pages-friendly dashboard that turns a GitHub profile into a polished, shareable stats page.
 
 ## What it does
 
@@ -12,8 +12,10 @@ Gitbrag is a lightweight, GitHub Pages-friendly dashboard that turns a GitHub pr
 - Show a custom contribution heatmap
 - Show public repositories, stars, followers, account age, and repository details
 - Automatically derives the page accent/theme from the user's profile picture when the browser permits canvas access
-- Build a shareable PNG in the browser
-- Choose which PNG modules to include: profile, headline, stats, contribution calendar, repositories, and branding
+- Build a shareable PNG entirely in the browser
+- Choose which PNG modules to include: profile, stats, contribution calendar, repositories, and Gitbrag branding
+- Selected modules automatically distribute themselves through the available card space instead of leaving large empty areas
+- Gitbrag branding can be switched on or off
 - Runs as a static site with no database or self-hosted server
 
 ## Run locally
