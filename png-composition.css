@@ -62,11 +62,11 @@
 .ratio-pill:hover{border-color:#3da9ff;color:#fff}
 .ratio-pill.active{background:#3da9ff;border-color:#3da9ff;color:#fff}
 
-/* Repository cards use the same canvas-first approach as the stat cards. */
+/* Repository cards scale from the actual canvas, including both width and height. */
 .share-repos{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:minmax(0,1fr)!important}
 .share-repos div{display:flex!important;flex-direction:column!important;justify-content:center!important;min-height:0!important;padding:clamp(28px,3.2cqw,46px)!important;border-radius:clamp(14px,1.6cqw,22px)!important}
-.share-repos b{font-size:clamp(30px,4cqw,52px)!important;line-height:.95!important;letter-spacing:-.04em!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
-.share-repos span{font-size:clamp(15px,1.7cqw,22px)!important;margin-top:clamp(10px,1.2cqw,16px)!important;letter-spacing:.04em!important}
+.share-repos b{font-size:clamp(30px,min(6cqw,8cqh),72px)!important;line-height:.9!important;letter-spacing:-.045em!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+.share-repos span{font-size:clamp(15px,min(2.1cqw,2.8cqh),26px)!important;margin-top:clamp(10px,1.2cqw,16px)!important;letter-spacing:.04em!important}
 
 /* Repository picker submenu. */
 .repo-picker{margin:10px 0 16px;padding:16px;border:1px solid #29292f;border-radius:16px;background:#101014}
