@@ -1,4 +1,4 @@
-/* Keep contribution loading resilient and identify Gitbrag to the public contribution API. */
+/* Identify Gitbrag to the public contribution API without defeating its cache. */
 (() => {
   const nativeFetch = window.fetch.bind(window);
   const base = 'https://github-contributions-api.jogruber.de/v4/';
@@ -7,10 +7,6 @@
     if (!raw || !raw.startsWith(base)) return nativeFetch(input, init);
     const url = new URL(raw);
     if (!url.searchParams.has('client')) url.searchParams.set('client', 'gitbrag');
-    const options = {...init, cache: 'no-store'};
-    return nativeFetch(url.toString(), options).then(async response => {
-      if (!response.ok) return response;
-      return response;
-    });
+    return nativeFetch(url.toString(), init);
   };
 })();
