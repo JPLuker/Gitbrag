@@ -17,7 +17,8 @@ function pngBuild(){const m=pngSelected(),u=data.user,life=lifeStats(),count=con
  if(m.repos)parts.push(`<div class="share-section share-repos-module"><div class="share-section-head"><span>TOP REPOSITORIES</span><small>BY STARS</small></div><div class="share-repos">${pngRepoMarkup()}</div></div>`);
  if(m.branding)parts.push(`<div class="share-brand"><strong>GIT<span>BRAG</span></strong><small>github.com/${esc(u.login)}</small></div>`);
  const layout=PNG_LAYOUTS[pngLayout];
- $('#shareCard').className=`share-card ${layout.className} modules-${active}`;
+ const modClass=Object.entries(m).filter(([k,v])=>v&&k!=='branding').map(([k])=>k).join('-')||'none';
+ $('#shareCard').className=`share-card ${layout.className} modules-${active} mods-${modClass}`;
  $('#shareCard').style.width=layout.w+'px';$('#shareCard').style.height=layout.h+'px';$('#shareCard').style.minHeight='0';
  $('#shareCard').innerHTML=`<div class="share-content">${parts.join('')}</div>`;
 }
