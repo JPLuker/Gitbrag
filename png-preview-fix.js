@@ -1,17 +1,20 @@
-/* v0.3.0: render the preview at the real canvas size, then scale the whole card as one unit. */
+/* v0.3.1: fit the native PNG canvas inside the preview without clipping. */
 (() => {
   window.pngPreview = function pngPreviewFixed() {
     const preview = document.getElementById('sharePreview');
-    if (!preview) return;
+    if (!preview || typeof window.pngBuild !== 'function') return;
 
     preview.innerHTML = '';
     const layout = window.pngBuild();
-    const availableWidth = Math.max(1, preview.clientWidth);
-    const availableHeight = Math.max(1, Math.round(availableWidth * layout.h / layout.w));
+    const cs = getComputedStyle(preview);
+    const padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+    const padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+    const availableWidth = Math.max(1, preview.clientWidth - padX);
+    const cardHeight = Math.max(1, Math.round(availableWidth * layout.h / layout.w));
     const scale = availableWidth / layout.w;
 
     preview.style.setProperty('width', '100%', 'important');
-    preview.style.setProperty('height', availableHeight + 'px', 'important');
+    preview.style.setProperty('height', (cardHeight + padY) + 'px', 'important');
     preview.style.setProperty('aspect-ratio', 'auto', 'important');
     preview.style.setProperty('overflow', 'hidden', 'important');
     preview.style.setProperty('background', '#08080a', 'important');
