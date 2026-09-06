@@ -1,38 +1,30 @@
-/* Final PNG layout overrides */
-.share-card{position:fixed;box-sizing:border-box;overflow:hidden}
-.share-content{height:100%;min-height:0;align-items:stretch;align-content:stretch}
+/* PNG composition: the canvas is the design system. */
+.share-card{position:fixed;box-sizing:border-box;overflow:hidden;--png-scale:1}
+.share-content{height:100%;min-height:0;width:100%;align-items:stretch;align-content:stretch}
 .share-content>.share-profile,.share-content>.share-stats,.share-content>.share-section{align-self:stretch;min-height:0}
-.share-profile{display:flex;align-items:center}
-.share-stats{height:100%;align-self:stretch}
-.share-stats>div{height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center}
+.share-profile{display:flex;align-items:center;gap:calc(28px * var(--png-scale))!important}
+.share-avatar-ring{width:calc(116px * var(--png-scale))!important;height:calc(116px * var(--png-scale))!important;border-width:calc(5px * var(--png-scale))!important}
+.share-name{font-size:calc(72px * var(--png-scale))!important;line-height:1.02!important;letter-spacing:-.045em!important}
+.share-handle{font-size:calc(18px * var(--png-scale))!important;margin-top:calc(5px * var(--png-scale))!important}
+.share-stats{height:100%;align-self:stretch;gap:calc(18px * var(--png-scale))!important}
+.share-stats>div{height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;padding:calc(28px * var(--png-scale))!important;border-radius:calc(16px * var(--png-scale))!important}
+.share-stats b{font-size:calc(50px * var(--png-scale))!important;line-height:1!important}
+.share-stats span{font-size:calc(14px * var(--png-scale))!important;margin-top:calc(8px * var(--png-scale))!important}
 .share-section{height:100%;align-self:stretch}
 .share-calendar-module,.share-repos-module{height:100%;align-self:stretch}
-.share-calendar{height:100%;width:100%;box-sizing:border-box;grid-template-rows:repeat(7,minmax(0,1fr))!important;align-content:stretch}
-.share-repos{height:100%;width:100%;box-sizing:border-box;align-content:stretch}
+.share-section-head{font-size:calc(14px * var(--png-scale))!important;letter-spacing:.12em!important}
+.share-section-head small{font-size:calc(12px * var(--png-scale))!important}
+.share-calendar{height:100%;width:100%;box-sizing:border-box;grid-template-rows:repeat(7,minmax(0,1fr))!important;align-content:stretch;margin-top:calc(18px * var(--png-scale))!important;gap:calc(6px * var(--png-scale))!important}
+.share-repos{height:100%;width:100%;box-sizing:border-box;align-content:stretch;gap:calc(14px * var(--png-scale))!important;margin-top:calc(18px * var(--png-scale))!important}
+.share-repos div{padding:calc(24px * var(--png-scale))!important;border-radius:calc(14px * var(--png-scale))!important}
+.share-repos b{font-size:calc(24px * var(--png-scale))!important}
+.share-repos span{font-size:calc(14px * var(--png-scale))!important;margin-top:calc(7px * var(--png-scale))!important}
 
-/* Branding stays in the top-right and is deliberately prominent. */
-.share-brand{top:56px!important;right:64px!important;bottom:auto!important;font-size:60px!important;line-height:1!important;z-index:5;text-align:right}
-.share-brand small{font-size:15px!important;margin-top:8px!important}
+/* One intentional Gitbrag mark: top-right only. */
+.share-brand{top:calc(56px * var(--png-scale))!important;right:calc(64px * var(--png-scale))!important;bottom:auto!important;font-size:calc(60px * var(--png-scale))!important;line-height:1!important;z-index:5;text-align:right}
+.share-brand small{font-size:calc(15px * var(--png-scale))!important;margin-top:calc(8px * var(--png-scale))!important}
 
-/* Larger export typography. Keep sizes tied to the export canvas rather than browser viewport. */
-.share-kicker{font-size:18px!important;letter-spacing:.18em!important}
-.share-name{font-size:72px!important;line-height:1.02!important;letter-spacing:-.045em!important}
-.share-handle{font-size:18px!important;margin-top:5px}
-.share-avatar-ring{width:116px!important;height:116px!important;border-width:5px!important}
-.share-profile{gap:28px!important}
-.share-stats{gap:18px!important}
-.share-stats div{padding:28px!important;border-radius:16px!important}
-.share-stats b{font-size:50px!important;line-height:1!important}
-.share-stats span{font-size:14px!important;margin-top:8px}
-.share-section-head{font-size:14px!important;letter-spacing:.12em!important}
-.share-section-head small{font-size:12px!important}
-.share-calendar{margin-top:18px!important;gap:6px!important}
-.share-repos{gap:14px!important;margin-top:18px!important}
-.share-repos div{padding:24px!important;border-radius:14px!important}
-.share-repos b{font-size:24px!important}
-.share-repos span{font-size:14px!important;margin-top:7px}
-
-/* Ratio selector pills. */
+/* Ratios are deliberately just ratios; the preview communicates the shape. */
 .layout-picker{display:block!important}
 .layout-picker>span{display:grid;gap:5px;margin-bottom:12px}
 .ratio-pills{display:flex;flex-wrap:wrap;gap:8px}
@@ -40,23 +32,35 @@
 .ratio-pill:hover{border-color:#3da9ff;color:#fff}
 .ratio-pill.active{background:#3da9ff;border-color:#3da9ff;color:#fff}
 
-/* Square: use the full canvas instead of leaving the content at intrinsic height. */
-.layout-square .mods-profile-stats-calendar-repos .share-content{grid-template-rows:minmax(0,.8fr) minmax(0,1.05fr) minmax(0,2.15fr)!important}
-.layout-square .mods-profile-stats-calendar .share-content{grid-template-rows:minmax(0,.8fr) minmax(0,1.05fr) minmax(0,2.15fr)!important}
-.layout-square .mods-profile-stats-repos .share-content{grid-template-rows:minmax(0,.8fr) minmax(0,1.05fr) minmax(0,2.15fr)!important}
-.layout-square .mods-profile-calendar-repos .share-content{grid-template-rows:minmax(0,.8fr) minmax(0,2.2fr)!important}
-.layout-square .mods-stats-calendar-repos .share-content{grid-template-rows:minmax(0,1.05fr) minmax(0,2.2fr)!important}
+/* The composition uses the entire canvas. Ratios determine the proportions, not fixed content heights. */
 .layout-square .mods-profile-stats .share-content,.layout-square .mods-profile-calendar .share-content,.layout-square .mods-profile-repos .share-content,.layout-square .mods-stats-calendar .share-content,.layout-square .mods-stats-repos .share-content,.layout-square .mods-calendar-repos .share-content{grid-template-rows:minmax(0,1fr) minmax(0,2fr)!important}
+.layout-square .mods-profile-stats-calendar-repos .share-content,.layout-square .mods-profile-stats-calendar .share-content,.layout-square .mods-profile-stats-repos .share-content{grid-template-rows:minmax(0,.75fr) minmax(0,1fr) minmax(0,2.25fr)!important}
+.layout-square .mods-profile-calendar-repos .share-content{grid-template-rows:minmax(0,.75fr) minmax(0,2.25fr)!important}
+.layout-square .mods-stats-calendar-repos .share-content{grid-template-rows:minmax(0,1fr) minmax(0,2.25fr)!important}
 .layout-square .mods-profile .share-content,.layout-square .mods-stats .share-content,.layout-square .mods-calendar .share-content,.layout-square .mods-repos .share-content{grid-template-rows:1fr!important}
-.layout-square .share-calendar{grid-template-rows:repeat(7,minmax(0,1fr))!important}
 
-/* Keep tall and wide presets equally dense. */
-.layout-portrait .share-calendar,.layout-story .share-calendar,.layout-pinterest .share-calendar,.layout-landscape .share-calendar,.layout-socialwide .share-calendar{height:100%;grid-template-rows:repeat(7,minmax(0,1fr))!important}
-.layout-portrait .share-stats,.layout-story .share-stats,.layout-pinterest .share-stats,.layout-landscape .share-stats,.layout-socialwide .share-stats{height:100%}
+.layout-portrait .share-content,.layout-pinterest .share-content{gap:calc(28px * var(--png-scale))!important}
+.layout-portrait .mods-profile-stats-calendar-repos .share-content,.layout-pinterest .mods-profile-stats-calendar-repos .share-content{grid-template-rows:minmax(0,.6fr) minmax(0,.8fr) minmax(0,1.55fr) minmax(0,1.25fr)!important}
+.layout-portrait .mods-profile-stats-calendar .share-content,.layout-pinterest .mods-profile-stats-calendar .share-content{grid-template-rows:minmax(0,.65fr) minmax(0,.8fr) minmax(0,1.9fr)!important}
+.layout-portrait .mods-profile-stats-repos .share-content,.layout-pinterest .mods-profile-stats-repos .share-content{grid-template-rows:minmax(0,.65fr) minmax(0,.8fr) minmax(0,1.9fr)!important}
+.layout-portrait .mods-profile-calendar-repos .share-content,.layout-pinterest .mods-profile-calendar-repos .share-content{grid-template-rows:minmax(0,.7fr) minmax(0,1.6fr) minmax(0,1.4fr)!important}
+.layout-portrait .mods-stats-calendar-repos .share-content,.layout-pinterest .mods-stats-calendar-repos .share-content{grid-template-rows:minmax(0,.8fr) minmax(0,1.6fr) minmax(0,1.4fr)!important}
+.layout-portrait .mods-profile-stats .share-content,.layout-pinterest .mods-profile-stats .share-content,.layout-portrait .mods-profile-calendar .share-content,.layout-pinterest .mods-profile-calendar .share-content,.layout-portrait .mods-profile-repos .share-content,.layout-pinterest .mods-profile-repos .share-content,.layout-portrait .mods-stats-calendar .share-content,.layout-pinterest .mods-stats-calendar .share-content,.layout-portrait .mods-stats-repos .share-content,.layout-pinterest .mods-stats-repos .share-content,.layout-portrait .mods-calendar-repos .share-content,.layout-pinterest .mods-calendar-repos .share-content{grid-template-rows:minmax(0,1fr) minmax(0,2fr)!important}
+.layout-portrait .mods-profile .share-content,.layout-pinterest .mods-profile .share-content,.layout-portrait .mods-stats .share-content,.layout-pinterest .mods-stats .share-content,.layout-portrait .mods-calendar .share-content,.layout-pinterest .mods-calendar .share-content,.layout-portrait .mods-repos .share-content,.layout-pinterest .mods-repos .share-content{grid-template-rows:1fr!important}
 
-/* Wide canvas needs slightly tighter type to preserve hierarchy. */
-.layout-socialwide .share-name{font-size:58px!important}
-.layout-socialwide .share-stats b{font-size:42px!important}
-.layout-socialwide .share-brand{font-size:48px!important}
+.layout-story .share-content{gap:calc(32px * var(--png-scale))!important}
+.layout-story .mods-profile-stats-calendar-repos .share-content{grid-template-rows:minmax(0,.7fr) minmax(0,.8fr) minmax(0,1.6fr) minmax(0,1.35fr)!important}
+.layout-story .mods-profile-stats-calendar .share-content,.layout-story .mods-profile-stats-repos .share-content{grid-template-rows:minmax(0,.7fr) minmax(0,.8fr) minmax(0,2fr)!important}
+.layout-story .mods-profile-calendar-repos .share-content,.layout-story .mods-stats-calendar-repos .share-content{grid-template-rows:minmax(0,.8fr) minmax(0,1.7fr) minmax(0,1.4fr)!important}
+.layout-story .mods-profile-stats .share-content,.layout-story .mods-profile-calendar .share-content,.layout-story .mods-profile-repos .share-content,.layout-story .mods-stats-calendar .share-content,.layout-story .mods-stats-repos .share-content,.layout-story .mods-calendar-repos .share-content{grid-template-rows:minmax(0,1fr) minmax(0,2fr)!important}
+.layout-story .share-stats{grid-template-columns:repeat(2,1fr);height:100%}
+.layout-story .share-stats>div{display:flex;flex-direction:column;justify-content:center}
 
-@media(max-width:700px){.ratio-pills{width:100%}.ratio-pill{flex:1 0 auto;text-align:center}.layout-picker{align-items:stretch}}
+.layout-landscape .share-content,.layout-socialwide .share-content{gap:calc(30px * var(--png-scale))!important}
+.layout-landscape .share-name,.layout-socialwide .share-name{font-size:calc(72px * var(--png-scale))!important}
+.layout-landscape .share-stats b,.layout-socialwide .share-stats b{font-size:calc(50px * var(--png-scale))!important}
+
+.preview-card{position:relative!important;left:auto!important;top:auto!important;margin:0!important;transform-origin:top left!important;flex:none!important;width:var(--preview-w)!important;height:var(--preview-h)!important;min-height:0!important}
+.export-card{box-sizing:border-box!important}
+
+@media(max-width:700px){.ratio-pills{width:100%}.ratio-pill{flex:1 0 auto;text-align:center}}
