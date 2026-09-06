@@ -20,11 +20,11 @@
       <form id="searchForm" class="search">
         <div class="input-wrap">
           <span>@</span>
-          <input id="username" autocomplete="off" placeholder="github username" aria-label="GitHub username" required>
+          <input id="username" autocomplete="off" placeholder="username or github.com/username" aria-label="GitHub username or profile URL" required>
         </div>
         <button type="submit">Generate stats</button>
       </form>
-      <p class="hint">Try any public GitHub username.</p>
+      <p class="hint">Enter a username or paste a GitHub profile link.</p>
     </section>
 
     <section id="loadingView" class="loading hidden">
@@ -62,18 +62,27 @@
       <div id="extraStats" class="extra-grid"></div>
 
       <div class="section-title">
+        <span>CONTRIBUTION CALENDAR</span>
+        <span>LAST YEAR</span>
+      </div>
+      <div class="calendar-card">
+        <img id="contributionGraph" alt="GitHub contribution calendar">
+        <a id="githubProfile" target="_blank" rel="noreferrer">View on GitHub ↗</a>
+      </div>
+
+      <div class="section-title">
         <span>YOUR GITHUB AT A GLANCE</span>
         <span id="periodLabel"></span>
       </div>
       <div id="repos" class="repo-list"></div>
 
-      <footer>Gitbrag uses GitHub’s public API. Stats are based on publicly available activity.</footer>
+      <footer>Gitbrag uses GitHub’s public API. Commit, issue, and pull-request totals are public activity counts and may differ from GitHub’s contribution graph rules.</footer>
     </section>
 
     <section id="errorView" class="error hidden">
       <div class="brand">GIT<span>BRAG</span></div>
       <h2>Couldn’t find that user.</h2>
-      <p id="errorText">Check the username and try again.</p>
+      <p id="errorText">Check the username or GitHub link and try again.</p>
       <button id="errorBack">Try again</button>
     </section>
   </main>
