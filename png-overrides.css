@@ -1,0 +1,27 @@
+/* Final PNG layout overrides */
+.share-card{position:fixed;box-sizing:border-box;overflow:hidden}
+.share-content{height:100%;min-height:0;align-items:stretch;align-content:stretch}
+.share-content>.share-profile,.share-content>.share-stats,.share-content>.share-section{align-self:stretch;min-height:0}
+.share-profile{display:flex;align-items:center}
+.share-stats{height:100%;align-self:stretch}
+.share-stats>div{height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center}
+.share-section{height:100%;align-self:stretch}
+.share-calendar-module,.share-repos-module{height:100%;align-self:stretch}
+.share-calendar{height:100%;width:100%;box-sizing:border-box;grid-template-rows:repeat(7,minmax(0,1fr))!important;align-content:stretch}
+.share-repos{height:100%;width:100%;box-sizing:border-box;align-content:stretch}
+.share-brand{top:clamp(34px,4vw,64px)!important;right:clamp(34px,4vw,64px)!important;bottom:auto!important;font-size:clamp(32px,3.4vw,52px)!important;line-height:1!important;z-index:5;text-align:right}
+.share-brand small{font-size:clamp(11px,1vw,16px)!important;margin-top:7px!important}
+
+/* Square: use the full canvas instead of leaving the calendar row at intrinsic height. */
+.layout-square .mods-profile-stats-calendar-repos .share-content{grid-template-rows:minmax(0,.8fr) minmax(0,1.05fr) minmax(0,2.15fr)!important}
+.layout-square .mods-profile-stats-calendar .share-content{grid-template-rows:minmax(0,.8fr) minmax(0,1.05fr) minmax(0,2.15fr)!important}
+.layout-square .mods-profile-stats-repos .share-content{grid-template-rows:minmax(0,.8fr) minmax(0,1.05fr) minmax(0,2.15fr)!important}
+.layout-square .mods-profile-calendar-repos .share-content{grid-template-rows:minmax(0,.8fr) minmax(0,2.2fr)!important}
+.layout-square .mods-stats-calendar-repos .share-content{grid-template-rows:minmax(0,1.05fr) minmax(0,2.2fr)!important}
+.layout-square .mods-profile-stats .share-content,.layout-square .mods-profile-calendar .share-content,.layout-square .mods-profile-repos .share-content,.layout-square .mods-stats-calendar .share-content,.layout-square .mods-stats-repos .share-content,.layout-square .mods-calendar-repos .share-content{grid-template-rows:minmax(0,1fr) minmax(0,2fr)!important}
+.layout-square .mods-profile .share-content,.layout-square .mods-stats .share-content,.layout-square .mods-calendar .share-content,.layout-square .mods-repos .share-content{grid-template-rows:1fr!important}
+.layout-square .share-calendar{grid-template-rows:repeat(7,minmax(0,1fr))!important}
+
+/* Keep tall and wide presets equally dense. */
+.layout-portrait .share-calendar,.layout-story .share-calendar,.layout-pinterest .share-calendar,.layout-landscape .share-calendar,.layout-socialwide .share-calendar{height:100%;grid-template-rows:repeat(7,minmax(0,1fr))!important}
+.layout-portrait .share-stats,.layout-story .share-stats,.layout-pinterest .share-stats,.layout-landscape .share-stats,.layout-socialwide .share-stats{height:100%}
