@@ -7,11 +7,13 @@ Gitbrag is a lightweight, GitHub Pages-friendly dashboard that turns a GitHub pr
 - Search by GitHub username
 - Paste a GitHub profile URL
 - Share a generated profile with a URL hash
-- View 24H, 7D, 1M, 6M, 1Y, and lifetime stats
-- Count public commits, pull requests, and issues with GitHub's search APIs
-- Show recent public review activity
-- Show the user's GitHub contribution calendar
+- View 24H, 7D, 1M, 6M, 1Y, and lifetime contribution stats
+- Show GitHub contribution totals, active days, best day, and streaks
+- Show a custom contribution heatmap
 - Show public repositories, stars, followers, account age, and repository details
+- Automatically derives the page accent/theme from the user's profile picture when the browser permits canvas access
+- Build a shareable PNG in the browser
+- Choose which PNG modules to include: profile, headline, stats, contribution calendar, repositories, and branding
 - Runs as a static site with no database or self-hosted server
 
 ## Run locally
@@ -32,13 +34,13 @@ Gitbrag is designed to run directly from GitHub Pages. In the repository setting
 
 ## Data and limitations
 
-Gitbrag only requests publicly available GitHub data from the browser. It does not ask users for a GitHub token and does not store user data.
+Gitbrag only requests publicly available data from the browser. It does not ask users for a GitHub token and does not store user data.
 
-Commit, pull-request, and issue counts are calculated with GitHub's public REST search APIs. They are useful public-activity counts, but they are not guaranteed to exactly match GitHub's own contribution graph because GitHub applies additional contribution rules.
+Basic profile and repository information comes from GitHub's public REST API. Contribution history comes from the public `github-contributions-api.jogruber.de` service, which retrieves the contribution history shown by public GitHub profiles and caches results. This avoids hammering GitHub's restrictive unauthenticated search endpoints and gives Gitbrag historical contribution data instead of pretending the recent Events API contains a full history.
 
-GitHub's public Events API is intentionally limited to recent activity, so Gitbrag does not pretend that it can derive historical review/push-event totals from that endpoint. The contribution calendar is displayed directly from GitHub's public profile contribution graphic.
+The contribution API is a third-party service, so its availability and caching are outside Gitbrag's control. GitHub's own contribution rules still determine the underlying public contribution graph.
 
-Public GitHub API rate limits also apply. If a visitor makes many searches in a short period, GitHub may temporarily reject requests.
+PNG generation is entirely client-side using html2canvas. Nothing is uploaded to a server when a user creates an image.
 
 ## Stack
 
@@ -46,5 +48,6 @@ Public GitHub API rate limits also apply. If a visitor makes many searches in a 
 - CSS
 - Vanilla JavaScript
 - GitHub REST API
-- GitHub public contribution graph
+- GitHub public contribution data
+- html2canvas
 - GitHub Pages
