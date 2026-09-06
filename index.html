@@ -29,8 +29,8 @@
 
     <section id="loadingView" class="loading hidden">
       <div class="spinner"></div>
-      <h2>Crunching the commits...</h2>
-      <p id="loadingText">Finding your GitHub activity.</p>
+      <h2>Building your Gitbrag...</h2>
+      <p id="loadingText">Finding your profile.</p>
     </section>
 
     <section id="profileView" class="profile hidden">
@@ -66,8 +66,8 @@
         <span>LAST YEAR</span>
       </div>
       <div class="calendar-card">
-        <img id="contributionGraph" alt="GitHub contribution calendar">
-        <a id="githubProfile" target="_blank" rel="noreferrer">View on GitHub ↗</a>
+        <div id="contributionGraph" class="contribution-graph" aria-label="GitHub contribution calendar"></div>
+        <div class="calendar-footer"><span id="calendarTotal"></span><a id="githubProfile" target="_blank" rel="noreferrer">View on GitHub ↗</a></div>
       </div>
 
       <div class="section-title">
@@ -76,7 +76,11 @@
       </div>
       <div id="repos" class="repo-list"></div>
 
-      <footer>Gitbrag uses GitHub’s public API. Commit, issue, and pull-request totals are public activity counts and may differ from GitHub’s contribution graph rules.</footer>
+      <div class="profile-actions">
+        <button id="pngBtn" class="primary-action">Create shareable PNG</button>
+      </div>
+
+      <footer>Gitbrag uses public GitHub data. Contribution totals follow GitHub’s public contribution graph.</footer>
     </section>
 
     <section id="errorView" class="error hidden">
@@ -86,6 +90,28 @@
       <button id="errorBack">Try again</button>
     </section>
   </main>
+
+  <div id="pngModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="pngTitle">
+      <div class="modal-head"><div><p class="eyebrow">SHAREABLE PNG</p><h2 id="pngTitle">Build your card.</h2></div><button id="closePng" class="modal-close" aria-label="Close">×</button></div>
+      <p class="modal-copy">Choose exactly what you want included. Gitbrag builds the image in your browser.</p>
+      <div class="module-list">
+        <label><input type="checkbox" data-module="profile" checked><span><b>Profile</b><small>Avatar, name and username</small></span></label>
+        <label><input type="checkbox" data-module="headline" checked><span><b>Headline</b><small>Your selected period and contribution total</small></span></label>
+        <label><input type="checkbox" data-module="stats" checked><span><b>Stats</b><small>Contribution, repositories, stars and followers</small></span></label>
+        <label><input type="checkbox" data-module="calendar" checked><span><b>Contribution calendar</b><small>Your last-year activity heatmap</small></span></label>
+        <label><input type="checkbox" data-module="repos"><span><b>Top repositories</b><small>Your most-starred public repositories</small></span></label>
+        <label><input type="checkbox" data-module="branding" checked><span><b>Gitbrag branding</b><small>Small footer mark</small></span></label>
+      </div>
+      <div id="sharePreview" class="share-preview"></div>
+      <div class="modal-actions"><button id="downloadPng" class="primary-action">Download PNG</button></div>
+    </section>
+  </div>
+
+  <div id="shareCard" class="share-card" aria-hidden="true"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" crossorigin="anonymous"></script>
   <script src="app.js"></script>
 </body>
 </html>
