@@ -8,8 +8,9 @@
 .share-handle{font-size:calc(18px * var(--png-scale))!important;margin-top:calc(5px * var(--png-scale))!important}
 .share-stats{height:100%;align-self:stretch;gap:calc(18px * var(--png-scale))!important}
 .share-stats>div{height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;padding:calc(28px * var(--png-scale))!important;border-radius:calc(16px * var(--png-scale))!important}
-.share-stats b{font-size:calc(50px * var(--png-scale))!important;line-height:1!important}
-.share-stats span{font-size:calc(14px * var(--png-scale))!important;margin-top:calc(8px * var(--png-scale))!important}
+/* Stats are intentionally dominant: the number should consume the space available in its card. */
+.share-stats b{font-size:calc(132px * var(--png-scale))!important;line-height:.82!important;letter-spacing:-.065em!important;white-space:nowrap!important}
+.share-stats span{font-size:calc(16px * var(--png-scale))!important;margin-top:calc(18px * var(--png-scale))!important;letter-spacing:.1em!important}
 .share-section{height:100%;align-self:stretch}
 .share-calendar-module,.share-repos-module{height:100%;align-self:stretch}
 .share-section-head{font-size:calc(14px * var(--png-scale))!important;letter-spacing:.12em!important}
@@ -58,7 +59,7 @@
 
 .layout-landscape .share-content,.layout-socialwide .share-content{gap:calc(30px * var(--png-scale))!important}
 .layout-landscape .share-name,.layout-socialwide .share-name{font-size:calc(72px * var(--png-scale))!important}
-.layout-landscape .share-stats b,.layout-socialwide .share-stats b{font-size:calc(50px * var(--png-scale))!important}
+.layout-landscape .share-stats b,.layout-socialwide .share-stats b{font-size:calc(132px * var(--png-scale))!important}
 
 .preview-card{position:relative!important;left:auto!important;top:auto!important;margin:0!important;transform-origin:top left!important;flex:none!important;width:var(--preview-w)!important;height:var(--preview-h)!important;min-height:0!important}
 .export-card{box-sizing:border-box!important}
