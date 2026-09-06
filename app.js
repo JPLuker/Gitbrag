@@ -5,49 +5,104 @@ let data=null, period='week';
 
 function show(name){Object.entries(views).forEach(([k,v])=>v.classList.toggle('hidden',k!==name));window.scrollTo(0,0)}
 function sinceFor(p){const d=new Date();const ms={day:864e5,week:7*864e5,month:30*864e5,sixmonths:182*864e5,year:365*864e5};return p==='lifetime'?new Date(0):new Date(d-ms[p])}
-function fmt(n){return new Intl.NumberFormat().format(n)}
-async function api(path){const r=await fetch(API+path,{headers:{Accept:'application/vnd.github+json'}});if(!r.ok)throw new Error(r.status===404?'User not found.':`GitHub API error (${r.status}).`);return r.json()}
+function fmt(n){return new Intl.NumberFormat().format(n||0)}
+async function api(path){const r=await fetch(API+path,{headers:{Accept:'application/vnd.github+json'}});if(!r.ok)throw new Error(r.status===404?'User not found.':r.status===403?'GitHub rate limit reached. Try again in a little while.':`GitHub API error (${r.status}).`);return r.json()}
+function parseInput(value){
+  let v=value.trim();
+  v=v.replace(/^@/,'');
+  try{
+    if(/^https?:\/\//i.test(v)){
+      const u=new URL(v);
+      if(u.hostname.toLowerCase()!=='github.com') throw new Error('Please enter a github.com profile link.');
+      v=u.pathname.split('/').filter(Boolean)[0]||'';
+    }else if(v.toLowerCase().startsWith('github.com/')){
+      v=v.split('/').filter(Boolean)[1]||'';
+    }
+  }catch(e){throw e}
+  if(!/^[a-zA-Z0-9-]+$/.test(v))throw new Error('Enter a GitHub username or profile link.');
+  return v;
+}
 
-async function load(username){
+async function load(input){
   show('loading');$('#loadingText').textContent='Finding your profile...';
   try{
+    const username=parseInput(input);
     const user=await api(`/users/${encodeURIComponent(username)}`);
-    $('#loadingText').textContent='Counting your public activity...';
-    const [repos,events]=await Promise.all([api(`/users/${encodeURIComponent(username)}/repos?per_page=100&sort=pushed`),api(`/users/${encodeURIComponent(username)}/events/public?per_page=100`)]);
-    data={user,repos,events};
-    render();show('profile');
+    $('#loadingText').textContent='Counting public activity...';
+    const repos=[];
+    for(let page=1;page<=10;page++){
+      const batch=await api(`/users/${encodeURIComponent(username)}/repos?per_page=100&page=${page}&type=owner&sort=pushed`);
+      repos.push(...batch);
+      if(batch.length<100)break;
+    }
+    data={user,repos};
+    $('#loadingText').textContent='Loading contribution calendar...';
+    render();
+    show('profile');
+    location.hash='/'+encodeURIComponent(user.login);
   }catch(e){$('#errorText').textContent=e.message;show('error')}
 }
 
-function activityFor(p){
-  const start=sinceFor(p); const ev=data.events.filter(e=>new Date(e.created_at)>=start);
-  let commits=0,prs=0,issues=0,reviews=0,pushes=0;
-  ev.forEach(e=>{
-    if(e.type==='PushEvent'){pushes++;commits+=(e.payload?.commits||[]).length}
-    if(e.type==='PullRequestEvent' && ['opened','closed','reopened'].includes(e.payload?.action))prs++;
-    if(e.type==='IssuesEvent' && ['opened','closed','reopened'].includes(e.payload?.action))issues++;
-    if(e.type==='PullRequestReviewEvent')reviews++;
-  });
+function searchQuery(type,p){
+  const start=sinceFor(p);const end=new Date();
+  const startIso=start.toISOString().slice(0,10);const endIso=end.toISOString().slice(0,10);
+  const user=data.user.login;
+  if(type==='commits')return `author:${user}+committer-date:${startIso}..${endIso}`;
+  if(type==='prs')return `author:${user}+type:pr+created:${startIso}..${endIso}`;
+  return `author:${user}+type:issue+created:${startIso}..${endIso}`;
+}
+async function searchCount(q){
+  const r=await api(`/search/issues?q=${encodeURIComponent(q)}&per_page=1`);
+  return r.total_count||0;
+}
+async function commitCount(p){
+  const q=searchQuery('commits',p);
+  const r=await fetch(API+`/search/commits?q=${encodeURIComponent(q)}&per_page=1`,{headers:{Accept:'application/vnd.github+json'}});
+  if(!r.ok){if(r.status===422)return 0;throw new Error(r.status===403?'GitHub rate limit reached. Try again in a little while.':`GitHub API error (${r.status}).`)}
+  return (await r.json()).total_count||0;
+}
+async function activityFor(p){
+  if(p==='lifetime'){
+    const [commits,prs,issues]=await Promise.all([commitCount(p),searchCount(searchQuery('prs',p)),searchCount(searchQuery('issues',p))]);
+    return {commits,prs,issues,reviews:null,pushes:null,events:null};
+  }
+  const [commits,prs,issues]=await Promise.all([commitCount(p),searchCount(searchQuery('prs',p)),searchCount(searchQuery('issues',p))]);
+  const start=sinceFor(p);
+  const recent=data.recentEvents||[];
+  const ev=recent.filter(e=>new Date(e.created_at)>=start);
+  const reviews=ev.filter(e=>e.type==='PullRequestReviewEvent').length;
+  const pushes=ev.filter(e=>e.type==='PushEvent').length;
   return {commits,prs,issues,reviews,pushes,events:ev};
 }
-
 function lifetime(){
   const u=data.user;
   return {repos:u.public_repos,followers:u.followers,following:u.following,stars:data.repos.reduce((a,r)=>a+(r.stargazers_count||0),0)}
 }
 function render(){
   const u=data.user;$('#avatar').src=u.avatar_url;$('#displayName').textContent=u.name||u.login;$('#handle').textContent='@'+u.login+(u.bio?' · '+u.bio:'');
+  $('#githubProfile').href=u.html_url;
+  // GitHub's public contribution graph is available as an image without exposing credentials.
+  $('#contributionGraph').src=`https://github.com/users/${encodeURIComponent(u.login)}/contributions`;
   renderStats();renderRepos();
 }
-function renderStats(){
-  const a=activityFor(period), life=lifetime(), labels={day:'Last 24 hours',week:'Last 7 days',month:'Last month',sixmonths:'Last 6 months',year:'Last year',lifetime:'Lifetime'};
+async function renderStats(){
+  const labels={day:'Last 24 hours',week:'Last 7 days',month:'Last month',sixmonths:'Last 6 months',year:'Last year',lifetime:'Lifetime'};
   $('#periodLabel').textContent=labels[period].toUpperCase();
-  let cards;
-  if(period==='lifetime') cards=[['PUBLIC REPOS',life.repos,'repositories'],['STARS',life.stars,'across your public repos'],['FOLLOWERS',life.followers,'people following you'],['FOLLOWING',life.following,'people you follow']];
-  else cards=[['COMMITS',a.commits,'public activity returned by GitHub'],['PULL REQUESTS',a.prs,'opened / closed / reopened'],['ISSUES',a.issues,'opened / closed / reopened'],['REVIEWS',a.reviews,'pull-request reviews']];
-  $('#statsGrid').innerHTML=cards.map(c=>`<div class="stat"><div class="label">${c[0]}</div><div class="value">${fmt(c[1])}</div><div class="note">${c[2]}</div></div>`).join('');
-  const extras=period==='lifetime'?[['TOTAL STARS',life.stars],['PUBLIC REPOSITORIES',life.repos],['ACCOUNT AGE',age(u.created_at)]]:[['PUSH EVENTS',a.pushes],['TOTAL ACTIVITY EVENTS',a.events.length],['ACTIVE REPOS',new Set(a.events.map(e=>e.repo?.name).filter(Boolean)).size]];
-  $('#extraStats').innerHTML=extras.map(x=>`<div class="extra"><b>${typeof x[1]==='number'?fmt(x[1]):x[1]}</b><span>${x[0]}</span></div>`).join('');
+  $('#statsGrid').innerHTML='<div class="stat loading-stat"><div class="label">COMMITS</div><div class="value">…</div><div class="note">counting public commits</div></div><div class="stat loading-stat"><div class="label">PULL REQUESTS</div><div class="value">…</div><div class="note">opened by you</div></div><div class="stat loading-stat"><div class="label">ISSUES</div><div class="value">…</div><div class="note">opened by you</div></div><div class="stat loading-stat"><div class="label">REVIEWS</div><div class="value">—</div><div class="note">recent public reviews</div></div>';
+  $('#extraStats').innerHTML='<div class="extra"><b>…</b><span>CALCULATING</span></div><div class="extra"><b>…</b><span>CALCULATING</span></div><div class="extra"><b>…</b><span>CALCULATING</span></div>';
+  try{
+    const [a,events]=await Promise.all([activityFor(period),api(`/users/${encodeURIComponent(data.user.login)}/events/public?per_page=100`)]);
+    data.recentEvents=events;
+    const refreshed=await activityFor(period);
+    const life=lifetime();
+    const cards=period==='lifetime'?[['COMMITS',refreshed.commits,'public commits found'],['PULL REQUESTS',refreshed.prs,'opened by you'],['ISSUES',refreshed.issues,'opened by you'],['REVIEWS','—','not available historically']]:[['COMMITS',refreshed.commits,'public commits found'],['PULL REQUESTS',refreshed.prs,'opened by you'],['ISSUES',refreshed.issues,'opened by you'],['REVIEWS',refreshed.reviews,'public reviews in recent activity']];
+    $('#statsGrid').innerHTML=cards.map(c=>`<div class="stat"><div class="label">${c[0]}</div><div class="value">${typeof c[1]==='number'?fmt(c[1]):c[1]}</div><div class="note">${c[2]}</div></div>`).join('');
+    const extras=period==='lifetime'?[['PUBLIC REPOSITORIES',life.repos],['TOTAL STARS',life.stars],['ACCOUNT AGE',age(data.user.created_at)]]:[['PUSH EVENTS',refreshed.pushes],['TOTAL ACTIVITY EVENTS',refreshed.events.length],['ACTIVE REPOS',new Set(refreshed.events.map(e=>e.repo?.name).filter(Boolean)).size]];
+    $('#extraStats').innerHTML=extras.map(x=>`<div class="extra"><b>${typeof x[1]==='number'?fmt(x[1]):x[1]}</b><span>${x[0]}</span></div>`).join('');
+  }catch(e){
+    $('#statsGrid').innerHTML=`<div class="stats-message">${esc(e.message)}</div>`;
+    $('#extraStats').innerHTML='';
+  }
   document.querySelectorAll('.periods button').forEach(b=>b.classList.toggle('active',b.dataset.period===period));
 }
 function age(s){const y=(Date.now()-new Date(s))/31557600000;return `${y.toFixed(1)} years`}
@@ -58,8 +113,8 @@ function renderRepos(){
 }
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
-$('#searchForm').addEventListener('submit',e=>{e.preventDefault();const u=$('#username').value.trim().replace(/^@/,'');if(u)load(u)});
+$('#searchForm').addEventListener('submit',e=>{e.preventDefault();const value=$('#username').value.trim();if(value)load(value)});
 $('#backBtn').onclick=()=>show('search');$('#errorBack').onclick=()=>show('search');
 $('.periods').addEventListener('click',e=>{if(e.target.matches('button[data-period]')){period=e.target.dataset.period;renderStats();renderRepos()}});
-$('#shareBtn').onclick=async()=>{const url=location.href.split('#')[0]+'#/'+data.user.login;if(navigator.share)await navigator.share({title:`${data.user.login} on Gitbrag`,url});else{await navigator.clipboard.writeText(url);$('#shareBtn').textContent='Copied';setTimeout(()=>$('#shareBtn').textContent='Share',1500)}};
-const hash=location.hash.match(/^#\/(.+)$/);if(hash)load(hash[1]);
+$('#shareBtn').onclick=async()=>{const url=location.href.split('#')[0]+'#/'+encodeURIComponent(data.user.login);if(navigator.share)await navigator.share({title:`${data.user.login} on Gitbrag`,url});else{await navigator.clipboard.writeText(url);$('#shareBtn').textContent='Copied';setTimeout(()=>$('#shareBtn').textContent='Share',1500)}};
+const hash=location.hash.match(/^#\/(.+)$/);if(hash)load(decodeURIComponent(hash[1]));
