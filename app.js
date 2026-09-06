@@ -1,98 +1,40 @@
 const API='https://api.github.com';
+const CONTRIBUTIONS_API='https://github-contributions-api.jogruber.de/v4';
 const $=s=>document.querySelector(s);
 const views={search:$('#searchView'),loading:$('#loadingView'),profile:$('#profileView'),error:$('#errorView')};
-let data=null, period='week';
+let data=null, period='week', avatarDataUrl=null;
 
 function show(name){Object.entries(views).forEach(([k,v])=>v.classList.toggle('hidden',k!==name));window.scrollTo(0,0)}
 function sinceFor(p){const d=new Date();const ms={day:864e5,week:7*864e5,month:30*864e5,sixmonths:182*864e5,year:365*864e5};return p==='lifetime'?new Date(0):new Date(d-ms[p])}
 function fmt(n){return new Intl.NumberFormat().format(n||0)}
-async function api(path){const r=await fetch(API+path,{headers:{Accept:'application/vnd.github+json'}});if(!r.ok)throw new Error(r.status===404?'User not found.':r.status===403?'GitHub rate limit reached. Try again in a little while.':`GitHub API error (${r.status}).`);return r.json()}
-function parseInput(value){
-  let v=value.trim().replace(/^@/,'');
-  try{
-    if(/^https?:\/\//i.test(v)){
-      const u=new URL(v);
-      if(u.hostname.toLowerCase()!=='github.com') throw new Error('Please enter a github.com profile link.');
-      v=u.pathname.split('/').filter(Boolean)[0]||'';
-    }else if(v.toLowerCase().startsWith('github.com/')){
-      v=v.split('/').filter(Boolean)[1]||'';
-    }
-  }catch(e){throw e}
-  if(!/^[a-zA-Z0-9-]+$/.test(v))throw new Error('Enter a GitHub username or profile link.');
-  return v;
-}
-
-async function load(input){
-  show('loading');$('#loadingText').textContent='Finding your profile...';
-  try{
-    const username=parseInput(input);
-    const user=await api(`/users/${encodeURIComponent(username)}`);
-    $('#loadingText').textContent='Loading your repositories...';
-    const repos=[];
-    for(let page=1;page<=10;page++){
-      const batch=await api(`/users/${encodeURIComponent(username)}/repos?per_page=100&page=${page}&type=owner&sort=pushed`);
-      repos.push(...batch);
-      if(batch.length<100)break;
-    }
-    data={user,repos};
-    $('#loadingText').textContent='Loading contribution calendar...';
-    render();
-    show('profile');
-    location.hash='/'+encodeURIComponent(user.login);
-  }catch(e){$('#errorText').textContent=e.message;show('error')}
-}
-
-function searchQuery(type,p){
-  const start=sinceFor(p);const end=new Date();
-  const startIso=start.toISOString().slice(0,10);const endIso=end.toISOString().slice(0,10);
-  const user=data.user.login;
-  if(type==='commits')return `author:${user}+author-date:${startIso}..${endIso}`;
-  if(type==='prs')return `author:${user}+type:pr+created:${startIso}..${endIso}`;
-  return `author:${user}+type:issue+created:${startIso}..${endIso}`;
-}
-async function searchCount(q){const r=await api(`/search/issues?q=${encodeURIComponent(q)}&per_page=1`);return r.total_count||0}
-async function commitCount(p){
-  const r=await fetch(API+`/search/commits?q=${encodeURIComponent(searchQuery('commits',p))}&per_page=1`,{headers:{Accept:'application/vnd.github+json'}});
-  if(!r.ok){if(r.status===422)return 0;throw new Error(r.status===403?'GitHub rate limit reached. Try again in a little while.':`GitHub API error (${r.status}).`)}
-  return (await r.json()).total_count||0;
-}
-async function activityFor(p){
-  const [commits,prs,issues]=await Promise.all([commitCount(p),searchCount(searchQuery('prs',p)),searchCount(searchQuery('issues',p))]);
-  const start=sinceFor(p);const recent=data.recentEvents||[];const ev=recent.filter(e=>new Date(e.created_at)>=start);
-  return {commits,prs,issues,reviews:ev.filter(e=>e.type==='PullRequestReviewEvent').length,pushes:ev.filter(e=>e.type==='PushEvent').length,events:ev};
-}
-function lifetime(){const u=data.user;return {repos:u.public_repos,followers:u.followers,following:u.following,stars:data.repos.reduce((a,r)=>a+(r.stargazers_count||0),0)}}
-function render(){
-  const u=data.user;$('#avatar').src=u.avatar_url;$('#displayName').textContent=u.name||u.login;$('#handle').textContent='@'+u.login+(u.bio?' · '+u.bio:'');
-  $('#githubProfile').href=u.html_url;
-  $('#contributionGraph').src=`https://github.com/users/${encodeURIComponent(u.login)}/contributions`;
-  renderStats();renderRepos();
-}
-async function renderStats(){
-  const labels={day:'Last 24 hours',week:'Last 7 days',month:'Last month',sixmonths:'Last 6 months',year:'Last year',lifetime:'Lifetime'};
-  $('#periodLabel').textContent=labels[period].toUpperCase();
-  $('#statsGrid').innerHTML='<div class="stat loading-stat"><div class="label">COMMITS</div><div class="value">…</div><div class="note">counting public commits</div></div><div class="stat loading-stat"><div class="label">PULL REQUESTS</div><div class="value">…</div><div class="note">opened by you</div></div><div class="stat loading-stat"><div class="label">ISSUES</div><div class="value">…</div><div class="note">opened by you</div></div><div class="stat loading-stat"><div class="label">REVIEWS</div><div class="value">…</div><div class="note">recent public reviews</div></div>';
-  $('#extraStats').innerHTML='<div class="extra"><b>…</b><span>CALCULATING</span></div><div class="extra"><b>…</b><span>CALCULATING</span></div><div class="extra"><b>…</b><span>CALCULATING</span></div>';
-  try{
-    const events=await api(`/users/${encodeURIComponent(data.user.login)}/events/public?per_page=100`);data.recentEvents=events;
-    const a=await activityFor(period);const life=lifetime();
-    const cards=[['COMMITS',a.commits,'public commits found'],['PULL REQUESTS',a.prs,'opened by you'],['ISSUES',a.issues,'opened by you'],['REVIEWS',a.reviews,'public reviews in recent activity']];
-    $('#statsGrid').innerHTML=cards.map(c=>`<div class="stat"><div class="label">${c[0]}</div><div class="value">${fmt(c[1])}</div><div class="note">${c[2]}</div></div>`).join('');
-    const extras=period==='lifetime'?[['PUBLIC REPOSITORIES',life.repos],['TOTAL STARS',life.stars],['ACCOUNT AGE',age(data.user.created_at)]]:[['PUSH EVENTS',a.pushes],['TOTAL ACTIVITY EVENTS',a.events.length],['ACTIVE REPOS',new Set(a.events.map(e=>e.repo?.name).filter(Boolean)).size]];
-    $('#extraStats').innerHTML=extras.map(x=>`<div class="extra"><b>${typeof x[1]==='number'?fmt(x[1]):x[1]}</b><span>${x[0]}</span></div>`).join('');
-  }catch(e){$('#statsGrid').innerHTML=`<div class="stats-message">${esc(e.message)}</div>`;$('#extraStats').innerHTML=''}
-  document.querySelectorAll('.periods button').forEach(b=>b.classList.toggle('active',b.dataset.period===period));
-}
-function age(s){const y=(Date.now()-new Date(s))/31557600000;return `${y.toFixed(1)} years`}
-function renderRepos(){
-  const cutoff=sinceFor(period);let rs=data.repos.filter(r=>period==='lifetime'||new Date(r.pushed_at)>=cutoff).sort((a,b)=>b.stargazers_count-a.stargazers_count).slice(0,6);
-  if(!rs.length)rs=data.repos.slice(0,6);
-  $('#repos').innerHTML=rs.map(r=>`<article class="repo"><div class="repo-top"><a class="repo-name" href="${r.html_url}" target="_blank" rel="noreferrer">${esc(r.name)}</a><span class="repo-count">★ ${fmt(r.stargazers_count)}</span></div><div class="repo-desc">${esc(r.description||'No description')}</div><div class="repo-meta"><span>${r.language||'Unknown language'}</span><span>Forks <b>${fmt(r.forks_count)}</b></span><span>Issues <b>${fmt(r.open_issues_count)}</b></span></div></article>`).join('');
-}
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-
-$('#searchForm').addEventListener('submit',e=>{e.preventDefault();const value=$('#username').value.trim();if(value)load(value)});
-$('#backBtn').onclick=()=>show('search');$('#errorBack').onclick=()=>show('search');
-$('.periods').addEventListener('click',e=>{if(e.target.matches('button[data-period]')){period=e.target.dataset.period;renderStats();renderRepos()}});
-$('#shareBtn').onclick=async()=>{const url=location.href.split('#')[0]+'#/'+encodeURIComponent(data.user.login);if(navigator.share)await navigator.share({title:`${data.user.login} on Gitbrag`,url});else{await navigator.clipboard.writeText(url);$('#shareBtn').textContent='Copied';setTimeout(()=>$('#shareBtn').textContent='Share',1500)}};
-const hash=location.hash.match(/^#\/(.+)$/);if(hash)load(decodeURIComponent(hash[1]));
+async function api(path){const r=await fetch(API+path,{headers:{Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2026-03-10'}});if(!r.ok)throw new Error(r.status===404?'User not found.':r.status===403?'GitHub API is temporarily rate limited. Please try again shortly.':`GitHub API error (${r.status}).`);return r.json()}
+async function contributions(username){const r=await fetch(`${CONTRIBUTIONS_API}/${encodeURIComponent(username)}?y=all`);if(!r.ok)throw new Error('Could not load the GitHub contribution graph.');return r.json()}
+function parseInput(value){let v=value.trim().replace(/^@/,'');if(/^https?:\/\//i.test(v)||/^github\.com\//i.test(v)){const u=new URL(/^https?:\/\//i.test(v)?v:`https://${v}`);if(u.hostname.toLowerCase()!=='github.com')throw new Error('Please enter a github.com profile link.');v=u.pathname.split('/').filter(Boolean)[0]||''}if(!/^[a-zA-Z0-9-]+$/.test(v))throw new Error('Enter a GitHub username or profile link.');return v}
+async function load(input){show('loading');$('#loadingText').textContent='Finding your profile...';try{const username=parseInput(input);const user=await api(`/users/${encodeURIComponent(username)}`);$('#loadingText').textContent='Loading repositories...';const repos=[];for(let page=1;page<=3;page++){const batch=await api(`/users/${encodeURIComponent(username)}/repos?per_page=100&page=${page}&type=owner&sort=pushed`);repos.push(...batch);if(batch.length<100)break}$('#loadingText').textContent='Loading contributions...';let contributionData={total:{},contributions:[]};try{contributionData=await contributions(user.login)}catch(e){console.warn(e)}data={user,repos,contributionData};await applyTheme(user.avatar_url);render();show('profile');location.hash='/'+encodeURIComponent(user.login)}catch(e){$('#errorText').textContent=e.message;show('error')}}
+function contributionMap(){return new Map((data.contributionData.contributions||[]).map(x=>[x.date,x]))}
+function contributionCount(p){const start=sinceFor(p),end=new Date();return(data.contributionData.contributions||[]).filter(x=>{const d=new Date(`${x.date}T23:59:59`);return d>=start&&d<=end}).reduce((n,x)=>n+x.count,0)}
+function yearlyTotal(){return Object.values(data.contributionData.total||{}).reduce((n,x)=>n+Number(x||0),0)}
+function periodLabel(){return{day:'Last 24 hours',week:'Last 7 days',month:'Last month',sixmonths:'Last 6 months',year:'Last year',lifetime:'All time'}[period]}
+function lifeStats(){const u=data.user;return{repos:u.public_repos,followers:u.followers,following:u.following,stars:data.repos.reduce((a,r)=>a+(r.stargazers_count||0),0)}}
+async function applyTheme(url){try{const img=new Image();img.crossOrigin='anonymous';img.src=url;await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject});const c=document.createElement('canvas'),ctx=c.getContext('2d',{willReadFrequently:true});c.width=48;c.height=48;ctx.drawImage(img,0,0,48,48);const px=ctx.getImageData(0,0,48,48).data,bins=new Map();for(let i=0;i<px.length;i+=16){const q=rgbToHsl(px[i],px[i+1],px[i+2]);if(q.l<.12||q.l>.9||q.s<.25)continue;const key=Math.round(q.h*24)/24;bins.set(key,(bins.get(key)||0)+q.s*(.4+q.l)*100)}let hue=.25,best=-1;for(const [h,score] of bins){if(score>best){best=score;hue=Number(h)}}document.documentElement.style.setProperty('--accent',hsl(hue,.9,.62));document.documentElement.style.setProperty('--accent2',hsl(hue,.75,.72));document.documentElement.style.setProperty('--bg',hsl(hue,.22,.045));document.documentElement.style.setProperty('--panel',hsl(hue,.18,.075));document.documentElement.style.setProperty('--panel2',hsl(hue,.18,.105));document.documentElement.style.setProperty('--line',hsl(hue,.16,.16));avatarDataUrl=await imageToDataUrl(img)}catch(e){console.warn('Could not extract avatar colors; using default theme.',e)}}
+function rgbToHsl(r,g,b){r/=255;g/=255;b/=255;const max=Math.max(r,g,b),min=Math.min(r,g,b);let h=0,s=0;const l=(max+min)/2;if(max!==min){const d=max-min;s=l>.5?d/(2-max-min):d/(max+min);switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;default:h=(r-g)/d+4}h/=6}return{h,s,l}}
+function hsl(h,s,l){return`hsl(${Math.round(h*360)} ${Math.round(s*100)}% ${Math.round(l*100)}%)`}
+async function imageToDataUrl(img){const c=document.createElement('canvas');c.width=img.naturalWidth||img.width;c.height=img.naturalHeight||img.height;c.getContext('2d').drawImage(img,0,0);return c.toDataURL('image/png')}
+function render(){const u=data.user;$('#avatar').src=u.avatar_url;$('#displayName').textContent=u.name||u.login;$('#handle').textContent='@'+u.login+(u.bio?' · '+u.bio:'');$('#githubProfile').href=u.html_url;renderStats();renderCalendar();renderRepos()}
+function renderStats(){const count=contributionCount(period),life=lifeStats();$('#periodLabel').textContent=periodLabel().toUpperCase();const cards=period==='lifetime'?[['CONTRIBUTIONS',yearlyTotal(),'total GitHub contributions'],['PUBLIC REPOS',life.repos,'public repositories'],['STARS',life.stars,'stars in loaded repos'],['FOLLOWERS',life.followers,'people following you']]:[['CONTRIBUTIONS',count,'GitHub contribution activity'],['ACTIVE DAYS',activeDays(period),'days with activity'],['BEST DAY',bestDay(period),'contributions in one day'],['LONGEST STREAK',longestStreak(),'consecutive active days']];$('#statsGrid').innerHTML=cards.map(c=>`<div class="stat"><div class="label">${c[0]}</div><div class="value">${typeof c[1]==='number'?fmt(c[1]):esc(c[1])}</div><div class="note">${c[2]}</div></div>`).join('');const extras=period==='lifetime'?[['ACCOUNT AGE',age(data.user.created_at)],['FOLLOWING',life.following],['TOP REPO',topRepoName()]]:[['PUBLIC REPOSITORIES',life.repos],['FOLLOWERS',life.followers],['TOTAL CONTRIBUTIONS',yearlyTotal()]];$('#extraStats').innerHTML=extras.map(x=>`<div class="extra"><b>${typeof x[1]==='number'?fmt(x[1]):esc(x[1])}</b><span>${x[0]}</span></div>`).join('');document.querySelectorAll('.periods button').forEach(b=>b.classList.toggle('active',b.dataset.period===period))}
+function activeDays(p){const start=sinceFor(p);return(data.contributionData.contributions||[]).filter(x=>new Date(`${x.date}T23:59:59`)>=start&&x.count>0).length}
+function bestDay(p){const start=sinceFor(p);return(data.contributionData.contributions||[]).filter(x=>new Date(`${x.date}T23:59:59`)>=start).reduce((m,x)=>Math.max(m,x.count),0)}
+function longestStreak(){let best=0,run=0;const arr=[...(data.contributionData.contributions||[])].sort((a,b)=>a.date.localeCompare(b.date));for(const x of arr){if(x.count>0)run++;else run=0;best=Math.max(best,run)}return best}
+function age(s){return`${((Date.now()-new Date(s))/31557600000).toFixed(1)} years`}
+function topRepoName(){return[...data.repos].sort((a,b)=>(b.stargazers_count||0)-(a.stargazers_count||0))[0]?.name||'—'}
+function renderCalendar(){const map=contributionMap(),graph=$('#contributionGraph');graph.innerHTML='';const end=new Date();end.setHours(23,59,59,999);const start=new Date(end);start.setDate(start.getDate()-364);start.setDate(start.getDate()-start.getDay());const days=[];for(let i=0;i<371;i++){const d=new Date(start);d.setDate(start.getDate()+i);if(d>end)break;const key=d.toISOString().slice(0,10),item=map.get(key)||{count:0,level:0};days.push({date:key,...item})}const weeks=Math.ceil(days.length/7);graph.style.gridTemplateColumns=`repeat(${weeks},1fr)`;days.forEach(x=>{const cell=document.createElement('span');cell.className=`contrib-cell level-${x.level}`;cell.title=`${x.count} contribution${x.count===1?'':'s'} · ${x.date}`;graph.appendChild(cell)});$('#calendarTotal').textContent=`${fmt(contributionCount('year'))} contributions in the last year`}
+function renderRepos(){const rs=[...data.repos].sort((a,b)=>(b.stargazers_count||0)-(a.stargazers_count||0)).slice(0,6);$('#repos').innerHTML=rs.length?rs.map(r=>`<article class="repo"><div class="repo-top"><a class="repo-name" href="${r.html_url}" target="_blank" rel="noreferrer">${esc(r.name)}</a><span class="repo-count">★ ${fmt(r.stargazers_count)}</span></div><div class="repo-desc">${esc(r.description||'No description')}</div><div class="repo-meta"><span>${esc(r.language||'Unknown')}</span><span>Forks <b>${fmt(r.forks_count)}</b></span><span>Issues <b>${fmt(r.open_issues_count)}</b></span></div></article>`).join(''):'<div class="stats-message">No public repositories found.</div>'}
+function selectedModules(){return Object.fromEntries([...document.querySelectorAll('[data-module]')].map(x=>[x.dataset.module,x.checked]))}
+function buildShareCalendar(){const map=contributionMap(),end=new Date();end.setHours(23,59,59,999);const start=new Date(end);start.setDate(start.getDate()-182);const cells=[];for(let i=0;i<183;i++){const d=new Date(start);d.setDate(start.getDate()+i);const x=map.get(d.toISOString().slice(0,10))||{level:0};cells.push(`<i class="level-${x.level}"></i>`)}return cells.join('')}
+function updateShareCard(){const m=selectedModules(),u=data.user,count=contributionCount(period),life=lifeStats();let html='';if(m.profile)html+=`<div class="share-profile">${avatarDataUrl?`<img src="${avatarDataUrl}" alt="">`:''}<div><div class="share-eyebrow">GITHUB WRAPPED</div><div class="share-name">${esc(u.name||u.login)}</div><div class="share-handle">@${esc(u.login)}</div></div></div>`;if(m.headline)html+=`<div class="share-headline"><div><span>${periodLabel().toUpperCase()}</span><strong>${fmt(period==='lifetime'?yearlyTotal():count)}</strong><small>CONTRIBUTIONS</small></div><div class="share-accent-word">BUILD<br>MORE.</div></div>`;if(m.stats)html+=`<div class="share-stats"><div><b>${fmt(life.repos)}</b><span>PUBLIC REPOS</span></div><div><b>${fmt(life.stars)}</b><span>STARS</span></div><div><b>${fmt(life.followers)}</b><span>FOLLOWERS</span></div></div>`;if(m.calendar)html+=`<div class="share-section"><span>CONTRIBUTION ACTIVITY</span><div class="share-calendar">${buildShareCalendar()}</div></div>`;if(m.repos)html+=`<div class="share-section"><span>TOP REPOSITORIES</span><div class="share-repos">${[...data.repos].sort((a,b)=>(b.stargazers_count||0)-(a.stargazers_count||0)).slice(0,4).map(r=>`<div><b>${esc(r.name)}</b><span>★ ${fmt(r.stargazers_count)} · ${esc(r.language||'Unknown')}</span></div>`).join('')}</div></div>`;if(m.branding)html+=`<div class="share-brand">GIT<span>BRAG</span> · github wrapped</div>`;$('#shareCard').innerHTML=html}
+function updateSharePreview(){const preview=$('#sharePreview');preview.innerHTML='';const clone=$('#shareCard').cloneNode(true);clone.removeAttribute('id');clone.classList.add('preview-card');preview.appendChild(clone)}
+function openPng(){updateShareCard();$('#pngModal').classList.remove('hidden');$('#pngModal').setAttribute('aria-hidden','false');updateSharePreview()}
+function closePng(){$('#pngModal').classList.add('hidden');$('#pngModal').setAttribute('aria-hidden','true')}
+async function downloadPng(){updateShareCard();const card=$('#shareCard');card.classList.add('rendering');try{const canvas=await html2canvas(card,{backgroundColor:null,scale:2,useCORS:true,logging:false});const link=document.createElement('a');link.download=`${data.user.login}-gitbrag.png`;link.href=canvas.toDataURL('image/png');link.click()}catch(e){alert('Could not create the PNG in this browser. Try again in Chromium or Firefox.');console.error(e)}finally{card.classList.remove('rendering')}}
+$('#searchForm').addEventListener('submit',e=>{e.preventDefault();const value=$('#username').value.trim();if(value)load(value)});$('#backBtn').onclick=()=>show('search');$('#errorBack').onclick=()=>show('search');$('.periods').addEventListener('click',e=>{if(e.target.matches('button[data-period]')){period=e.target.dataset.period;renderStats();renderCalendar()}});$('#shareBtn').onclick=()=>{const url=location.href.split('#')[0]+'#/'+encodeURIComponent(data.user.login);if(navigator.share)navigator.share({title:`${data.user.login} on Gitbrag`,url}).catch(()=>{});else navigator.clipboard?.writeText(url)};$('#pngBtn').onclick=openPng;$('#closePng').onclick=closePng;$('.modal-backdrop').onclick=closePng;$('#downloadPng').onclick=downloadPng;document.querySelectorAll('[data-module]').forEach(x=>x.addEventListener('change',()=>{updateShareCard();updateSharePreview()}));const hash=location.hash.match(/^#\/(.+)$/);if(hash)load(decodeURIComponent(hash[1]));
