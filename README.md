@@ -16,7 +16,23 @@ Gitbrag is a lightweight, GitHub Pages-friendly dashboard that turns a GitHub pr
 - Choose which PNG modules to include: profile, stats, contribution calendar, repositories, and Gitbrag branding
 - Selected modules automatically distribute themselves through the available card space instead of leaving large empty areas
 - Gitbrag branding can be switched on or off
+- Choose social-ready PNG canvases for square, portrait, story, landscape, wide social previews, and Pinterest pins
 - Runs as a static site with no database or self-hosted server
+
+## PNG layouts
+
+Gitbrag currently provides these export presets:
+
+| Preset | Size | Typical use |
+|---|---:|---|
+| Square | 1080 × 1080 | Instagram / LinkedIn square posts |
+| Portrait | 1080 × 1350 | Instagram / Facebook / LinkedIn feeds |
+| Story | 1080 × 1920 | Instagram Stories / TikTok / YouTube Shorts |
+| Landscape | 1920 × 1080 | YouTube / X |
+| Wide | 1200 × 628 | LinkedIn and social link previews |
+| Pinterest | 1000 × 1500 | Standard Pinterest pins |
+
+The exact platform UI can change over time, so these are practical social-ready presets rather than guarantees about every placement.
 
 ## Run locally
 
