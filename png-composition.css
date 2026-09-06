@@ -61,3 +61,26 @@
 .ratio-pill{min-width:68px;padding:10px 14px;border:1px solid #29292f;border-radius:999px;background:#121216;color:#aaa;font:inherit;font-weight:700;cursor:pointer;transition:.15s ease}
 .ratio-pill:hover{border-color:#3da9ff;color:#fff}
 .ratio-pill.active{background:#3da9ff;border-color:#3da9ff;color:#fff}
+
+/* Repository cards use the same canvas-first approach as the stat cards. */
+.share-repos{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:minmax(0,1fr)!important}
+.share-repos div{display:flex!important;flex-direction:column!important;justify-content:center!important;min-height:0!important;padding:clamp(28px,3.2cqw,46px)!important;border-radius:clamp(14px,1.6cqw,22px)!important}
+.share-repos b{font-size:clamp(30px,4cqw,52px)!important;line-height:.95!important;letter-spacing:-.04em!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+.share-repos span{font-size:clamp(15px,1.7cqw,22px)!important;margin-top:clamp(10px,1.2cqw,16px)!important;letter-spacing:.04em!important}
+
+/* Repository picker submenu. */
+.repo-picker{margin:10px 0 16px;padding:16px;border:1px solid #29292f;border-radius:16px;background:#101014}
+.repo-picker.hidden{display:none}
+.repo-picker-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.repo-picker-head div{display:grid;gap:4px}
+.repo-picker-head b{font-size:15px}
+.repo-picker-head small{font-size:12px;color:#888}
+.repo-picker-head>span{font-size:12px;font-weight:800;color:#3da9ff}
+.repo-picker-list{display:grid;gap:7px;max-height:260px;overflow:auto;padding-right:3px}
+.repo-choice{display:flex;align-items:center;gap:10px;padding:10px 11px;border:1px solid #24242a;border-radius:10px;background:#151519;cursor:pointer}
+.repo-choice:hover{border-color:#3da9ff}
+.repo-choice input{width:18px;height:18px;accent-color:#3da9ff;flex:none}
+.repo-choice span{min-width:0;display:grid;gap:3px}
+.repo-choice b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.repo-choice small{font-size:11px;color:#777}
+.repo-choice input:disabled~span{opacity:.45}
