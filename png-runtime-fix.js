@@ -7,6 +7,7 @@
       const style = document.createElement('style');
       style.id = 'gitbrag-png-simplified';
       style.textContent = `
+        .share-kicker{display:none!important}
         #pngModal .layout-picker{display:none!important}
         .share-card .share-repos b{font-size:clamp(16px,3.5cqw,42px)!important}
         .share-card .share-repos p{font-size:clamp(8px,1.4cqw,16px)!important}
