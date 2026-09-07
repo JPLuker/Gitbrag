@@ -1,10 +1,30 @@
-/* v0.3.7: responsive preview. The preview card itself is laid out at its real CSS size; no transform scaling. */
+/* v0.3.8: responsive preview plus repository typography scaled proportionally to the stats cards. */
 (() => {
   const $ = id => document.getElementById(id);
   let raf = 0;
 
+  const installRepoScaling = () => {
+    if (document.getElementById('gitbrag-repo-scaling')) return;
+    const style = document.createElement('style');
+    style.id = 'gitbrag-repo-scaling';
+    style.textContent = `
+      .share-card .share-repos b{font-size:clamp(16px,3.5cqw,42px)!important}
+      .share-card .share-repos p{font-size:clamp(8px,1.4cqw,16px)!important}
+      .share-card .share-repos span{font-size:clamp(7px,1.05cqw,13px)!important}
+      .share-card.size-compact .share-repos b{font-size:clamp(14px,3cqw,34px)!important}
+      .share-card.size-balanced .share-repos b{font-size:clamp(16px,3.5cqw,42px)!important}
+      .share-card.size-large .share-repos b{font-size:clamp(18px,4cqw,48px)!important}
+      .share-card.size-huge .share-repos b{font-size:clamp(20px,4.5cqw,54px)!important}
+      .share-card.size-compact .share-repos p{font-size:clamp(8px,1.2cqw,14px)!important}
+      .share-card.size-large .share-repos p{font-size:clamp(9px,1.6cqw,18px)!important}
+      .share-card.size-huge .share-repos p{font-size:clamp(10px,1.8cqw,20px)!important}
+    `;
+    document.head.appendChild(style);
+  };
+
   const render = () => {
     raf = 0;
+    installRepoScaling();
     const preview = $('sharePreview');
     const source = $('shareCard');
     if (!preview || !source || typeof window.pngBuild !== 'function') return;
