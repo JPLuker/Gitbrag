@@ -28,7 +28,7 @@ Gitbrag currently provides these export presets:
 | Square | 1080 × 1080 | Instagram / LinkedIn square posts |
 | Portrait | 1080 × 1350 | Instagram / Facebook / LinkedIn feeds |
 | Story | 1080 × 1920 | Instagram Stories / TikTok / YouTube Shorts |
-| Landscape | 1920 × 1080 | YouTube / X |
+| Landscape | 1920 × 1080 | YouTube / Twitter |
 | Wide | 1200 × 628 | LinkedIn and social link previews |
 | Pinterest | 1000 × 1500 | Standard Pinterest pins |
 
