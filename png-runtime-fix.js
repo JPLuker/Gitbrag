@@ -1,4 +1,4 @@
-/* v0.3.9: responsive preview plus proportional repository typography and compact lower modules. */
+/* v0.3.10: responsive preview, proportional repository typography, and ratio-safe module layouts. */
 (() => {
   const $ = id => document.getElementById(id);
   let raf = 0;
@@ -19,14 +19,20 @@
       .share-card.size-large .share-repos p{font-size:clamp(9px,1.6cqw,18px)!important}
       .share-card.size-huge .share-repos p{font-size:clamp(10px,1.8cqw,20px)!important}
 
-      /* Square/portrait/story cards: prioritize profile + stats, then split calendar/repos. */
+      /* Default: narrow/tall ratios keep calendar and repositories stacked. */
+      .mods-profile-stats-calendar-repos .share-content{
+        grid-template-areas:"profile" "stats" "calendar" "repos"!important;
+        grid-template-columns:1fr!important;
+        grid-template-rows:minmax(0,.7fr) minmax(0,.8fr) minmax(0,1.45fr) minmax(0,1.35fr)!important;
+      }
+
+      /* Square and wide ratios get the requested compact side-by-side lower half. */
       .layout-square .mods-profile-stats-calendar-repos .share-content,
-      .layout-portrait .mods-profile-stats-calendar-repos .share-content,
-      .layout-story .mods-profile-stats-calendar-repos .share-content,
-      .layout-pinterest .mods-profile-stats-calendar-repos .share-content{
+      .layout-landscape .mods-profile-stats-calendar-repos .share-content,
+      .layout-socialwide .mods-profile-stats-calendar-repos .share-content{
         grid-template-areas:"profile profile" "stats stats" "calendar repos"!important;
         grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
-        grid-template-rows:minmax(0,.65fr) minmax(0,.95fr) minmax(0,1.15fr)!important;
+        grid-template-rows:minmax(0,.7fr) minmax(0,.95fr) minmax(0,1.35fr)!important;
       }
     `;
     document.head.appendChild(style);
