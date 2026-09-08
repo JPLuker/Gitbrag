@@ -25,7 +25,7 @@
 .share-calendar i.level-2 { background: #176ea7; }
 .share-calendar i.level-3 { background: #2699df; }
 .share-calendar i.level-4 { background: #52b9ff; }
-.share-repos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: calc(12px * var(--scale)); flex: 1; min-width: 0; min-height: 0; margin-top: calc(12px * var(--scale)); }
+.share-repos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: calc(12px * var(--scale)); flex: 1; min-width: 0; min-height: 0; margin-top: calc(12px * var(--scale)); }
 .share-repos > div { display: flex; flex-direction: column; justify-content: center; min-width: 0; min-height: 0; padding: calc(18px * var(--scale)); box-sizing: border-box; border-radius: calc(12px * var(--scale)); background: #121216; border: 1px solid #29292f; overflow: hidden; }
 .share-repos b { display: -webkit-box; font-size: calc(25px * var(--scale)); line-height: 1.05; letter-spacing: -.035em; overflow: hidden; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .share-repos p { margin: calc(6px * var(--scale)) 0 0; color: #b1b1b8; font-size: calc(11px * var(--scale)); line-height: 1.15; display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
@@ -45,13 +45,16 @@
 .mods-profile-repos .share-content { grid-template-areas: 'profile' 'repos'; grid-template-rows: 1fr 1.8fr; }
 .mods-stats-calendar .share-content { grid-template-areas: 'stats' 'calendar'; grid-template-rows: 1fr 1.8fr; }
 .mods-stats-repos .share-content { grid-template-areas: 'stats' 'repos'; grid-template-rows: 1fr 1.8fr; }
-.mods-calendar-repos .share-content { grid-template-areas: 'calendar' 'repos'; grid-template-rows: 1fr 1fr; }
+.mods-calendar-repos .share-content { grid-template-areas: 'calendar repos'; grid-template-rows: 1fr; }
 .mods-profile .share-content { grid-template-areas: 'profile'; grid-template-rows: 1fr; }
 .mods-stats .share-content { grid-template-areas: 'stats'; grid-template-rows: 1fr; }
 .mods-calendar .share-content { grid-template-areas: 'calendar'; grid-template-rows: 1fr; }
 .mods-repos .share-content { grid-template-areas: 'repos'; grid-template-rows: 1fr; }
 .mods-none .share-content { grid-template-areas: 'none'; grid-template-rows: 1fr; }
 
+.layout-landscape .share-card { --scale: 1.777778; }
+.layout-socialwide .share-card { --scale: 1.111111; }
+.layout-pinterest .share-card { --scale: .925926; }
 .layout-landscape .share-content, .layout-socialwide .share-content { grid-template-columns: 1fr 1fr; }
 .layout-landscape .mods-profile-stats-calendar-repos .share-content, .layout-socialwide .mods-profile-stats-calendar-repos .share-content { grid-template-areas: 'profile profile' 'stats stats' 'calendar repos'; grid-template-rows: .7fr .85fr 1.8fr; }
 .layout-landscape .mods-profile-calendar-repos .share-content, .layout-socialwide .mods-profile-calendar-repos .share-content { grid-template-areas: 'profile profile' 'calendar repos'; grid-template-rows: .8fr 2fr; }
