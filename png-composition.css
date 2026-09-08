@@ -14,16 +14,18 @@
 .share-stats b { display: block; font-size: calc(72px * var(--scale)); line-height: .9; font-weight: 800; letter-spacing: -.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .share-stats span { display: block; margin-top: calc(10px * var(--scale)); color: #92929b; font-size: calc(11px * var(--scale)); line-height: 1.1; letter-spacing: .08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .share-section { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+.share-calendar-module { grid-area: calendar; }
+.share-repos-module { grid-area: repos; }
 .share-section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; min-width: 0; flex: none; font-size: calc(12px * var(--scale)); line-height: 1.1; font-weight: 800; letter-spacing: .12em; white-space: nowrap; }
 .share-section-head span, .share-section-head small { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .share-section-head small { color: #666; font-size: calc(10px * var(--scale)); }
-.share-calendar { grid-area: calendar; display: grid; grid-template-columns: repeat(var(--calendar-cols, 27), minmax(0, 1fr)); grid-template-rows: repeat(7, minmax(0, 1fr)); grid-auto-flow: column; gap: calc(4px * var(--scale)); flex: 1; min-width: 0; min-height: 0; margin-top: calc(12px * var(--scale)); }
+.share-calendar { display: grid; grid-template-columns: repeat(var(--calendar-cols, 27), minmax(0, 1fr)); grid-template-rows: repeat(7, minmax(0, 1fr)); grid-auto-flow: column; gap: calc(4px * var(--scale)); flex: 1; min-width: 0; min-height: 0; margin-top: calc(12px * var(--scale)); }
 .share-calendar i { display: block; min-width: 0; min-height: 0; border-radius: calc(2px * var(--scale)); background: #29292f; }
 .share-calendar i.level-1 { background: #16456a; }
 .share-calendar i.level-2 { background: #176ea7; }
 .share-calendar i.level-3 { background: #2699df; }
 .share-calendar i.level-4 { background: #52b9ff; }
-.share-repos { grid-area: repos; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: calc(12px * var(--scale)); flex: 1; min-width: 0; min-height: 0; margin-top: calc(12px * var(--scale)); }
+.share-repos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: calc(12px * var(--scale)); flex: 1; min-width: 0; min-height: 0; margin-top: calc(12px * var(--scale)); }
 .share-repos > div { display: flex; flex-direction: column; justify-content: center; min-width: 0; min-height: 0; padding: calc(18px * var(--scale)); box-sizing: border-box; border-radius: calc(12px * var(--scale)); background: #121216; border: 1px solid #29292f; overflow: hidden; }
 .share-repos b { display: -webkit-box; font-size: calc(25px * var(--scale)); line-height: 1.05; letter-spacing: -.035em; overflow: hidden; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .share-repos p { margin: calc(6px * var(--scale)) 0 0; color: #b1b1b8; font-size: calc(11px * var(--scale)); line-height: 1.15; display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
@@ -80,7 +82,7 @@
 .card-glass .share-stats > div, .card-glass .share-repos > div { background: rgba(255,255,255,.045); border-color: rgba(255,255,255,.12); }
 
 .share-preview { width: 100%; box-sizing: border-box; overflow: hidden; background: #08080a; border-radius: 14px; padding: 12px; }
-.preview-card { position: relative; left: auto; top: auto; margin: 0; flex: none; transform-origin: top left; }
+.preview-card { position: relative !important; left: auto !important; top: auto !important; width: auto !important; height: auto !important; min-width: 0 !important; min-height: 0 !important; max-width: none !important; max-height: none !important; margin: 0 !important; flex: none !important; transform-origin: top left !important; }
 .export-card { position: fixed; box-sizing: border-box; }
 .layout-picker { display: block; }
 .ratio-pills { display: flex; flex-wrap: wrap; gap: 8px; }
