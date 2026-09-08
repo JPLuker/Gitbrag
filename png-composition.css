@@ -52,9 +52,9 @@
 .mods-repos .share-content { grid-template-areas: 'repos'; grid-template-rows: 1fr; }
 .mods-none .share-content { grid-template-areas: 'none'; grid-template-rows: 1fr; }
 
-.layout-landscape .share-card { --scale: 1.777778; }
-.layout-socialwide .share-card { --scale: 1.111111; }
-.layout-pinterest .share-card { --scale: .925926; }
+.share-card.layout-landscape { --scale: 1.777778; }
+.share-card.layout-socialwide { --scale: 1.111111; }
+.share-card.layout-pinterest { --scale: .925926; }
 .layout-landscape .share-content, .layout-socialwide .share-content { grid-template-columns: 1fr 1fr; }
 .layout-landscape .mods-profile-stats-calendar-repos .share-content, .layout-socialwide .mods-profile-stats-calendar-repos .share-content { grid-template-areas: 'profile profile' 'stats stats' 'calendar repos'; grid-template-rows: .7fr .85fr 1.8fr; }
 .layout-landscape .mods-profile-calendar-repos .share-content, .layout-socialwide .mods-profile-calendar-repos .share-content { grid-template-areas: 'profile profile' 'calendar repos'; grid-template-rows: .8fr 2fr; }
