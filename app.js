@@ -151,18 +151,19 @@ function parseUserInput(value) {
 
 function routeFor(username, shareToken = null) {
   const base = `#/${encodeURIComponent(username)}`;
-  return shareToken ? `${base}?share=${encodeURIComponent(shareToken)}` : base;
+  return shareToken ? `${base}?s=${encodeURIComponent(shareToken)}` : base;
 }
 
 function parseRoute() {
   const raw = location.hash.replace(/^#\/?/, '');
   if (!raw) return null;
   const [rawUser, rawQuery = ''] = raw.split('?');
+  const params = new URLSearchParams(rawQuery);
 
   try {
     return {
       username: parseUserInput(decodeURIComponent(rawUser)),
-      shareToken: rawQuery ? new URLSearchParams(rawQuery).get('share') : null,
+      shareToken: rawQuery ? (params.get('s') || params.get('share')) : null,
     };
   } catch {
     throw new Error('This Gitbrag URL contains an invalid GitHub username.');
@@ -801,6 +802,9 @@ window.GitbragApp = Object.freeze({
       repos: rankedRepositories(),
       defaultConfig: defaultShareConfig(),
     };
+  },
+  createRenderModel(config) {
+    return createShareModel(config);
   },
   createShareUrl,
   previewShare(config) {
