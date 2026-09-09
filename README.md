@@ -2,7 +2,7 @@
 
 Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub profile, recent contribution activity, customized shareable profile pages, and exportable social images.
 
-**v0.8.1** makes the PNG renderer adaptive inside its fixed 1080 × 1080 canvas. Calendar and repository sections now consume the available square instead of leaving a large unused lower area.
+**v0.8.3** changes the PNG contribution calendar into a space-filling chronological tile grid. The renderer now chooses the row/column shape and square cell size that best uses the available calendar panel instead of preserving a tiny fixed seven-row heatmap inside a wide box.
 
 ## Current features
 
@@ -20,7 +20,7 @@ Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub pr
 - Generate a dedicated 1080 × 1080 PNG using a canvas renderer that does not depend on the shared-page renderer.
 - Customize PNG modules, stats period, calendar range, up to four repositories, text size, accent, and card style.
 - Preview the exact canvas that is exported as the PNG.
-- Scale PNG calendar cells from the selected calendar range and available panel size.
+- Reflow PNG contribution days into a dense chronological square-cell grid that uses the available calendar panel.
 - Scale repository cards based on whether 1, 2, 3, or 4 repositories are selected.
 - Run entirely as a static site with no Gitbrag backend or database.
 
@@ -88,7 +88,9 @@ PNG
 
 The visible preview is the same canvas that is exported, so preview/export layout cannot drift because of DOM screenshot scaling.
 
-The internal layout is adaptive: enabled sections are assigned the usable canvas height, calendar cells are fitted to their panel, and repository cards expand to consume the repository section. One or two selected repositories use a single tall row; three or four use a 2 × 2 grid.
+The internal layout is adaptive: enabled sections are assigned the usable canvas height, the contribution days are packed into the square-cell matrix that best fits the calendar panel, and repository cards expand to consume the repository section. One or two selected repositories use a single tall row; three or four use a 2 × 2 grid.
+
+The responsive shared webpage keeps its normal calendar renderer. The space-filling tile layout is specific to the PNG renderer.
 
 Gitbrag branding is always drawn into the output.
 
