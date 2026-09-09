@@ -251,6 +251,7 @@ footer,
 
 .profile-header {
   display: flex;
+  padding-top: 18px;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
@@ -419,8 +420,9 @@ footer,
   grid-auto-flow: column;
   grid-template-rows: repeat(7, 10px);
   grid-auto-columns: 10px;
-  width: 100%;
+  width: max-content;
   min-width: 0;
+  margin: 0 auto;
   gap: 4px;
 }
 
@@ -428,6 +430,7 @@ footer,
   display: block;
   width: 100%;
   min-width: 0;
+  margin: 0;
   padding: 28px 8px;
   color: var(--muted);
   text-align: center;
@@ -435,7 +438,7 @@ footer,
 }
 
 .contrib-cell {
-  width: 100%;
+  width: 10px;
   min-width: 10px;
   height: 10px;
   background: var(--line);
