@@ -2,7 +2,7 @@
 
 Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub profile and its recent contribution activity.
 
-The **0.5.x** line is a cleanup and stabilization pass. The app was reduced back to its core profile/statistics experience so the codebase can stabilize before social sharing and image-generation features are revisited.
+The **0.6.x** line starts the social-feature rebuild on top of the stabilized 0.5.x core. The first milestone is deliberately infrastructure-only: a versioned share configuration format is now in place, but the share-link UI and PNG generator are not reintroduced yet.
 
 ## Current features
 
@@ -29,10 +29,70 @@ Gitbrag intentionally uses a small static architecture:
 - `index.html` contains the semantic application structure.
 - `style.css` contains the design system, responsive layout, and component styling.
 - `app.js` owns routing, public data loading, calculations, rendering, and interaction state.
+- `share-config.js` owns the versioned, validated configuration format that future link sharing and PNG export can consume independently.
+- `tests/share-config.test.js` contains framework-free Node regression tests for that configuration layer.
 
 There is no build step and no framework dependency.
 
-The 0.5.x cleanup removed the previous PNG/share-link implementation entirely. Social features are intentionally deferred until the core application is stable enough to support them without coupling webpage rendering to image-export logic.
+### Social architecture rule
+
+Shared webpages and exported images will use the same validated configuration data, but **they will not share a renderer or layout system**.
+
+The intended separation is:
+
+```text
+share config
+   ├── responsive shared-page renderer
+   └── isolated PNG renderer
+```
+
+The share-link path must never depend on image dimensions, export DOM, transform scaling, or PNG-specific CSS. The PNG path must never be responsible for rendering the shared webpage.
+
+## Share configuration — v1
+
+Version `1` of the configuration foundation is available through `window.GitbragShareConfig` in the browser.
+
+The normalized shape is:
+
+```js
+{
+  v: 1,
+  modules: {
+    profile: true,
+    stats: true,
+    calendar: true,
+    repos: true
+  },
+  statsPeriod: 'month',
+  calendarRange: '6m',
+  selectedRepos: [],
+  appearance: {
+    textSize: 'balanced',
+    accent: 'auto',
+    cardStyle: 'solid'
+  }
+}
+```
+
+The configuration layer provides:
+
+- defaults
+- normalization and enum validation
+- module visibility validation
+- deduplicated repository selection capped at four repositories
+- URL-safe UTF-8 Base64 encoding
+- strict decoding with explicit version checks
+- safe `tryDecode()` fallback for untrusted links
+
+Unsupported future config versions are rejected instead of being silently interpreted as the current format.
+
+### Test the share configuration
+
+No test framework is required:
+
+```bash
+node tests/share-config.test.js
+```
 
 ## Data sources
 
@@ -61,6 +121,8 @@ https://example.github.io/Gitbrag/#/octocat
 ```
 
 This keeps direct profile links compatible with GitHub Pages without requiring server-side routing.
+
+The custom share-link route will be added in the 0.7 milestone after the configuration layer is considered stable.
 
 ## Run locally
 
@@ -95,6 +157,10 @@ Gitbrag is designed to deploy from the repository root on GitHub Pages.
 - Public GitHub contribution data
 - GitHub Pages
 
-## 1.0 direction
+## Roadmap to 1.0
 
-The current priority is correctness, stability, responsive behavior, and maintainable code. Social sharing and image-generation features can be reintroduced after the core application is considered stable, with separate architectures for webpage sharing and image export.
+- **0.6** — versioned share configuration foundation
+- **0.7** — responsive custom link sharing
+- **0.8** — isolated 1:1 PNG generator
+- **0.9** — social-feature hardening and regression fixes
+- **1.0** — stable core + link sharing + PNG export
