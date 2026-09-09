@@ -1,96 +1,90 @@
 # Gitbrag
 
-Gitbrag is a lightweight, GitHub Pages-friendly dashboard that turns a GitHub profile into a polished, shareable stats page.
+Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub profile and its recent contribution activity.
 
-## What it does
+Version **0.5.0** is a cleanup release. The app was reduced back to its core profile/statistics experience so the codebase can stabilize before social sharing and image-generation features are revisited.
 
-- Search by GitHub username or paste a GitHub profile URL
-- Share a generated profile with a URL hash, including browser back/forward navigation
-- Create a custom share link that preserves the same PNG configuration: modules, repositories, calendar range, ratio, text size, accent, card style, and display options
-- Open a custom share link directly into a responsive shared-card view with PNG download and a path back to customization
-- View 24H, 7D, 1M, 6M, 1Y, and lifetime contribution stats
-- Show GitHub contribution totals, active days, best day, and streaks using one consistent date window
-- Show a custom contribution heatmap with date-safe calendar keys
-- Show public repositories, stars, followers, account age, and repository details
-- Exclude forked repositories from repository rankings and repository-star totals
-- Automatically derives the page accent/theme from the user's profile picture when the browser permits canvas access
-- Build a shareable PNG entirely in the browser
-- Choose which PNG modules to include: profile, stats, contribution calendar, repositories, and Gitbrag branding
-- Choose the calendar range independently: 1 month, 3 months, 6 months, 1 year, 2 years, or all available
-- Choose PNG canvas ratios: 1:1, 4:5, 9:16, 16:9, 1.91:1, and 2:3
-- Preview uses the same native-size card layout that is exported, scaled only for display
-- Text size, accent, card style, repository details, and profile alignment are configurable
-- Runs as a static site with no database or self-hosted server
+## Current features
 
-## Custom share links
-
-A custom share link is generated from the PNG builder with **Copy share link**. The configuration is encoded into the URL fragment, so Gitbrag does not need a database to store the customization. The recipient's browser decodes the configuration, loads the public GitHub data, and reconstructs the same card.
-
-The link preserves:
-
-- PNG ratio
-- Enabled modules
-- Selected repositories
-- Calendar range
-- Avatar and username visibility
-- Profile alignment
-- Individual stats
-- Repository name, description, stars, and language visibility
-- Repository label
-- Text size
-- Accent
-- Card style
-
-The share format is versioned (`v1`) so the configuration format can evolve without silently breaking older links.
-
-## PNG layouts
-
-| Ratio | Size | Typical use |
-|---|---:|---|
-| 1:1 | 1080 × 1080 | Square social posts |
-| 4:5 | 1080 × 1350 | Portrait social feeds |
-| 9:16 | 1080 × 1920 | Stories and vertical video covers |
-| 16:9 | 1920 × 1080 | Landscape graphics |
-| 1.91:1 | 1200 × 628 | Wide social/link previews |
-| 2:3 | 1000 × 1500 | Pinterest-style pins |
-
-These are image-ratio presets, not guarantees about a particular platform's current UI requirements.
+- Search by GitHub username or paste a `github.com/username` profile URL.
+- Open a profile directly with a hash route such as `#/octocat`.
+- Browse contribution activity for:
+  - 24H (the current daily contribution bucket; GitHub's public graph does not expose contribution timestamps)
+  - 1 month
+  - 6 months
+  - 1 year
+  - all available history
+- View contributions, active days, best day, and longest streak for the selected period.
+- View public repository count, stars across loaded original repositories, followers, following, and account age.
+- View a date-safe contribution heatmap for the last year.
+- View up to six top original public repositories, ranked by stars.
+- Exclude forked repositories from repository rankings and loaded-repository star totals.
+- Derive an accent color from the profile avatar when browser canvas access permits it.
+- Run entirely as a static site with no Gitbrag backend or database.
 
 ## Architecture
 
-Gitbrag is intentionally a static browser application. `app.js` owns profile data, contribution statistics, routing, and the main profile UI. `png.js` owns the PNG builder, customization state, share-link serialization, shared-card rendering, preview, and export path.
+Gitbrag intentionally uses a small static architecture:
 
-The PNG card is built at its final native pixel dimensions. The preview and shared-card view create scaled clones of that exact card, while export captures the native card. The composition does not use container-query units, so preview and export do not depend on a renderer implementing CSS container queries.
+- `index.html` contains the semantic application structure.
+- `style.css` contains the design system, responsive layout, and component styling.
+- `app.js` owns routing, public data loading, calculations, rendering, and interaction state.
 
-Custom share configurations live in the URL fragment rather than a Gitbrag database. This keeps the feature compatible with GitHub Pages and means there is no server-side share state to maintain.
+There is no build step and no framework dependency.
 
-PNG export uses `modern-screenshot` 4.7.0 rather than the older html2canvas pipeline. The library is loaded from a pinned CDN version.
+The 0.5.0 cleanup removed the previous PNG/share-link implementation entirely. Social features are intentionally deferred until the core application is stable enough to support them without coupling webpage rendering to image-export logic.
 
-## Data and limitations
+## Data sources
 
-Gitbrag only requests publicly available data from the browser. It does not ask users for a GitHub token and does not store user data.
+### GitHub REST API
 
-Basic profile and repository information comes from GitHub's public REST API. Contribution history comes from the public `github-contributions-api.jogruber.de` service. GitHub's own contribution rules determine the underlying public contribution graph.
+Basic profile and repository information comes directly from GitHub's public REST API.
 
-Unauthenticated GitHub API access is rate limited. Gitbrag reports rate-limit failures separately from a genuinely missing GitHub user.
+Gitbrag requests up to three repository pages of 100 repositories each. Forks are removed before repository ranking and star aggregation. For accounts with more than 300 repositories, the displayed repository-star total may therefore be incomplete.
 
-Repository discovery currently loads up to 300 repositories (three pages of 100) and filters forks before calculating repository rankings and displayed star totals. The displayed repository-star total therefore means stars across the loaded non-fork repositories, not necessarily every repository owned by an account with more than 300 repositories.
+Because Gitbrag does not ask for a GitHub token, GitHub's unauthenticated API rate limits apply. Rate-limit failures are shown separately from a missing user.
 
-PNG generation is entirely client-side. Nothing is uploaded to a Gitbrag server when a user creates an image.
+### Contribution history
+
+Contribution history comes from the public `github-contributions-api.jogruber.de` service.
+
+If that service is unavailable, Gitbrag continues to show profile and repository information and explicitly marks contribution-dependent statistics and the calendar as unavailable. It does not convert a service failure into fake zero-contribution data.
+
+GitHub's own contribution rules determine the underlying public contribution graph.
+
+## Routing
+
+Profiles use a client-side hash route:
+
+```text
+https://example.github.io/Gitbrag/#/octocat
+```
+
+This keeps direct profile links compatible with GitHub Pages without requiring server-side routing.
 
 ## Run locally
 
-No build step is required. Open `index.html` in a browser or serve the folder with any static web server.
+No build step is required. Serve the repository with any static HTTP server:
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8000`.
+Then open:
+
+```text
+http://localhost:8000
+```
+
+Opening `index.html` directly may work for basic UI inspection, but serving it over HTTP better matches GitHub Pages behavior and avoids browser restrictions around network and canvas operations.
 
 ## GitHub Pages
 
-Gitbrag is designed to run directly from GitHub Pages. Enable **Pages** and deploy the `main` branch from the repository root.
+Gitbrag is designed to deploy from the repository root on GitHub Pages.
+
+1. Open the repository's **Settings**.
+2. Open **Pages**.
+3. Deploy from the `main` branch and repository root.
 
 ## Stack
 
@@ -98,6 +92,9 @@ Gitbrag is designed to run directly from GitHub Pages. Enable **Pages** and depl
 - CSS
 - Vanilla JavaScript
 - GitHub REST API
-- GitHub public contribution data
-- modern-screenshot 4.7.0
+- Public GitHub contribution data
 - GitHub Pages
+
+## 1.0 direction
+
+The current priority is correctness, stability, responsive behavior, and maintainable code. Social sharing and image-generation features can be reintroduced after the core application is considered stable, with separate architectures for webpage sharing and image export.
