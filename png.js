@@ -59,8 +59,8 @@
   }
 
   function escapeHtml(value) {
-    return String(value).replace(/[&<>"']/g, (character) => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    return String(value).replace(/[&<>\"']/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;'
     })[character]);
   }
 
@@ -221,6 +221,7 @@
     ctx.arcTo(x + width, y, x + width, y + height, r);
     ctx.arcTo(x + width, y + height, x, y + height, r);
     ctx.arcTo(x, y + height, x, y, r);
+    ctx.arcTo(x, y, x + r, y, r);
     ctx.closePath();
   }
 
