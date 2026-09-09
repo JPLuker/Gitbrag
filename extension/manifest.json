@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Gitbrag for GitHub",
+  "short_name": "Gitbrag",
   "description": "Automatically show Gitbrag contribution stats on public GitHub profiles.",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "homepage_url": "https://jpluker.github.io/Gitbrag/",
   "permissions": ["storage"],
   "host_permissions": [
@@ -12,10 +13,14 @@
   "background": {
     "service_worker": "background.js"
   },
+  "action": {
+    "default_title": "Gitbrag settings",
+    "default_popup": "popup.html"
+  },
   "content_scripts": [
     {
       "matches": ["https://github.com/*"],
-      "js": ["stats.js", "content.js"],
+      "js": ["core.js", "stats.js", "content.js"],
       "css": ["content.css"],
       "run_at": "document_idle"
     }
