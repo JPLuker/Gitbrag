@@ -2,7 +2,7 @@
 
 Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub profile and its recent contribution activity.
 
-Version **0.5.0** is a cleanup release. The app was reduced back to its core profile/statistics experience so the codebase can stabilize before social sharing and image-generation features are revisited.
+The **0.5.x** line is a cleanup and stabilization pass. The app was reduced back to its core profile/statistics experience so the codebase can stabilize before social sharing and image-generation features are revisited.
 
 ## Current features
 
@@ -32,7 +32,7 @@ Gitbrag intentionally uses a small static architecture:
 
 There is no build step and no framework dependency.
 
-The 0.5.0 cleanup removed the previous PNG/share-link implementation entirely. Social features are intentionally deferred until the core application is stable enough to support them without coupling webpage rendering to image-export logic.
+The 0.5.x cleanup removed the previous PNG/share-link implementation entirely. Social features are intentionally deferred until the core application is stable enough to support them without coupling webpage rendering to image-export logic.
 
 ## Data sources
 
