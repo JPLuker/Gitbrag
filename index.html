@@ -11,11 +11,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=0.6.0">
+  <link rel="stylesheet" href="style.css?v=0.7.0">
 </head>
 <body>
   <main class="app">
-    <div class="app-version" aria-label="Gitbrag version 0.6.0">v0.6.0</div>
+    <div class="app-version" aria-label="Gitbrag version 0.7.0">v0.7.0</div>
 
     <section id="searchView" class="hero" aria-labelledby="searchTitle">
       <div class="brand">GIT<span>BRAG</span></div>
@@ -42,6 +42,12 @@
       <header class="profile-header">
         <button id="backBtn" class="back" type="button">← New user</button>
         <div class="brand small">GIT<span>BRAG</span></div>
+        <div class="share-control">
+          <button id="shareBtn" class="share-button" type="button" aria-haspopup="menu" aria-expanded="false">Share</button>
+          <div id="shareMenu" class="share-menu hidden" role="menu">
+            <button id="shareLinkAction" type="button" role="menuitem">Share link</button>
+          </div>
+        </div>
       </header>
 
       <div class="profile-intro">
@@ -54,6 +60,7 @@
 
       <div class="periods" role="group" aria-label="Activity period">
         <button type="button" data-period="day" aria-pressed="false">24H</button>
+        <button type="button" data-period="week" aria-pressed="false">7D</button>
         <button type="button" data-period="month" class="active" aria-pressed="true">1M</button>
         <button type="button" data-period="sixmonths" aria-pressed="false">6M</button>
         <button type="button" data-period="year" aria-pressed="false">1Y</button>
@@ -88,9 +95,19 @@
       </div>
       <div id="repos" class="repo-list"></div>
 
-      <footer>
-        Gitbrag uses public GitHub data. Contribution totals follow GitHub’s public contribution graph.
-      </footer>
+      <footer>Gitbrag uses public GitHub data. Contribution totals follow GitHub’s public contribution graph.</footer>
+    </section>
+
+    <section id="sharedView" class="shared-view hidden" aria-label="Shared Gitbrag page">
+      <header class="shared-header">
+        <div class="brand small">GIT<span>BRAG</span></div>
+        <div class="shared-header-actions">
+          <button id="sharedEdit" class="secondary-button" type="button">Edit share</button>
+          <button id="sharedFullProfile" class="secondary-button" type="button">View full profile</button>
+          <button id="sharedNewUser" class="primary-button" type="button">Create your own</button>
+        </div>
+      </header>
+      <div id="sharedPage"></div>
     </section>
 
     <section id="errorView" class="error hidden" aria-live="assertive">
@@ -101,7 +118,51 @@
     </section>
   </main>
 
-  <script src="share-config.js?v=0.6.0"></script>
-  <script src="app.js?v=0.6.0"></script>
+  <dialog id="shareModal" class="share-dialog" aria-labelledby="shareModalTitle">
+    <div class="share-dialog-card">
+      <header class="share-dialog-head">
+        <div>
+          <p class="eyebrow">SHARE LINK</p>
+          <h2 id="shareModalTitle">Customize the shared page.</h2>
+        </div>
+        <button id="closeShareModal" class="icon-button" type="button" aria-label="Close share settings">×</button>
+      </header>
+      <p class="share-dialog-copy">Choose what appears when someone opens your Gitbrag link. This is a responsive webpage, not an image.</p>
+
+      <div class="share-settings-grid">
+        <fieldset class="share-fieldset">
+          <legend>Page sections</legend>
+          <label><span>Profile</span><input id="shareProfile" type="checkbox" checked></label>
+          <label><span>Stats</span><input id="shareStats" type="checkbox" checked></label>
+          <label><span>Contribution calendar</span><input id="shareCalendar" type="checkbox" checked></label>
+          <label><span>Repositories</span><input id="shareRepos" type="checkbox" checked></label>
+        </fieldset>
+
+        <fieldset class="share-fieldset">
+          <legend>Page settings</legend>
+          <label><span>Stats period</span><select id="shareStatsPeriod"><option value="day">24 hours</option><option value="week">7 days</option><option value="month">1 month</option><option value="sixmonths">6 months</option><option value="year">1 year</option><option value="lifetime">All time</option></select></label>
+          <label><span>Calendar range</span><select id="shareCalendarRange"><option value="1m">1 month</option><option value="3m">3 months</option><option value="6m">6 months</option><option value="1y">1 year</option><option value="2y">2 years</option><option value="all">All available</option></select></label>
+          <label><span>Text size</span><select id="shareTextSize"><option value="compact">Compact</option><option value="balanced">Balanced</option><option value="large">Large</option><option value="huge">Huge</option></select></label>
+          <label><span>Accent</span><select id="shareAccent"><option value="auto">Profile accent</option><option value="blue">Blue</option><option value="white">White</option><option value="cyan">Cyan</option><option value="purple">Purple</option><option value="green">Green</option></select></label>
+          <label><span>Card style</span><select id="shareCardStyle"><option value="solid">Solid</option><option value="outline">Outline</option><option value="glass">Glass</option></select></label>
+        </fieldset>
+      </div>
+
+      <fieldset class="share-fieldset share-repositories-fieldset">
+        <legend>Repositories</legend>
+        <div id="shareRepoPicker"></div>
+      </fieldset>
+
+      <div class="share-dialog-actions">
+        <button id="cancelShareModal" class="secondary-button" type="button">Cancel</button>
+        <button id="previewSharePage" class="secondary-button" type="button">Preview page</button>
+        <button id="copyShareLink" class="primary-button" type="button">Copy share link</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="share-config.js?v=0.7.0"></script>
+  <script src="share-page.js?v=0.7.0"></script>
+  <script src="app.js?v=0.7.0"></script>
 </body>
 </html>
