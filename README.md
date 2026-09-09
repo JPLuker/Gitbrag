@@ -1,8 +1,8 @@
 # Gitbrag
 
-Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub profile, recent contribution activity, customized shareable profile pages, and exportable social images.
+Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub profile, recent contribution activity, customized shareable profile pages, website embeds, and exportable social images.
 
-**v0.9.0** is the social hardening release. It tightens share-token validation, improves keyboard/focus behavior, hardens modal/navigation states, and makes the PNG renderer more resilient to slow avatars, long content, missing sections, and mid-export setting changes.
+**v0.9.1** adds configurable website embeds. The Share menu can now generate a responsive iframe snippet from the same validated share configuration, with automatic iframe height updates and a stripped-down embed presentation that stays separate from the PNG renderer.
 
 ## Current features
 
@@ -17,6 +17,8 @@ Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub pr
 - Derive an accent color from the profile avatar when browser canvas access permits it.
 - Build a customized share link with a versioned configuration stored in the URL fragment.
 - Open shared links as responsive HTML pages with independently configurable sections, stats period, calendar range, selected repositories, text size, accent, and card style.
+- Generate configurable website embed code from **Share → Embed** using the same share settings.
+- Resize embedded Gitbrag profiles automatically with `postMessage` when the host page includes the generated helper script.
 - Generate a dedicated 1080 × 1080 PNG using a canvas renderer that does not depend on the shared-page renderer.
 - Customize PNG modules, stats period, calendar range, up to four repositories, text size, accent, and card style.
 - Preview the exact canvas that is exported as the PNG.
@@ -37,20 +39,21 @@ Gitbrag intentionally keeps the application small and static:
 
 - `index.html` contains the semantic application structure and modal shells.
 - `style.css` contains the core design system and responsive application layout.
-- `share-page.css` contains only shared-webpage refinements.
+- `share-page.css` contains shared-webpage and embed presentation refinements.
 - `png.css` contains only PNG-generator UI styling.
 - `app.js` owns routing, public data loading, calculations, the main profile UI, and creation of renderer-neutral view models.
 - `share-config.js` owns the versioned configuration schema, normalization, validation, compact URL-safe encoding, and backward-compatible decoding.
-- `share-page.js` owns only the custom-link builder UI and responsive HTML shared-page renderer.
+- `share-page.js` owns the custom-link/embed builder UI and responsive HTML shared-page renderer.
+- `embed.js` owns embed URL/code generation, embed-mode presentation state, and iframe auto-height messaging.
 - `png.js` owns only the image-builder UI, adaptive 1080 × 1080 canvas renderer, preview, and PNG download path.
 
 ### Renderer boundary
 
-The shared-page renderer produces responsive HTML.
+The shared-page renderer produces responsive HTML. Website embeds reuse that responsive HTML renderer in a stripped-down iframe mode.
 
 The PNG renderer draws directly to a fixed 1080 × 1080 canvas. It does not clone the shared page, screenshot the main application, or reuse shared-page DOM/CSS.
 
-The two renderers may consume the same validated configuration and renderer-neutral data model, but they do not call or wrap one another.
+The renderers may consume the same validated configuration and renderer-neutral data model, but the PNG path does not call or wrap the shared-page/embed renderer.
 
 ## Share links
 
@@ -82,6 +85,20 @@ The configuration supports:
 Malformed or unsupported share tokens fall back to the normal profile instead of breaking the application. Compact tokens are validated strictly for version, module mask, enum indexes, array shape, token alphabet, and maximum token length. Legacy object-form v1 tokens remain normalized for compatibility.
 
 If a user turns the repository section on but selects zero repositories in a builder, the repository section is omitted rather than unexpectedly falling back to the default top repositories.
+
+## Website embeds
+
+The embed builder is available from **Share → Embed** and uses the same configurable modules and appearance settings as the shared-page builder.
+
+Embed URLs use the compact share token plus an embed flag:
+
+```text
+#/octocat?s=<token>&embed=1
+```
+
+The generated snippet includes an iframe plus a small optional helper script. The iframe works on its own with a fixed starting height; the helper listens only to messages from that specific iframe and origin, then updates the iframe height as the Gitbrag content changes.
+
+Embed mode removes Gitbrag's normal page chrome, version badge, preview controls, and "Create your own" action while preserving the configured shared profile and Gitbrag branding.
 
 ## PNG generation
 
@@ -139,9 +156,15 @@ Customized shared profile:
 #/octocat?s=<token>
 ```
 
+Embedded shared profile:
+
+```text
+#/octocat?s=<token>&embed=1
+```
+
 Legacy `?share=<token>` links are still accepted.
 
-Both are client-side hash routes so direct links remain compatible with GitHub Pages.
+These are client-side hash routes so direct links remain compatible with GitHub Pages.
 
 ## Tests
 
@@ -159,6 +182,7 @@ Syntax can be checked with:
 node --check app.js
 node --check share-page.js
 node --check share-config.js
+node --check embed.js
 node --check png.js
 ```
 
@@ -188,5 +212,6 @@ Then open `http://localhost:8000`.
 - **0.7** — responsive custom-link sharing
 - **0.8** — isolated 1:1 PNG generator and compact share URLs
 - **0.9** — social feature hardening and regression fixes
-- **0.9.5** — marketing-focused front page that showcases Gitbrag's core, share-link, and PNG features
+- **0.9.1** — configurable website embeds
+- **0.9.5** — marketing-focused front page that showcases Gitbrag's core, share-link, PNG, and embed features
 - **1.0** — stable Gitbrag release
