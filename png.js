@@ -7,6 +7,7 @@
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
   const SIZE = 1080;
+  const AVATAR_TIMEOUT_MS = 5000;
   const CANVAS = Object.freeze({
     padding: 60,
     footerTop: 995,
@@ -17,6 +18,7 @@
     statsHeight: 176,
     panelRadius: 18,
     repoGap: 12,
+    brandReserve: 180,
   });
 
   const elements = {
@@ -43,6 +45,9 @@
 
   let repoOptions = [];
   let renderSequence = 0;
+  let modalReturnFocus = null;
+  let restoreFocusAfterClose = true;
+  let exportInProgress = false;
   const avatarCache = new Map();
 
   function clamp(value, min, max) {
@@ -76,6 +81,16 @@
     if (count) count.textContent = `${checked.length}/${ShareConfig.MAX_SELECTED_REPOS}`;
   }
 
+  function syncDependentControls() {
+    if (elements.statsPeriod) elements.statsPeriod.disabled = !elements.statsToggle.checked;
+    if (elements.calendarRange) elements.calendarRange.disabled = !elements.calendarToggle.checked;
+    const repoFieldset = elements.repoPicker?.closest('.png-fieldset');
+    if (repoFieldset) {
+      repoFieldset.disabled = !elements.reposToggle.checked;
+      repoFieldset.classList.toggle('is-disabled', !elements.reposToggle.checked);
+    }
+  }
+
   function renderRepoPicker(selectedIds) {
     const selected = new Set(selectedIds.map(String));
     elements.repoPicker.innerHTML = `
@@ -100,6 +115,7 @@
       scheduleRender();
     };
     updateRepoPickerState();
+    syncDependentControls();
   }
 
   function setValues(config) {
@@ -114,20 +130,21 @@
     elements.accent.value = normalized.appearance.accent;
     elements.cardStyle.value = normalized.appearance.cardStyle;
     renderRepoPicker(normalized.selectedRepos);
-    elements.repoPicker.closest('.png-fieldset')?.classList.toggle('is-disabled', !normalized.modules.repos);
+    syncDependentControls();
   }
 
   function readValues() {
+    const repos = selectedRepoIds();
     return ShareConfig.normalize({
       modules: {
         profile: elements.profileToggle.checked,
         stats: elements.statsToggle.checked,
         calendar: elements.calendarToggle.checked,
-        repos: elements.reposToggle.checked,
+        repos: elements.reposToggle.checked && repos.length > 0,
       },
       statsPeriod: elements.statsPeriod.value,
       calendarRange: elements.calendarRange.value,
-      selectedRepos: selectedRepoIds(),
+      selectedRepos: repos,
       appearance: {
         textSize: elements.textSize.value,
         accent: elements.accent.value,
@@ -143,7 +160,9 @@
 
   async function openBuilder() {
     const context = root.GitbragApp?.getShareBuilderContext?.();
-    if (!context) return;
+    if (!context || !elements.modal) return;
+    modalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : elements.shareButton;
+    restoreFocusAfterClose = true;
     repoOptions = context.repos;
     setValues(context.defaultConfig);
     closeMenu();
@@ -152,14 +171,17 @@
     await renderPreview();
   }
 
-  function closeBuilder() {
+  function closeBuilder({ restoreFocus = true } = {}) {
+    restoreFocusAfterClose = restoreFocus;
+    renderSequence += 1;
     if (elements.modal?.open) elements.modal.close();
   }
 
   function scheduleRender() {
+    if (exportInProgress) return;
     const sequence = ++renderSequence;
     root.setTimeout(() => {
-      if (sequence === renderSequence) renderPreview();
+      if (sequence === renderSequence && elements.modal?.open) renderPreview();
     }, 40);
   }
 
@@ -199,7 +221,6 @@
     ctx.arcTo(x + width, y, x + width, y + height, r);
     ctx.arcTo(x + width, y + height, x, y + height, r);
     ctx.arcTo(x, y + height, x, y, r);
-    ctx.arcTo(x, y, x + width, y, r);
     ctx.closePath();
   }
 
@@ -254,13 +275,25 @@
   async function getAvatar(url) {
     if (!url) return null;
     if (avatarCache.has(url)) return avatarCache.get(url);
+
     const promise = new Promise((resolve) => {
       const image = new Image();
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        image.onload = null;
+        image.onerror = null;
+        resolve(value);
+      };
+      const timeout = root.setTimeout(() => finish(null), AVATAR_TIMEOUT_MS);
       image.crossOrigin = 'anonymous';
-      image.onload = () => resolve(image);
-      image.onerror = () => resolve(null);
+      image.onload = () => finish(image);
+      image.onerror = () => finish(null);
       image.src = url;
     });
+
     avatarCache.set(url, promise);
     return promise;
   }
@@ -323,7 +356,7 @@
   function computeLayout(config, model) {
     const enabled = ['profile', 'stats', 'calendar', 'repos'].filter((key) => config.modules[key]);
     const gaps = Math.max(0, enabled.length - 1) * CANVAS.sectionGap;
-    const contentTop = 60;
+    const contentTop = config.modules.profile ? 60 : 104;
     const contentBottom = CANVAS.footerTop - 22;
     const totalHeight = contentBottom - contentTop - gaps;
     const heights = { profile: 0, stats: 0, calendar: 0, repos: 0 };
@@ -400,13 +433,16 @@
     const avatarSize = clamp(Math.min(height, 98), 72, 98);
     const avatarY = y + Math.max(0, (height - avatarSize) / 2);
     drawAvatar(ctx, image, colors, x, avatarY, avatarSize, model.user.displayName);
+    const textX = x + avatarSize + 24;
+    const textWidth = Math.max(140, width - avatarSize - CANVAS.brandReserve);
+
     ctx.fillStyle = colors.text;
     font(ctx, 42 * scale, 800);
-    ctx.fillText(fitText(ctx, model.user.displayName, width - avatarSize - 32), x + avatarSize + 24, avatarY + 44);
+    ctx.fillText(fitText(ctx, model.user.displayName, textWidth), textX, avatarY + 44);
     ctx.fillStyle = colors.muted;
     font(ctx, 18 * scale, 500);
     const handle = `@${model.user.login}${model.user.bio ? ` · ${model.user.bio}` : ''}`;
-    ctx.fillText(fitText(ctx, handle, width - avatarSize - 32), x + avatarSize + 24, avatarY + 75);
+    ctx.fillText(fitText(ctx, handle, textWidth), textX, avatarY + 75);
   }
 
   function drawStats(ctx, colors, model, x, y, width, height, scale) {
@@ -507,14 +543,15 @@
       drawPanel(ctx, colors, cx, cy, cardWidth, cardHeight, 16);
       const padding = roomy ? 20 : 16;
 
-      ctx.fillStyle = colors.text;
-      font(ctx, (roomy ? 21 : 18) * scale, 700);
-      ctx.fillText(fitText(ctx, repo.name, cardWidth - 90), cx + padding, cy + (roomy ? 38 : 31));
-
+      const stars = `★ ${formatNumber(repo.stars)}`;
       ctx.fillStyle = colors.accent;
       font(ctx, (roomy ? 14 : 13) * scale, 700);
-      const stars = `★ ${formatNumber(repo.stars)}`;
-      ctx.fillText(stars, cx + cardWidth - padding - ctx.measureText(stars).width, cy + (roomy ? 38 : 31));
+      const starWidth = ctx.measureText(stars).width;
+      ctx.fillText(stars, cx + cardWidth - padding - starWidth, cy + (roomy ? 38 : 31));
+
+      ctx.fillStyle = colors.text;
+      font(ctx, (roomy ? 21 : 18) * scale, 700);
+      ctx.fillText(fitText(ctx, repo.name, cardWidth - padding * 3 - starWidth), cx + padding, cy + (roomy ? 38 : 31));
 
       ctx.fillStyle = colors.muted;
       font(ctx, (roomy ? 14 : 12) * scale, 500);
@@ -528,6 +565,16 @@
       font(ctx, (roomy ? 13 : 11) * scale, 600);
       ctx.fillText(fitText(ctx, repo.language || 'Unknown', cardWidth - padding * 2), cx + padding, cy + cardHeight - 20);
     });
+  }
+
+  function drawEmptyState(ctx, colors) {
+    ctx.fillStyle = colors.muted;
+    font(ctx, 24, 700);
+    ctx.textAlign = 'center';
+    ctx.fillText('No image sections selected.', SIZE / 2, SIZE / 2 - 4);
+    font(ctx, 14, 500);
+    ctx.fillText('Enable a section in the image settings to add content.', SIZE / 2, SIZE / 2 + 28);
+    ctx.textAlign = 'left';
   }
 
   function drawFooter(ctx, colors, model) {
@@ -554,7 +601,9 @@
 
   async function draw(config, model, sequence = null) {
     const canvas = elements.canvas;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas?.getContext?.('2d');
+    if (!canvas || !ctx) throw new Error('Canvas rendering is not available in this browser.');
+
     canvas.width = SIZE;
     canvas.height = SIZE;
     const colors = palette(config);
@@ -571,21 +620,25 @@
     const layout = computeLayout(config, model);
     drawBrand(ctx, colors);
 
-    if (config.modules.profile) {
-      const section = layout.positions.profile;
-      drawProfile(ctx, colors, model, avatar, layout.x, section.y, layout.width, section.height, scale);
-    }
-    if (config.modules.stats) {
-      const section = layout.positions.stats;
-      drawStats(ctx, colors, model, layout.x, section.y, layout.width, section.height, scale);
-    }
-    if (config.modules.calendar) {
-      const section = layout.positions.calendar;
-      drawCalendar(ctx, colors, model, layout.x, section.y, layout.width, section.height, scale);
-    }
-    if (config.modules.repos) {
-      const section = layout.positions.repos;
-      drawRepos(ctx, colors, model, layout.x, section.y, layout.width, section.height, scale);
+    if (!Object.values(config.modules).some(Boolean)) {
+      drawEmptyState(ctx, colors);
+    } else {
+      if (config.modules.profile) {
+        const section = layout.positions.profile;
+        drawProfile(ctx, colors, model, avatar, layout.x, section.y, layout.width, section.height, scale);
+      }
+      if (config.modules.stats) {
+        const section = layout.positions.stats;
+        drawStats(ctx, colors, model, layout.x, section.y, layout.width, section.height, scale);
+      }
+      if (config.modules.calendar) {
+        const section = layout.positions.calendar;
+        drawCalendar(ctx, colors, model, layout.x, section.y, layout.width, section.height, scale);
+      }
+      if (config.modules.repos) {
+        const section = layout.positions.repos;
+        drawRepos(ctx, colors, model, layout.x, section.y, layout.width, section.height, scale);
+      }
     }
 
     drawFooter(ctx, colors, model);
@@ -594,7 +647,7 @@
 
   async function renderPreview() {
     const app = root.GitbragApp;
-    if (!app?.createRenderModel) return;
+    if (!app?.createRenderModel || !elements.modal?.open || exportInProgress) return;
     const config = readValues();
     const model = app.createRenderModel(config);
     if (!model) return;
@@ -604,7 +657,7 @@
     try {
       const rendered = await draw(config, model, sequence);
       if (!rendered || sequence !== renderSequence) return;
-      elements.status.textContent = '1080 × 1080 · full-panel calendar · preview matches export';
+      elements.status.textContent = '1080 × 1080 · hardened adaptive layout · preview matches export';
     } catch (error) {
       console.error('PNG preview failed.', error);
       elements.status.textContent = 'Could not render the image preview.';
@@ -613,6 +666,10 @@
 
   function canvasBlob(canvas) {
     return new Promise((resolve, reject) => {
+      if (!canvas?.toBlob) {
+        reject(new Error('PNG export is not supported in this browser.'));
+        return;
+      }
       try {
         canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG export failed.')), 'image/png');
       } catch (error) {
@@ -621,15 +678,32 @@
     });
   }
 
+  function lockBuilderControls(locked) {
+    if (!elements.modal) return;
+    $$('input, select, button', elements.modal).forEach((control) => {
+      if (locked) {
+        control.dataset.pngWasDisabled = control.disabled ? '1' : '0';
+        control.disabled = true;
+      } else {
+        control.disabled = control.dataset.pngWasDisabled === '1';
+        delete control.dataset.pngWasDisabled;
+      }
+    });
+    if (!locked) syncDependentControls();
+  }
+
   async function downloadPng() {
     const app = root.GitbragApp;
-    if (!app?.createRenderModel) return;
+    if (!app?.createRenderModel || exportInProgress) return;
     const config = readValues();
     const model = app.createRenderModel(config);
     if (!model) return;
     const original = elements.download.textContent;
-    elements.download.disabled = true;
+
+    exportInProgress = true;
+    lockBuilderControls(true);
     elements.download.textContent = 'Rendering…';
+    elements.status.textContent = 'Preparing PNG…';
 
     try {
       const sequence = ++renderSequence;
@@ -645,29 +719,34 @@
       anchor.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       elements.download.textContent = 'Downloaded!';
-      setTimeout(() => { elements.download.textContent = original; }, 1200);
+      elements.status.textContent = 'PNG downloaded successfully.';
+      setTimeout(() => {
+        if (elements.download) elements.download.textContent = original;
+      }, 1200);
     } catch (error) {
       console.error('PNG export failed.', error);
-      elements.status.textContent = 'PNG export failed. Try again or disable the profile avatar.';
+      elements.status.textContent = 'PNG export failed. Try again or turn off Profile.';
       elements.download.textContent = original;
     } finally {
-      elements.download.disabled = false;
+      exportInProgress = false;
+      lockBuilderControls(false);
     }
   }
 
   elements.action?.addEventListener('click', openBuilder);
-  elements.close?.addEventListener('click', closeBuilder);
-  elements.cancel?.addEventListener('click', closeBuilder);
+  elements.close?.addEventListener('click', () => closeBuilder());
+  elements.cancel?.addEventListener('click', () => closeBuilder());
   elements.download?.addEventListener('click', downloadPng);
-  elements.reposToggle?.addEventListener('change', () => {
-    elements.repoPicker.closest('.png-fieldset')?.classList.toggle('is-disabled', !elements.reposToggle.checked);
-    scheduleRender();
+
+  [elements.statsToggle, elements.calendarToggle, elements.reposToggle].forEach((toggle) => {
+    toggle?.addEventListener('change', () => {
+      syncDependentControls();
+      scheduleRender();
+    });
   });
 
   [
     elements.profileToggle,
-    elements.statsToggle,
-    elements.calendarToggle,
     elements.statsPeriod,
     elements.calendarRange,
     elements.textSize,
@@ -676,8 +755,20 @@
   ].forEach((element) => element?.addEventListener('change', scheduleRender));
 
   elements.modal?.addEventListener('click', (event) => {
-    if (event.target === elements.modal) closeBuilder();
+    if (event.target === elements.modal && !exportInProgress) closeBuilder();
   });
 
-  root.GitbragPng = Object.freeze({ openBuilder, renderPreview });
+  elements.modal?.addEventListener('close', () => {
+    if (restoreFocusAfterClose && modalReturnFocus?.isConnected) modalReturnFocus.focus();
+    modalReturnFocus = null;
+    restoreFocusAfterClose = true;
+  });
+
+  const closeOnNavigation = () => {
+    if (elements.modal?.open && !exportInProgress) closeBuilder({ restoreFocus: false });
+  };
+  root.addEventListener('hashchange', closeOnNavigation);
+  root.addEventListener('popstate', closeOnNavigation);
+
+  root.GitbragPng = Object.freeze({ openBuilder, closeBuilder, renderPreview });
 })(window);
