@@ -11,11 +11,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=0.7.0">
+  <link rel="stylesheet" href="style.css?v=0.7.1">
+  <link rel="stylesheet" href="share-page.css?v=0.7.1">
 </head>
 <body>
   <main class="app">
-    <div class="app-version" aria-label="Gitbrag version 0.7.0">v0.7.0</div>
+    <div class="app-version" aria-label="Gitbrag version 0.7.1">v0.7.1</div>
 
     <section id="searchView" class="hero" aria-labelledby="searchTitle">
       <div class="brand">GIT<span>BRAG</span></div>
@@ -99,15 +100,17 @@
     </section>
 
     <section id="sharedView" class="shared-view hidden" aria-label="Shared Gitbrag page">
-      <header class="shared-header">
-        <div class="brand small">GIT<span>BRAG</span></div>
-        <div class="shared-header-actions">
+      <div id="sharedPreviewBar" class="shared-preview-bar hidden">
+        <span class="shared-preview-label">Share preview</span>
+        <div class="shared-preview-actions">
           <button id="sharedEdit" class="secondary-button" type="button">Edit share</button>
           <button id="sharedFullProfile" class="secondary-button" type="button">View full profile</button>
-          <button id="sharedNewUser" class="primary-button" type="button">Create your own</button>
         </div>
-      </header>
+      </div>
       <div id="sharedPage"></div>
+      <div id="sharedFooterActions" class="shared-footer-actions">
+        <button id="sharedNewUser" class="shared-create-button" type="button">Create your own Gitbrag</button>
+      </div>
     </section>
 
     <section id="errorView" class="error hidden" aria-live="assertive">
@@ -161,8 +164,8 @@
     </div>
   </dialog>
 
-  <script src="share-config.js?v=0.7.0"></script>
-  <script src="share-page.js?v=0.7.0"></script>
-  <script src="app.js?v=0.7.0"></script>
+  <script src="share-config.js?v=0.7.1"></script>
+  <script src="share-page.js?v=0.7.1"></script>
+  <script src="app.js?v=0.7.1"></script>
 </body>
 </html>
