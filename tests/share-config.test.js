@@ -13,6 +13,8 @@ assert.deepEqual(defaults, {
   appearance: { textSize: 'balanced', accent: 'auto', cardStyle: 'solid' }
 });
 
+assert.equal(ShareConfig.normalize({ statsPeriod: 'week' }).statsPeriod, 'week');
+
 const normalized = ShareConfig.normalize({
   modules: { profile: false, stats: 'yes' },
   statsPeriod: 'year',
@@ -32,7 +34,7 @@ assert.deepEqual(normalized, {
 
 const roundTripSource = ShareConfig.create({
   modules: { calendar: false },
-  statsPeriod: 'lifetime',
+  statsPeriod: 'week',
   calendarRange: 'all',
   selectedRepos: ['repo-α', '42'],
   appearance: { accent: 'cyan', textSize: 'compact', cardStyle: 'outline' }
@@ -41,15 +43,11 @@ const roundTripSource = ShareConfig.create({
 const token = ShareConfig.encode(roundTripSource);
 assert.match(token, /^[A-Za-z0-9_-]+$/);
 assert.deepEqual(ShareConfig.decode(token), roundTripSource);
-
 assert.equal(ShareConfig.tryDecode('not valid!'), null);
 assert.equal(ShareConfig.tryDecode(''), null);
 
 const unsupported = Buffer.from(JSON.stringify({ v: 2 }), 'utf8').toString('base64url');
-assert.throws(
-  () => ShareConfig.decode(unsupported),
-  /Unsupported Gitbrag share config version: 2/
-);
+assert.throws(() => ShareConfig.decode(unsupported), /Unsupported Gitbrag share config version: 2/);
 
 const copy = ShareConfig.defaults();
 copy.modules.profile = false;
