@@ -2,7 +2,7 @@
 
 Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub profile, recent contribution activity, customized shareable profile pages, website embeds, exportable social images, and an optional Chrome extension that surfaces Gitbrag stats directly on GitHub profiles.
 
-**v0.9.3** is the Chrome-extension pre-test hardening release. It adds extension settings, stricter profile/API validation, request timeouts, cache pruning and clearing, visible loading/error/retry states, DOM reinjection guards, additional tests, and draft privacy/store documentation before live GitHub placement testing.
+**v0.9.4** simplifies PNG branding: generated images now use a single larger Gitbrag wordmark in the top-right, reserve more space around that brand for long profile names, and remove the duplicate Gitbrag wordmark from the footer while keeping the profile URL.
 
 ## Current features
 
@@ -129,7 +129,7 @@ Avatar loading is bounded by a timeout. If the remote avatar cannot be used, the
 
 The responsive shared webpage keeps its normal calendar renderer. The space-filling tile layout is specific to the PNG renderer.
 
-Gitbrag branding is always drawn into the output.
+PNG output uses one enlarged Gitbrag wordmark in the top-right. The footer keeps the profile URL but no longer repeats the Gitbrag brand.
 
 ## Chrome extension
 
@@ -277,5 +277,6 @@ Then open `http://localhost:8000`.
 - **0.9.1** — configurable website embeds
 - **0.9.2** — first-party Chrome extension for GitHub profile stats
 - **0.9.3** — extension pre-test hardening, settings, privacy/store preparation, and landing-page direction
+- **0.9.4** — PNG branding cleanup with one enlarged top-right Gitbrag wordmark
 - **0.9.5** — marketing-focused front page that showcases Gitbrag's core, share-link, PNG, embed, and extension features
 - **1.0** — stable Gitbrag release
