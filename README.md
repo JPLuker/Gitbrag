@@ -6,6 +6,8 @@ Gitbrag is a lightweight, GitHub Pages-friendly dashboard that turns a GitHub pr
 
 - Search by GitHub username or paste a GitHub profile URL
 - Share a generated profile with a URL hash, including browser back/forward navigation
+- Create a custom share link that preserves the same PNG configuration: modules, repositories, calendar range, ratio, text size, accent, card style, and display options
+- Open a custom share link directly into a responsive shared-card view with PNG download and a path back to customization
 - View 24H, 7D, 1M, 6M, 1Y, and lifetime contribution stats
 - Show GitHub contribution totals, active days, best day, and streaks using one consistent date window
 - Show a custom contribution heatmap with date-safe calendar keys
@@ -19,6 +21,27 @@ Gitbrag is a lightweight, GitHub Pages-friendly dashboard that turns a GitHub pr
 - Preview uses the same native-size card layout that is exported, scaled only for display
 - Text size, accent, card style, repository details, and profile alignment are configurable
 - Runs as a static site with no database or self-hosted server
+
+## Custom share links
+
+A custom share link is generated from the PNG builder with **Copy share link**. The configuration is encoded into the URL fragment, so Gitbrag does not need a database to store the customization. The recipient's browser decodes the configuration, loads the public GitHub data, and reconstructs the same card.
+
+The link preserves:
+
+- PNG ratio
+- Enabled modules
+- Selected repositories
+- Calendar range
+- Avatar and username visibility
+- Profile alignment
+- Individual stats
+- Repository name, description, stars, and language visibility
+- Repository label
+- Text size
+- Accent
+- Card style
+
+The share format is versioned (`v1`) so the configuration format can evolve without silently breaking older links.
 
 ## PNG layouts
 
@@ -35,9 +58,11 @@ These are image-ratio presets, not guarantees about a particular platform's curr
 
 ## Architecture
 
-Gitbrag is intentionally a static browser application. `app.js` owns profile data, contribution statistics, routing, and the main profile UI. `png.js` is the single owner of the PNG builder, preview, settings, and export path.
+Gitbrag is intentionally a static browser application. `app.js` owns profile data, contribution statistics, routing, and the main profile UI. `png.js` owns the PNG builder, customization state, share-link serialization, shared-card rendering, preview, and export path.
 
-The PNG card is built at its final native pixel dimensions. The preview creates a scaled clone of that exact card, while export captures the native card. The composition does not use container-query units, so preview and export do not depend on a renderer implementing CSS container queries.
+The PNG card is built at its final native pixel dimensions. The preview and shared-card view create scaled clones of that exact card, while export captures the native card. The composition does not use container-query units, so preview and export do not depend on a renderer implementing CSS container queries.
+
+Custom share configurations live in the URL fragment rather than a Gitbrag database. This keeps the feature compatible with GitHub Pages and means there is no server-side share state to maintain.
 
 PNG export uses `modern-screenshot` 4.7.0 rather than the older html2canvas pipeline. The library is loaded from a pinned CDN version.
 
