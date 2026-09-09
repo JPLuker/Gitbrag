@@ -5,10 +5,20 @@ const REPOS_PER_PAGE = 100;
 
 const PERIODS = Object.freeze({
   day: { days: 1, label: 'Last 24 hours' },
+  week: { days: 7, label: 'Last 7 days' },
   month: { days: 30, label: 'Last 30 days' },
   sixmonths: { days: 182, label: 'Last 6 months' },
   year: { days: 365, label: 'Last year' },
   lifetime: { days: null, label: 'All time' },
+});
+
+const CALENDAR_RANGES = Object.freeze({
+  '1m': { days: 30, label: 'LAST MONTH' },
+  '3m': { days: 91, label: 'LAST 3 MONTHS' },
+  '6m': { days: 182, label: 'LAST 6 MONTHS' },
+  '1y': { days: 365, label: 'LAST YEAR' },
+  '2y': { days: 730, label: 'LAST 2 YEARS' },
+  all: { days: null, label: 'ALL AVAILABLE' },
 });
 
 const DEFAULT_PERIOD = 'month';
@@ -19,6 +29,7 @@ const elements = {
     search: qs('#searchView'),
     loading: qs('#loadingView'),
     profile: qs('#profileView'),
+    shared: qs('#sharedView'),
     error: qs('#errorView'),
   },
   searchForm: qs('#searchForm'),
@@ -41,12 +52,16 @@ const elements = {
   calendarTotal: qs('#calendarTotal'),
   githubProfile: qs('#githubProfile'),
   repos: qs('#repos'),
+  sharedFullProfile: qs('#sharedFullProfile'),
+  sharedNewUser: qs('#sharedNewUser'),
 };
 
 const state = {
   data: null,
   period: DEFAULT_PERIOD,
   contributionError: null,
+  routeNotice: null,
+  activeShareConfig: null,
   requestId: 0,
   controller: null,
 };
@@ -82,6 +97,8 @@ function resetToSearch({ focus = true } = {}) {
   state.controller = null;
   state.data = null;
   state.contributionError = null;
+  state.routeNotice = null;
+  state.activeShareConfig = null;
   state.period = DEFAULT_PERIOD;
   state.requestId += 1;
   resetTheme();
@@ -132,17 +149,22 @@ function parseUserInput(value) {
   return input;
 }
 
-function routeFor(username) {
-  return `#/${encodeURIComponent(username)}`;
+function routeFor(username, shareToken = null) {
+  const base = `#/${encodeURIComponent(username)}`;
+  return shareToken ? `${base}?share=${encodeURIComponent(shareToken)}` : base;
 }
 
 function parseRoute() {
-  const raw = location.hash.replace(/^#\/?/, '').split('?')[0];
+  const raw = location.hash.replace(/^#\/?/, '');
   if (!raw) return null;
+  const [rawUser, rawQuery = ''] = raw.split('?');
 
   try {
-    return { username: parseUserInput(decodeURIComponent(raw)) };
-  } catch (error) {
+    return {
+      username: parseUserInput(decodeURIComponent(rawUser)),
+      shareToken: rawQuery ? new URLSearchParams(rawQuery).get('share') : null,
+    };
+  } catch {
     throw new Error('This Gitbrag URL contains an invalid GitHub username.');
   }
 }
@@ -202,12 +224,21 @@ async function loadContributionResult(username, signal) {
   }
 }
 
-async function loadProfile(input) {
+function sameLoadedUser(username) {
+  return state.data?.user?.login?.toLowerCase() === String(username).toLowerCase();
+}
+
+async function loadProfile(input, { shareToken = null } = {}) {
   let username;
   try {
     username = parseUserInput(input);
   } catch (error) {
     showError(error);
+    return;
+  }
+
+  if (sameLoadedUser(username) && !state.controller) {
+    applyRouteAfterLoad({ username: state.data.user.login, shareToken }, { replace: true });
     return;
   }
 
@@ -218,6 +249,8 @@ async function loadProfile(input) {
   state.requestId = requestId;
   state.data = null;
   state.contributionError = null;
+  state.routeNotice = null;
+  state.activeShareConfig = null;
   resetTheme();
 
   showView('loading');
@@ -244,9 +277,7 @@ async function loadProfile(input) {
     state.period = DEFAULT_PERIOD;
 
     render();
-    history.replaceState(null, '', routeFor(user.login));
-    showView('profile');
-    elements.displayName?.focus();
+    applyRouteAfterLoad({ username: user.login, shareToken }, { replace: true });
     applyAccentFromAvatar(user.avatar_url, requestId);
   } catch (error) {
     if (error?.name === 'AbortError' || requestId !== state.requestId) return;
@@ -289,6 +320,7 @@ function periodRecords(period) {
   if (period === 'lifetime') return [...records];
 
   const days = PERIODS[period]?.days;
+  if (!days) return [];
   const end = todayKey();
   const start = addDays(end, -days + 1);
   return records.filter((record) => record.date >= start && record.date <= end);
@@ -428,8 +460,9 @@ function renderStats() {
     <div class="extra"><b>${formatValue(value)}</b><span>${label}</span></div>
   `).join('');
 
-  elements.contributionNotice.textContent = state.contributionError || '';
-  elements.contributionNotice.classList.toggle('hidden', !state.contributionError);
+  const notice = state.routeNotice || state.contributionError || '';
+  elements.contributionNotice.textContent = notice;
+  elements.contributionNotice.classList.toggle('hidden', !notice);
 
   elements.periods.querySelectorAll('button[data-period]').forEach((button) => {
     const active = button.dataset.period === period;
@@ -452,44 +485,28 @@ function renderCalendar() {
     return;
   }
 
-  const map = new Map(contributionRecords().map((record) => [record.date, record]));
-  const end = todayKey();
-  const start = addDays(end, -364);
-  const first = dateFromKey(start);
-  first.setUTCDate(first.getUTCDate() - first.getUTCDay());
-
-  const days = [];
-  for (let index = 0; index < 371; index += 1) {
-    const key = dateKeyFromDate(new Date(first.getTime() + index * 86400000));
-    if (key > end) break;
-    const item = map.get(key) || { count: 0, level: 0 };
-    days.push({ date: key, count: Number(item.count) || 0, level: Number(item.level) || 0 });
-  }
-
-  const weeks = Math.max(1, Math.ceil(days.length / 7));
-  const graphWidth = weeks * 10 + Math.max(0, weeks - 1) * 4;
-  graph.style.gridTemplateColumns = `repeat(${weeks}, 10px)`;
+  const window = buildCalendarWindow('1y');
+  const graphWidth = window.weeks * 10 + Math.max(0, window.weeks - 1) * 4;
+  graph.style.gridTemplateColumns = `repeat(${window.weeks}, 10px)`;
   graph.style.width = `${graphWidth}px`;
   graph.style.minWidth = `${graphWidth}px`;
-  graph.setAttribute('aria-label', `GitHub contribution calendar for the last year. ${formatNumber(contributionCount('year'))} contributions.`);
+  graph.setAttribute('aria-label', `GitHub contribution calendar for the last year. ${formatNumber(window.total)} contributions.`);
 
-  days.forEach((item) => {
+  window.days.forEach((item) => {
     const cell = document.createElement('span');
-    cell.className = `contrib-cell level-${Math.min(4, Math.max(0, item.level))}`;
+    cell.className = `contrib-cell level-${item.level}`;
     cell.title = `${item.count} contribution${item.count === 1 ? '' : 's'} · ${item.date}`;
     graph.appendChild(cell);
   });
 
-  elements.calendarTotal.textContent = `${formatNumber(contributionCount('year'))} contributions in the last year`;
+  elements.calendarTotal.textContent = `${formatNumber(window.total)} contributions in the last year`;
   requestAnimationFrame(() => {
     if (elements.calendarScroll) elements.calendarScroll.scrollLeft = elements.calendarScroll.scrollWidth;
   });
 }
 
 function renderRepositories() {
-  const repositories = [...state.data.repos]
-    .sort((a, b) => (b.stargazers_count || 0) - (a.stargazers_count || 0))
-    .slice(0, 6);
+  const repositories = rankedRepositories().slice(0, 6);
 
   if (!repositories.length) {
     elements.repos.innerHTML = '<div class="stats-message">No original public repositories found.</div>';
@@ -510,6 +527,148 @@ function renderRepositories() {
       </div>
     </article>
   `).join('');
+}
+
+function rankedRepositories() {
+  return [...(state.data?.repos || [])].sort((a, b) => (b.stargazers_count || 0) - (a.stargazers_count || 0));
+}
+
+function repoKey(repository) {
+  return String(repository.id ?? repository.name);
+}
+
+function calendarRangeStart(range, records) {
+  const end = todayKey();
+  const setting = CALENDAR_RANGES[range] || CALENDAR_RANGES['6m'];
+
+  if (setting.days) return addDays(end, -setting.days + 1);
+  const dates = (records || []).map((record) => record.date).filter(Boolean).sort();
+  return dates[0] || addDays(end, -181);
+}
+
+function buildCalendarWindow(range) {
+  const records = contributionRecords() || [];
+  const map = new Map(records.map((record) => [record.date, record]));
+  const end = todayKey();
+  const exactStart = calendarRangeStart(range, records);
+  const first = dateFromKey(exactStart);
+  first.setUTCDate(first.getUTCDate() - first.getUTCDay());
+
+  const days = [];
+  let total = 0;
+  for (let key = dateKeyFromDate(first); key <= end; key = addDays(key, 1)) {
+    const record = map.get(key) || { count: 0, level: 0 };
+    const count = Number(record.count) || 0;
+    if (key >= exactStart) total += count;
+    days.push({
+      date: key,
+      count,
+      level: Math.min(4, Math.max(0, Number(record.level) || 0)),
+    });
+  }
+
+  return {
+    label: (CALENDAR_RANGES[range] || CALENDAR_RANGES['6m']).label,
+    days,
+    weeks: Math.max(1, Math.ceil(days.length / 7)),
+    total,
+  };
+}
+
+function createShareModel(configInput) {
+  const ShareConfig = window.GitbragShareConfig;
+  if (!state.data || !ShareConfig) return null;
+  const config = ShareConfig.normalize(configInput);
+  const selectedIds = config.selectedRepos.length
+    ? config.selectedRepos
+    : rankedRepositories().slice(0, ShareConfig.MAX_SELECTED_REPOS).map(repoKey);
+  const repositoryMap = new Map(rankedRepositories().map((repo) => [repoKey(repo), repo]));
+  const selectedRepos = selectedIds.map((id) => repositoryMap.get(String(id))).filter(Boolean);
+
+  return {
+    user: {
+      login: state.data.user.login,
+      displayName: state.data.user.name || state.data.user.login,
+      bio: state.data.user.bio || '',
+      avatarUrl: state.data.user.avatar_url,
+    },
+    contributionError: state.contributionError,
+    stats: {
+      periodLabel: PERIODS[config.statsPeriod]?.label || PERIODS[DEFAULT_PERIOD].label,
+      cards: [
+        { label: 'CONTRIBUTIONS', value: formatValue(contributionCount(config.statsPeriod)), note: 'contributions in this period' },
+        { label: 'ACTIVE DAYS', value: formatValue(activeDays(config.statsPeriod)), note: 'days with contribution activity' },
+        { label: 'BEST DAY', value: formatValue(bestDay(config.statsPeriod)), note: 'most contributions in one day' },
+        { label: 'LONGEST STREAK', value: formatValue(longestStreak(config.statsPeriod)), note: 'consecutive active days' },
+      ],
+    },
+    calendar: buildCalendarWindow(config.calendarRange),
+    repos: selectedRepos.map((repo) => ({
+      id: repoKey(repo),
+      name: repo.name,
+      description: repo.description || '',
+      language: repo.language || 'Unknown',
+      stars: repo.stargazers_count || 0,
+      url: safeGitHubUrl(repo.html_url),
+    })),
+  };
+}
+
+function defaultShareConfig() {
+  const ShareConfig = window.GitbragShareConfig;
+  if (!ShareConfig || !state.data) return null;
+  return ShareConfig.create({
+    statsPeriod: state.period,
+    selectedRepos: rankedRepositories().slice(0, ShareConfig.MAX_SELECTED_REPOS).map(repoKey),
+  });
+}
+
+function createShareUrl(configInput) {
+  if (!state.data || !window.GitbragShareConfig) return location.href;
+  const config = window.GitbragShareConfig.normalize(configInput);
+  const token = window.GitbragShareConfig.encode(config);
+  const base = location.href.split('#')[0];
+  return `${base}${routeFor(state.data.user.login, token)}`;
+}
+
+function renderSharedConfig(configInput, { updateHistory = false } = {}) {
+  if (!state.data || !window.GitbragShareConfig || !window.GitbragSharePage) return false;
+  const config = window.GitbragShareConfig.normalize(configInput);
+  const model = createShareModel(config);
+  if (!model) return false;
+  state.activeShareConfig = config;
+  window.GitbragSharePage.render(model, config);
+  if (updateHistory) {
+    const token = window.GitbragShareConfig.encode(config);
+    history.pushState(null, '', routeFor(state.data.user.login, token));
+  }
+  showView('shared');
+  return true;
+}
+
+function applyRouteAfterLoad(route, { replace = false } = {}) {
+  state.routeNotice = null;
+  const method = replace ? 'replaceState' : 'pushState';
+
+  if (route.shareToken) {
+    const config = window.GitbragShareConfig?.tryDecode(route.shareToken);
+    if (config) {
+      state.activeShareConfig = config;
+      const model = createShareModel(config);
+      window.GitbragSharePage?.render(model, config);
+      history[method](null, '', routeFor(route.username, route.shareToken));
+      showView('shared');
+      return;
+    }
+
+    state.routeNotice = 'This share link is invalid or from an unsupported version. Showing the full profile instead.';
+  }
+
+  state.activeShareConfig = null;
+  history[method](null, '', routeFor(route.username));
+  renderStats();
+  showView('profile');
+  elements.displayName?.focus();
 }
 
 function rgbToHsl(red, green, blue) {
@@ -583,6 +742,19 @@ function navigateToProfile(username) {
   loadProfile(username);
 }
 
+function handleCurrentRoute() {
+  try {
+    const route = parseRoute();
+    if (!route) {
+      resetToSearch({ focus: false });
+      return;
+    }
+    loadProfile(route.username, { shareToken: route.shareToken });
+  } catch (error) {
+    showError(error);
+  }
+}
+
 elements.searchForm.addEventListener('submit', (event) => {
   event.preventDefault();
   try {
@@ -609,23 +781,33 @@ elements.periods.addEventListener('click', (event) => {
   renderStats();
 });
 
-window.addEventListener('hashchange', () => {
-  try {
-    const route = parseRoute();
-    if (!route) {
-      resetToSearch({ focus: false });
-      return;
-    }
-    loadProfile(route.username);
-  } catch (error) {
-    showError(error);
-  }
+elements.sharedFullProfile?.addEventListener('click', () => {
+  if (!state.data) return;
+  state.activeShareConfig = null;
+  history.pushState(null, '', routeFor(state.data.user.login));
+  showView('profile');
+  elements.displayName?.focus();
 });
 
-try {
-  const initialRoute = parseRoute();
-  if (initialRoute) loadProfile(initialRoute.username);
-  else showView('search');
-} catch (error) {
-  showError(error);
-}
+elements.sharedNewUser?.addEventListener('click', () => {
+  history.pushState(null, '', location.pathname + location.search);
+  resetToSearch();
+});
+
+window.GitbragApp = Object.freeze({
+  getShareBuilderContext() {
+    if (!state.data) return null;
+    return {
+      repos: rankedRepositories(),
+      defaultConfig: defaultShareConfig(),
+    };
+  },
+  createShareUrl,
+  previewShare(config) {
+    renderSharedConfig(config, { updateHistory: true });
+  },
+});
+
+window.addEventListener('hashchange', handleCurrentRoute);
+
+handleCurrentRoute();
