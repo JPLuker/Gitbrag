@@ -73,6 +73,45 @@
   height: var(--calendar-cell);
 }
 
+html.gitbrag-embed,
+body.gitbrag-embed {
+  min-width: 0;
+  background: transparent;
+}
+
+body.gitbrag-embed {
+  overflow-x: hidden;
+}
+
+body.gitbrag-embed .app {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+body.gitbrag-embed .app-version,
+body.gitbrag-embed .shared-preview-bar,
+body.gitbrag-embed .shared-footer-actions {
+  display: none !important;
+}
+
+body.gitbrag-embed .shared-view {
+  padding: 0;
+}
+
+body.gitbrag-embed .shared-page {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+body.gitbrag-embed .shared-page-inner {
+  min-width: 0;
+}
+
 @media (max-width: 700px) {
   .shared-preview-bar {
     align-items: flex-start;
