@@ -337,19 +337,10 @@
 
     if (config.modules.calendar && config.modules.repos) {
       const { rows } = repoGrid(model.repos.length);
-      const minRepos = rows === 2 ? 320 : 250;
-      const minCalendar = rows === 2 ? 200 : 250;
-      const calendarShare = rows === 2 ? .38 : .52;
-      heights.calendar = clamp(
-        Math.round(flexibleHeight * calendarShare),
-        minCalendar,
-        Math.max(minCalendar, flexibleHeight - minRepos),
-      );
+      const minRepos = rows === 2 ? 260 : 225;
+      const targetCalendar = clamp(Math.round(flexibleHeight * .5), 280, 310);
+      heights.calendar = Math.min(targetCalendar, Math.max(210, flexibleHeight - minRepos));
       heights.repos = flexibleHeight - heights.calendar;
-      if (heights.repos < minRepos) {
-        heights.repos = minRepos;
-        heights.calendar = flexibleHeight - minRepos;
-      }
     } else if (config.modules.calendar) {
       heights.calendar = flexibleHeight;
     } else if (config.modules.repos) {
@@ -381,7 +372,7 @@
     let gap = safeCols > 100 ? 0 : safeCols > 60 ? 1 : safeCols > 30 ? 2 : 4;
     const fitByWidth = Math.floor((maxWidth - gap * (safeCols - 1)) / safeCols);
     const fitByHeight = Math.floor((maxHeight - gap * (safeRows - 1)) / safeRows);
-    const maxCell = safeCols <= 6 ? 30 : safeCols <= 14 ? 24 : safeCols <= 28 ? 16 : safeCols <= 60 ? 10 : 6;
+    const maxCell = safeCols <= 6 ? 40 : safeCols <= 14 ? 30 : safeCols <= 28 ? 20 : safeCols <= 60 ? 12 : 7;
     let cell = Math.max(1, Math.min(maxCell, fitByWidth, fitByHeight));
 
     if (safeCols * cell + gap * (safeCols - 1) > maxWidth) {
@@ -451,8 +442,8 @@
     }
 
     const weeks = Math.max(1, model.calendar.weeks);
-    const innerPadding = 22;
-    const summaryHeight = 30;
+    const innerPadding = 14;
+    const summaryHeight = 22;
     const graphMaxWidth = width - innerPadding * 2;
     const graphMaxHeight = Math.max(30, panelHeight - innerPadding * 2 - summaryHeight);
     const heatmap = fitHeatmap(weeks, 7, graphMaxWidth, graphMaxHeight);
@@ -479,7 +470,7 @@
 
     ctx.fillStyle = colors.muted;
     font(ctx, 11 * scale, 500);
-    ctx.fillText(`${formatNumber(model.calendar.total)} contributions in this calendar range`, x + innerPadding, top + panelHeight - 16);
+    ctx.fillText(`${formatNumber(model.calendar.total)} contributions in this calendar range`, x + innerPadding, top + panelHeight - 11);
   }
 
   function drawRepos(ctx, colors, model, x, y, width, height, scale) {
