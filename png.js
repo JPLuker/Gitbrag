@@ -6,7 +6,6 @@
 
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
-
   const SIZE = 1080;
   const CANVAS = Object.freeze({
     padding: 60,
@@ -327,14 +326,12 @@
     const contentTop = 60;
     const contentBottom = CANVAS.footerTop - 22;
     const totalHeight = contentBottom - contentTop - gaps;
-
     const heights = { profile: 0, stats: 0, calendar: 0, repos: 0 };
+
     if (config.modules.profile) heights.profile = CANVAS.profileHeight;
     if (config.modules.stats) heights.stats = CANVAS.statsHeight;
 
-    let flexibleHeight = totalHeight - heights.profile - heights.stats;
-    flexibleHeight = Math.max(0, flexibleHeight);
-
+    let flexibleHeight = Math.max(0, totalHeight - heights.profile - heights.stats);
     if (config.modules.calendar && config.modules.repos) {
       const { rows } = repoGrid(model.repos.length);
       const minRepos = rows === 2 ? 260 : 225;
@@ -359,33 +356,44 @@
       if (index < enabled.length - 1) y += CANVAS.sectionGap;
     });
 
-    return {
-      x: CANVAS.padding,
-      width: SIZE - CANVAS.padding * 2,
-      positions,
-    };
+    return { x: CANVAS.padding, width: SIZE - CANVAS.padding * 2, positions };
   }
 
-  function fitHeatmap(cols, rows, maxWidth, maxHeight) {
-    const safeCols = Math.max(1, cols);
-    const safeRows = Math.max(1, rows);
-    let gap = safeCols > 100 ? 0 : safeCols > 60 ? 1 : safeCols > 30 ? 2 : 4;
-    const fitByWidth = Math.floor((maxWidth - gap * (safeCols - 1)) / safeCols);
-    const fitByHeight = Math.floor((maxHeight - gap * (safeRows - 1)) / safeRows);
-    const maxCell = safeCols <= 6 ? 40 : safeCols <= 14 ? 30 : safeCols <= 28 ? 20 : safeCols <= 60 ? 12 : 7;
-    let cell = Math.max(1, Math.min(maxCell, fitByWidth, fitByHeight));
+  function heatmapGap(dayCount) {
+    if (dayCount <= 14) return 10;
+    if (dayCount <= 42) return 8;
+    if (dayCount <= 100) return 5;
+    if (dayCount <= 250) return 3;
+    if (dayCount <= 500) return 2;
+    return 1;
+  }
 
-    if (safeCols * cell + gap * (safeCols - 1) > maxWidth) {
-      gap = 0;
-      cell = Math.max(1, Math.min(maxCell, Math.floor(maxWidth / safeCols), Math.floor(maxHeight / safeRows)));
+  function fitHeatmap(dayCount, maxWidth, maxHeight) {
+    const count = Math.max(1, dayCount);
+    const gap = heatmapGap(count);
+    let best = null;
+    const maxRows = Math.min(count, 60);
+
+    for (let rows = 1; rows <= maxRows; rows += 1) {
+      const cols = Math.ceil(count / rows);
+      const cell = Math.floor(Math.min(
+        (maxWidth - gap * Math.max(0, cols - 1)) / cols,
+        (maxHeight - gap * Math.max(0, rows - 1)) / rows,
+      ));
+      if (cell < 1) continue;
+
+      const width = cols * cell + gap * Math.max(0, cols - 1);
+      const height = rows * cell + gap * Math.max(0, rows - 1);
+      const edgeFill = Math.min(width / maxWidth, height / maxHeight);
+      const areaFill = (width * height) / (maxWidth * maxHeight);
+      const score = edgeFill * 10000 + areaFill * 1000 + cell;
+
+      if (!best || score > best.score) {
+        best = { score, cols, rows, cell, gap, width, height };
+      }
     }
 
-    return {
-      cell,
-      gap,
-      width: safeCols * cell + Math.max(0, safeCols - 1) * gap,
-      height: safeRows * cell + Math.max(0, safeRows - 1) * gap,
-    };
+    return best || { cols: 1, rows: 1, cell: 1, gap: 0, width: 1, height: 1 };
   }
 
   function drawProfile(ctx, colors, model, image, x, y, width, height, scale) {
@@ -441,18 +449,17 @@
       return;
     }
 
-    const weeks = Math.max(1, model.calendar.weeks);
     const innerPadding = 14;
     const summaryHeight = 22;
     const graphMaxWidth = width - innerPadding * 2;
     const graphMaxHeight = Math.max(30, panelHeight - innerPadding * 2 - summaryHeight);
-    const heatmap = fitHeatmap(weeks, 7, graphMaxWidth, graphMaxHeight);
+    const heatmap = fitHeatmap(model.calendar.days.length, graphMaxWidth, graphMaxHeight);
     const gx = x + (width - heatmap.width) / 2;
     const gy = top + innerPadding + Math.max(0, (graphMaxHeight - heatmap.height) / 2);
 
     model.calendar.days.forEach((day, index) => {
-      const column = Math.floor(index / 7);
-      const row = index % 7;
+      const column = Math.floor(index / heatmap.rows);
+      const row = index % heatmap.rows;
       const level = Math.min(4, Math.max(0, day.level));
       ctx.fillStyle = level ? colors.accent : colors.line;
       ctx.globalAlpha = level ? [0, .4, .6, .8, 1][level] : 1;
@@ -462,7 +469,7 @@
         gy + row * (heatmap.cell + heatmap.gap),
         heatmap.cell,
         heatmap.cell,
-        Math.min(3, heatmap.cell / 3),
+        Math.min(5, heatmap.cell / 5),
       );
       ctx.fill();
       ctx.globalAlpha = 1;
@@ -498,8 +505,8 @@
       const cx = x + column * (cardWidth + gap);
       const cy = top + row * (cardHeight + gap);
       drawPanel(ctx, colors, cx, cy, cardWidth, cardHeight, 16);
-
       const padding = roomy ? 20 : 16;
+
       ctx.fillStyle = colors.text;
       font(ctx, (roomy ? 21 : 18) * scale, 700);
       ctx.fillText(fitText(ctx, repo.name, cardWidth - 90), cx + padding, cy + (roomy ? 38 : 31));
@@ -593,10 +600,11 @@
     if (!model) return;
     const sequence = ++renderSequence;
     elements.status.textContent = 'Rendering preview…';
+
     try {
       const rendered = await draw(config, model, sequence);
       if (!rendered || sequence !== renderSequence) return;
-      elements.status.textContent = '1080 × 1080 · adaptive layout · preview matches export';
+      elements.status.textContent = '1080 × 1080 · full-panel calendar · preview matches export';
     } catch (error) {
       console.error('PNG preview failed.', error);
       elements.status.textContent = 'Could not render the image preview.';
@@ -655,6 +663,7 @@
     elements.repoPicker.closest('.png-fieldset')?.classList.toggle('is-disabled', !elements.reposToggle.checked);
     scheduleRender();
   });
+
   [
     elements.profileToggle,
     elements.statsToggle,
