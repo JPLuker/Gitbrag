@@ -419,8 +419,8 @@ footer,
   grid-auto-flow: column;
   grid-template-rows: repeat(7, 10px);
   grid-auto-columns: 10px;
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
+  min-width: 0;
   gap: 4px;
 }
 
@@ -435,7 +435,8 @@ footer,
 }
 
 .contrib-cell {
-  width: 10px;
+  width: 100%;
+  min-width: 10px;
   height: 10px;
   background: var(--line);
   border-radius: 2px;
