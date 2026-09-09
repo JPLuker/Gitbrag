@@ -37,6 +37,7 @@ const elements = {
   statsGrid: qs('#statsGrid'),
   extraStats: qs('#extraStats'),
   contributionGraph: qs('#contributionGraph'),
+  calendarScroll: qs('.calendar-scroll'),
   calendarTotal: qs('#calendarTotal'),
   githubProfile: qs('#githubProfile'),
   repos: qs('#repos'),
@@ -147,10 +148,16 @@ function parseRoute() {
 }
 
 async function githubRequest(path, signal) {
-  const response = await fetch(`${GITHUB_API}${path}`, {
-    signal,
-    headers: { Accept: 'application/vnd.github+json' },
-  });
+  let response;
+  try {
+    response = await fetch(`${GITHUB_API}${path}`, {
+      signal,
+      headers: { Accept: 'application/vnd.github+json' },
+    });
+  } catch (error) {
+    if (error?.name === 'AbortError') throw error;
+    throw new Error('Could not reach GitHub. Check your connection and try again.');
+  }
 
   if (response.ok) return response.json();
   if (response.status === 404) throw new Error('GitHub user not found.');
@@ -348,8 +355,15 @@ function profileStats() {
 function formatAccountAge(createdAt) {
   const created = new Date(createdAt);
   if (Number.isNaN(created.getTime())) return '—';
-  const months = Math.max(0, Math.floor((Date.now() - created.getTime()) / 2629800000));
-  if (months < 12) return `${Math.max(1, months)} mo`;
+
+  const now = new Date();
+  let months = (now.getUTCFullYear() - created.getUTCFullYear()) * 12;
+  months += now.getUTCMonth() - created.getUTCMonth();
+  if (now.getUTCDate() < created.getUTCDate()) months -= 1;
+  months = Math.max(0, months);
+
+  if (months < 1) return '<1 mo';
+  if (months < 12) return `${months} mo`;
   const years = Math.floor(months / 12);
   const remainder = months % 12;
   return remainder ? `${years}y ${remainder}m` : `${years}y`;
@@ -453,8 +467,10 @@ function renderCalendar() {
   }
 
   const weeks = Math.max(1, Math.ceil(days.length / 7));
-  graph.style.gridTemplateColumns = `repeat(${weeks}, minmax(10px, 1fr))`;
-  graph.style.minWidth = `${weeks * 10 + Math.max(0, weeks - 1) * 4}px`;
+  const graphWidth = weeks * 10 + Math.max(0, weeks - 1) * 4;
+  graph.style.gridTemplateColumns = `repeat(${weeks}, 10px)`;
+  graph.style.width = `${graphWidth}px`;
+  graph.style.minWidth = `${graphWidth}px`;
   graph.setAttribute('aria-label', `GitHub contribution calendar for the last year. ${formatNumber(contributionCount('year'))} contributions.`);
 
   days.forEach((item) => {
@@ -465,6 +481,9 @@ function renderCalendar() {
   });
 
   elements.calendarTotal.textContent = `${formatNumber(contributionCount('year'))} contributions in the last year`;
+  requestAnimationFrame(() => {
+    if (elements.calendarScroll) elements.calendarScroll.scrollLeft = elements.calendarScroll.scrollWidth;
+  });
 }
 
 function renderRepositories() {
