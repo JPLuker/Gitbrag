@@ -127,6 +127,13 @@
     return Math.max(0, allowed.indexOf(fallback));
   }
 
+  function compactEnumValue(allowed, index) {
+    if (!Number.isInteger(index) || allowed[index] === undefined) {
+      throw new Error('Invalid Gitbrag share config token.');
+    }
+    return allowed[index];
+  }
+
   function moduleMask(modules) {
     return Object.entries(MODULE_BITS).reduce(
       (mask, [key, bit]) => mask | (modules[key] ? bit : 0),
@@ -148,7 +155,7 @@
   }
 
   function expandCompact(input) {
-    if (!Array.isArray(input) || input.length < 8) {
+    if (!Array.isArray(input) || input.length !== 8) {
       throw new Error('Invalid Gitbrag share config token.');
     }
 
@@ -156,13 +163,9 @@
     if (version !== CURRENT_VERSION) {
       throw new Error(`Unsupported Gitbrag share config version: ${Number.isInteger(version) ? version : 'missing'}.`);
     }
-    if (!Number.isInteger(mask) || mask < 0 || mask > 15) {
+    if (!Number.isInteger(mask) || mask < 0 || mask > 15 || !Array.isArray(repoIds)) {
       throw new Error('Invalid Gitbrag share config token.');
     }
-
-    const enumValue = (allowed, index, fallback) => (
-      Number.isInteger(index) && allowed[index] !== undefined ? allowed[index] : fallback
-    );
 
     return normalize({
       v: CURRENT_VERSION,
@@ -172,13 +175,13 @@
         calendar: Boolean(mask & MODULE_BITS.calendar),
         repos: Boolean(mask & MODULE_BITS.repos)
       },
-      statsPeriod: enumValue(ALLOWED.statsPeriod, periodIndex, DEFAULTS.statsPeriod),
-      calendarRange: enumValue(ALLOWED.calendarRange, calendarIndex, DEFAULTS.calendarRange),
+      statsPeriod: compactEnumValue(ALLOWED.statsPeriod, periodIndex),
+      calendarRange: compactEnumValue(ALLOWED.calendarRange, calendarIndex),
       selectedRepos: repoIds,
       appearance: {
-        textSize: enumValue(ALLOWED.textSize, textIndex, DEFAULTS.appearance.textSize),
-        accent: enumValue(ALLOWED.accent, accentIndex, DEFAULTS.appearance.accent),
-        cardStyle: enumValue(ALLOWED.cardStyle, cardIndex, DEFAULTS.appearance.cardStyle)
+        textSize: compactEnumValue(ALLOWED.textSize, textIndex),
+        accent: compactEnumValue(ALLOWED.accent, accentIndex),
+        cardStyle: compactEnumValue(ALLOWED.cardStyle, cardIndex)
       }
     });
   }
@@ -234,7 +237,8 @@
     try {
       const json = new TextDecoder('utf-8', { fatal: true }).decode(base64UrlToBytes(token));
       parsed = JSON.parse(json);
-    } catch {
+    } catch (error) {
+      if (/Unsupported Gitbrag share config version/.test(error?.message || '')) throw error;
       throw new Error('Invalid Gitbrag share config token.');
     }
 
@@ -259,6 +263,7 @@
   return Object.freeze({
     CURRENT_VERSION,
     MAX_SELECTED_REPOS,
+    MAX_TOKEN_LENGTH,
     ALLOWED,
     create,
     normalize,
