@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gitbrag</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div class="brand">GIT<span>BRAG</span></div>
+      <small>v0.9.3</small>
+    </header>
+
+    <label class="row toggle-row">
+      <span><b>Show profile stats</b><small>Automatically add Gitbrag to public GitHub profiles.</small></span>
+      <input id="enabled" type="checkbox" checked>
+    </label>
+
+    <label class="field">
+      <span>Default contribution period</span>
+      <select id="period">
+        <option value="week">7 days</option>
+        <option value="month">1 month</option>
+        <option value="sixmonths">6 months</option>
+        <option value="year">1 year</option>
+      </select>
+    </label>
+
+    <div class="actions">
+      <button id="clearCache" type="button">Clear cached profiles</button>
+      <a href="https://jpluker.github.io/Gitbrag/" target="_blank" rel="noopener noreferrer">Open Gitbrag ↗</a>
+    </div>
+    <p id="status" role="status" aria-live="polite"></p>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
