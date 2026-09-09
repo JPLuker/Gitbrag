@@ -111,7 +111,7 @@ function parseUserInput(value) {
   let input = String(value || '').trim().replace(/^@/, '');
   if (!input) throw new Error('Enter a GitHub username or profile link.');
 
-  if (/^https?:\/\//i.test(input) || /^github\.com\//i.test(input)) {
+  if (/^https?:\/\//i.test(input) || /^(?:www\.)?github\.com\//i.test(input)) {
     try {
       const url = new URL(/^https?:\/\//i.test(input) ? input : `https://${input}`);
       if (url.hostname.toLowerCase().replace(/^www\./, '') !== 'github.com') {
@@ -181,6 +181,9 @@ async function loadContributionResult(username, signal) {
     const response = await fetch(`${CONTRIBUTIONS_API}/${encodeURIComponent(username)}?y=all`, { signal });
     if (!response.ok) throw new Error(`Contribution service error (${response.status}).`);
     const contributionData = await response.json();
+    if (!contributionData || !Array.isArray(contributionData.contributions) || typeof contributionData.total !== 'object') {
+      throw new Error('Contribution service returned an invalid response.');
+    }
     return { contributionData, contributionError: null };
   } catch (error) {
     if (error?.name === 'AbortError') throw error;
@@ -236,6 +239,7 @@ async function loadProfile(input) {
     render();
     history.replaceState(null, '', routeFor(user.login));
     showView('profile');
+    elements.displayName?.focus();
     applyAccentFromAvatar(user.avatar_url, requestId);
   } catch (error) {
     if (error?.name === 'AbortError' || requestId !== state.requestId) return;
@@ -285,7 +289,10 @@ function periodRecords(period) {
 
 function allTimeContributionTotal() {
   if (!hasContributionData()) return null;
-  const totals = Object.values(state.data.contributionData?.total || {}).map(Number).filter(Number.isFinite);
+  const totals = Object.entries(state.data.contributionData?.total || {})
+    .filter(([key]) => /^\d{4}$/.test(key))
+    .map(([, value]) => Number(value))
+    .filter(Number.isFinite);
   if (totals.length) return totals.reduce((sum, value) => sum + value, 0);
   return contributionRecords().reduce((sum, record) => sum + (Number(record.count) || 0), 0);
 }
@@ -446,7 +453,8 @@ function renderCalendar() {
   }
 
   const weeks = Math.max(1, Math.ceil(days.length / 7));
-  graph.style.gridTemplateColumns = `repeat(${weeks}, 10px)`;
+  graph.style.gridTemplateColumns = `repeat(${weeks}, minmax(10px, 1fr))`;
+  graph.style.minWidth = `${weeks * 10 + Math.max(0, weeks - 1) * 4}px`;
   graph.setAttribute('aria-label', `GitHub contribution calendar for the last year. ${formatNumber(contributionCount('year'))} contributions.`);
 
   days.forEach((item) => {
