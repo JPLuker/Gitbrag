@@ -2,7 +2,7 @@
 
 Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub profile, recent contribution activity, customized shareable profile pages, and exportable social images.
 
-**v0.8.3** changes the PNG contribution calendar into a space-filling chronological tile grid. The renderer now chooses the row/column shape and square cell size that best uses the available calendar panel instead of preserving a tiny fixed seven-row heatmap inside a wide box.
+**v0.9.0** is the social hardening release. It tightens share-token validation, improves keyboard/focus behavior, hardens modal/navigation states, and makes the PNG renderer more resilient to slow avatars, long content, missing sections, and mid-export setting changes.
 
 ## Current features
 
@@ -22,6 +22,13 @@ Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub pr
 - Preview the exact canvas that is exported as the PNG.
 - Reflow PNG contribution days into a dense chronological square-cell grid that uses the available calendar panel.
 - Scale repository cards based on whether 1, 2, 3, or 4 repositories are selected.
+- Navigate the Share menu by keyboard with Arrow keys, Home, End, Enter/Space, and Escape.
+- Restore focus after closing share/image dialogs and close transient share UI during navigation.
+- Disable settings that do not apply when their corresponding section is turned off.
+- Reject malformed compact share tokens instead of silently accepting invalid enum indexes or payload shapes.
+- Keep legacy v1 share tokens decodable while using compact tokens for newly generated links.
+- Fall back to a generated avatar placeholder if the GitHub avatar cannot load quickly enough for PNG rendering.
+- Lock PNG controls during export so a settings change cannot supersede an in-progress download.
 - Run entirely as a static site with no Gitbrag backend or database.
 
 ## Architecture
@@ -72,7 +79,9 @@ The configuration supports:
 - Accent
 - Card style
 
-Malformed or unsupported share tokens fall back to the normal profile and display an explanatory notice instead of breaking the application.
+Malformed or unsupported share tokens fall back to the normal profile instead of breaking the application. Compact tokens are validated strictly for version, module mask, enum indexes, array shape, token alphabet, and maximum token length. Legacy object-form v1 tokens remain normalized for compatibility.
+
+If a user turns the repository section on but selects zero repositories in a builder, the repository section is omitted rather than unexpectedly falling back to the default top repositories.
 
 ## PNG generation
 
@@ -89,6 +98,10 @@ PNG
 The visible preview is the same canvas that is exported, so preview/export layout cannot drift because of DOM screenshot scaling.
 
 The internal layout is adaptive: enabled sections are assigned the usable canvas height, the contribution days are packed into the square-cell matrix that best fits the calendar panel, and repository cards expand to consume the repository section. One or two selected repositories use a single tall row; three or four use a 2 × 2 grid.
+
+The PNG renderer also reserves space for top-right branding when long profile names are rendered, moves non-profile content below the branding band, protects repository names from star-count overlap, and renders a clear empty state if all image sections are disabled.
+
+Avatar loading is bounded by a timeout. If the remote avatar cannot be used, the renderer falls back to initials rather than hanging the preview or export indefinitely.
 
 The responsive shared webpage keeps its normal calendar renderer. The space-filling tile layout is specific to the PNG renderer.
 
@@ -137,6 +150,8 @@ The share configuration has a Node-based regression test:
 ```bash
 node tests/share-config.test.js
 ```
+
+The suite covers defaults, normalization, compact round-trips, zero-repository selections, zero-module configs, legacy-token compatibility, overlong tokens, unsupported versions, invalid module masks, invalid enum indexes, malformed repository payloads, and default-object mutation safety.
 
 Syntax can be checked with:
 
