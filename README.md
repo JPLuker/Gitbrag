@@ -1,15 +1,16 @@
 # Gitbrag
 
-Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub profile and its recent contribution activity.
+Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub profile, contribution activity, and a customized shareable profile page.
 
-The **0.6.x** line starts the social-feature rebuild on top of the stabilized 0.5.x core. The first milestone is deliberately infrastructure-only: a versioned share configuration format is now in place, but the share-link UI and PNG generator are not reintroduced yet.
+**v0.7.0** introduces the rebuilt custom-link sharing system. The shared experience is a normal responsive webpage. It does not use an image canvas or PNG renderer.
 
 ## Current features
 
 - Search by GitHub username or paste a `github.com/username` profile URL.
 - Open a profile directly with a hash route such as `#/octocat`.
 - Browse contribution activity for:
-  - 24H (the current daily contribution bucket; GitHub's public graph does not expose contribution timestamps)
+  - 24H
+  - 7D
   - 1 month
   - 6 months
   - 1 year
@@ -20,79 +21,52 @@ The **0.6.x** line starts the social-feature rebuild on top of the stabilized 0.
 - View up to six top original public repositories, ranked by stars.
 - Exclude forked repositories from repository rankings and loaded-repository star totals.
 - Derive an accent color from the profile avatar when browser canvas access permits it.
+- Build a customized share link with a versioned configuration stored in the URL fragment.
+- Open shared links as responsive HTML pages with independently configurable sections, stats period, calendar range, selected repositories, text size, accent, and card style.
 - Run entirely as a static site with no Gitbrag backend or database.
 
 ## Architecture
 
-Gitbrag intentionally uses a small static architecture:
+Gitbrag intentionally keeps the application small and static:
 
 - `index.html` contains the semantic application structure.
-- `style.css` contains the design system, responsive layout, and component styling.
-- `app.js` owns routing, public data loading, calculations, rendering, and interaction state.
-- `share-config.js` owns the versioned, validated configuration format that future link sharing and PNG export can consume independently.
-- `tests/share-config.test.js` contains framework-free Node regression tests for that configuration layer.
+- `style.css` contains the design system, responsive layout, share dialog, and shared-page styles.
+- `app.js` owns routing, public data loading, calculations, rendering of the main profile, and creation of share-page view models.
+- `share-config.js` owns the versioned share configuration schema, normalization, validation, and URL-safe encoding/decoding.
+- `share-page.js` owns only the custom-link builder UI and responsive shared-page renderer.
 
-There is no build step and no framework dependency.
+### Renderer boundary
 
-### Social architecture rule
+The shared-page renderer is a webpage renderer. It produces responsive HTML only.
 
-Shared webpages and exported images will use the same validated configuration data, but **they will not share a renderer or layout system**.
+The planned PNG generator will be a separate renderer with its own image-export DOM and CSS. The two systems may share public data, validated configuration, and calculation utilities, but they will not share a renderer or fixed-size layout.
 
-The intended separation is:
+There are no runtime function overrides or compatibility wrappers between the share system and the main application.
+
+## Share links
+
+A share link looks like:
 
 ```text
-share config
-   ├── responsive shared-page renderer
-   └── isolated PNG renderer
+https://example.github.io/Gitbrag/#/octocat?share=<token>
 ```
 
-The share-link path must never depend on image dimensions, export DOM, transform scaling, or PNG-specific CSS. The PNG path must never be responsible for rendering the shared webpage.
+The token contains a normalized v1 configuration. No share state is stored on a Gitbrag server.
 
-## Share configuration — v1
+The current configuration supports:
 
-Version `1` of the configuration foundation is available through `window.GitbragShareConfig` in the browser.
+- Profile section on/off
+- Stats section on/off
+- Contribution calendar on/off
+- Repository section on/off
+- Stats period: 24H, 7D, 1M, 6M, 1Y, or all time
+- Calendar range: 1M, 3M, 6M, 1Y, 2Y, or all available
+- Up to four featured repositories
+- Text size
+- Accent
+- Card style
 
-The normalized shape is:
-
-```js
-{
-  v: 1,
-  modules: {
-    profile: true,
-    stats: true,
-    calendar: true,
-    repos: true
-  },
-  statsPeriod: 'month',
-  calendarRange: '6m',
-  selectedRepos: [],
-  appearance: {
-    textSize: 'balanced',
-    accent: 'auto',
-    cardStyle: 'solid'
-  }
-}
-```
-
-The configuration layer provides:
-
-- defaults
-- normalization and enum validation
-- module visibility validation
-- deduplicated repository selection capped at four repositories
-- URL-safe UTF-8 Base64 encoding
-- strict decoding with explicit version checks
-- safe `tryDecode()` fallback for untrusted links
-
-Unsupported future config versions are rejected instead of being silently interpreted as the current format.
-
-### Test the share configuration
-
-No test framework is required:
-
-```bash
-node tests/share-config.test.js
-```
+Malformed or unsupported share tokens fall back to the normal profile and display an explanatory notice instead of breaking the application.
 
 ## Data sources
 
@@ -108,45 +82,51 @@ Because Gitbrag does not ask for a GitHub token, GitHub's unauthenticated API ra
 
 Contribution history comes from the public `github-contributions-api.jogruber.de` service.
 
-If that service is unavailable, Gitbrag continues to show profile and repository information and explicitly marks contribution-dependent statistics and the calendar as unavailable. It does not convert a service failure into fake zero-contribution data.
+If that service is unavailable, Gitbrag continues to show profile and repository information and explicitly marks contribution-dependent statistics and calendars as unavailable. It does not convert a service failure into fake zero-contribution data.
 
 GitHub's own contribution rules determine the underlying public contribution graph.
 
 ## Routing
 
-Profiles use a client-side hash route:
+Normal profile:
 
 ```text
-https://example.github.io/Gitbrag/#/octocat
+#/octocat
 ```
 
-This keeps direct profile links compatible with GitHub Pages without requiring server-side routing.
+Customized shared profile:
 
-The custom share-link route will be added in the 0.7 milestone after the configuration layer is considered stable.
+```text
+#/octocat?share=<token>
+```
+
+Both are client-side hash routes so direct links remain compatible with GitHub Pages.
+
+## Tests
+
+The share configuration has a Node-based regression test:
+
+```bash
+node tests/share-config.test.js
+```
+
+Syntax can be checked with:
+
+```bash
+node --check app.js
+node --check share-page.js
+node --check share-config.js
+```
 
 ## Run locally
 
-No build step is required. Serve the repository with any static HTTP server:
+No build step is required:
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Then open:
-
-```text
-http://localhost:8000
-```
-
-Opening `index.html` directly may work for basic UI inspection, but serving it over HTTP better matches GitHub Pages behavior and avoids browser restrictions around network and canvas operations.
-
-## GitHub Pages
-
-Gitbrag is designed to deploy from the repository root on GitHub Pages.
-
-1. Open the repository's **Settings**.
-2. Open **Pages**.
-3. Deploy from the `main` branch and repository root.
+Then open `http://localhost:8000`.
 
 ## Stack
 
@@ -159,8 +139,8 @@ Gitbrag is designed to deploy from the repository root on GitHub Pages.
 
 ## Roadmap to 1.0
 
-- **0.6** — versioned share configuration foundation
-- **0.7** — responsive custom link sharing
+- **0.6** — versioned share-config foundation
+- **0.7** — responsive custom-link sharing
 - **0.8** — isolated 1:1 PNG generator
-- **0.9** — social-feature hardening and regression fixes
-- **1.0** — stable core + link sharing + PNG export
+- **0.9** — social feature hardening and regression fixes
+- **1.0** — stable Gitbrag release
