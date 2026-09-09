@@ -13,11 +13,9 @@ assert.deepEqual(defaults, {
   appearance: { textSize: 'balanced', accent: 'auto', cardStyle: 'solid' }
 });
 
-assert.equal(ShareConfig.normalize({ statsPeriod: 'week' }).statsPeriod, 'week');
-
 const normalized = ShareConfig.normalize({
   modules: { profile: false, stats: 'yes' },
-  statsPeriod: 'year',
+  statsPeriod: 'week',
   calendarRange: 'bogus',
   selectedRepos: ['123', 456, '123', '', null, '789', '1011', '1213'],
   appearance: { textSize: 'huge', accent: 'purple', cardStyle: 'glass' }
@@ -26,7 +24,7 @@ const normalized = ShareConfig.normalize({
 assert.deepEqual(normalized, {
   v: 1,
   modules: { profile: false, stats: true, calendar: true, repos: true },
-  statsPeriod: 'year',
+  statsPeriod: 'week',
   calendarRange: '6m',
   selectedRepos: ['123', '456', '789', '1011'],
   appearance: { textSize: 'huge', accent: 'purple', cardStyle: 'glass' }
@@ -34,7 +32,7 @@ assert.deepEqual(normalized, {
 
 const roundTripSource = ShareConfig.create({
   modules: { calendar: false },
-  statsPeriod: 'week',
+  statsPeriod: 'lifetime',
   calendarRange: 'all',
   selectedRepos: ['repo-α', '42'],
   appearance: { accent: 'cyan', textSize: 'compact', cardStyle: 'outline' }
@@ -43,11 +41,25 @@ const roundTripSource = ShareConfig.create({
 const token = ShareConfig.encode(roundTripSource);
 assert.match(token, /^[A-Za-z0-9_-]+$/);
 assert.deepEqual(ShareConfig.decode(token), roundTripSource);
+
+const legacyToken = Buffer.from(JSON.stringify(roundTripSource), 'utf8').toString('base64url');
+assert.deepEqual(ShareConfig.decode(legacyToken), roundTripSource);
+assert.ok(token.length < legacyToken.length, 'compact share tokens should be shorter than legacy JSON tokens');
+
 assert.equal(ShareConfig.tryDecode('not valid!'), null);
 assert.equal(ShareConfig.tryDecode(''), null);
 
 const unsupported = Buffer.from(JSON.stringify({ v: 2 }), 'utf8').toString('base64url');
-assert.throws(() => ShareConfig.decode(unsupported), /Unsupported Gitbrag share config version: 2/);
+assert.throws(
+  () => ShareConfig.decode(unsupported),
+  /Unsupported Gitbrag share config version: 2/
+);
+
+const unsupportedCompact = Buffer.from(JSON.stringify([2, 15, 0, 0, [], 0, 0, 0]), 'utf8').toString('base64url');
+assert.throws(
+  () => ShareConfig.decode(unsupportedCompact),
+  /Unsupported Gitbrag share config version: 2/
+);
 
 const copy = ShareConfig.defaults();
 copy.modules.profile = false;
@@ -55,4 +67,4 @@ copy.appearance.accent = 'green';
 copy.selectedRepos.push('123');
 assert.deepEqual(ShareConfig.defaults(), defaults);
 
-console.log('share-config tests passed');
+console.log(`share-config tests passed; compact token ${token.length} chars vs legacy ${legacyToken.length}`);
