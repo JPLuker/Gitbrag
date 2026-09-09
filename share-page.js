@@ -11,7 +11,11 @@
     shareButton: $('#shareBtn'),
     shareMenu: $('#shareMenu'),
     shareLinkAction: $('#shareLinkAction'),
+    embedAction: $('#embedAction'),
     modal: $('#shareModal'),
+    eyebrow: $('.share-dialog-head .eyebrow'),
+    title: $('#shareModalTitle'),
+    description: $('#shareModalDescription'),
     closeModal: $('#closeShareModal'),
     cancelModal: $('#cancelShareModal'),
     previewButton: $('#previewSharePage'),
@@ -34,6 +38,7 @@
 
   let activeConfig = null;
   let builderConfig = null;
+  let builderMode = 'share';
   let repoOptions = [];
   let nextRenderIsPreview = false;
   let calendarResizeObserver = null;
@@ -174,7 +179,21 @@
     });
   }
 
-  function openBuilder(config = null) {
+  function configureBuilderMode(mode) {
+    builderMode = mode === 'embed' ? 'embed' : 'share';
+    const embed = builderMode === 'embed';
+    if (elements.eyebrow) elements.eyebrow.textContent = embed ? 'EMBED' : 'SHARE LINK';
+    if (elements.title) elements.title.textContent = embed ? 'Customize your embedded Gitbrag.' : 'Customize the shared page.';
+    if (elements.description) {
+      elements.description.textContent = embed
+        ? 'Choose what appears on your website, preview it, then copy a responsive iframe snippet with automatic height updates.'
+        : 'Choose what appears when someone opens your Gitbrag link. This is a responsive webpage, not an image.';
+    }
+    if (elements.previewButton) elements.previewButton.textContent = embed ? 'Preview embed' : 'Preview page';
+    if (elements.copyButton) elements.copyButton.textContent = embed ? 'Copy embed code' : 'Copy share link';
+  }
+
+  function openBuilder(config = null, mode = 'share') {
     const app = root.GitbragApp;
     if (!app?.getShareBuilderContext || !elements.modal) return;
     const context = app.getShareBuilderContext();
@@ -183,6 +202,7 @@
     modalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : elements.shareButton;
     restoreFocusAfterClose = true;
     repoOptions = context.repos;
+    configureBuilderMode(mode);
     const base = config || activeConfig || context.defaultConfig;
     setBuilderValues(base);
     closeMenu();
@@ -213,35 +233,42 @@
     if (!copied) throw new Error('Clipboard copy failed.');
   }
 
-  async function copyShareLink() {
+  async function copyPrimaryAction() {
     const app = root.GitbragApp;
     if (!app?.createShareUrl || !elements.copyButton || elements.copyButton.disabled) return;
     const config = readBuilderValues();
-    const url = app.createShareUrl(config);
     const original = elements.copyButton.textContent;
+    const embed = builderMode === 'embed';
+    const payload = embed ? root.GitbragEmbed?.createCode?.(config) : app.createShareUrl(config);
+    if (!payload) return;
 
     clearTimeout(copyResetTimer);
     elements.copyButton.disabled = true;
     elements.copyButton.textContent = 'Copying…';
 
     try {
-      await copyText(url);
-      elements.copyButton.textContent = 'Copied!';
+      await copyText(payload);
+      elements.copyButton.textContent = embed ? 'Embed code copied!' : 'Copied!';
     } catch {
       elements.copyButton.textContent = original;
-      window.prompt('Copy your Gitbrag share link:', url);
+      window.prompt(embed ? 'Copy your Gitbrag embed code:' : 'Copy your Gitbrag share link:', payload);
     } finally {
       elements.copyButton.disabled = false;
       copyResetTimer = root.setTimeout(() => {
         if (elements.copyButton) elements.copyButton.textContent = original;
-      }, 1400);
+      }, 1600);
     }
   }
 
-  function previewSharePage() {
+  function previewPrimaryAction() {
+    const config = readBuilderValues();
+    if (builderMode === 'embed') {
+      root.GitbragEmbed?.preview?.(config);
+      return;
+    }
+
     const app = root.GitbragApp;
     if (!app?.previewShare) return;
-    const config = readBuilderValues();
     nextRenderIsPreview = true;
     closeBuilder({ restoreFocus: false });
     app.previewShare(config);
@@ -408,6 +435,7 @@
     `;
 
     observeCalendarScale();
+    root.GitbragEmbed?.reportHeight?.();
   }
 
   function handleMenuKeydown(event) {
@@ -447,17 +475,18 @@
   });
 
   elements.shareMenu?.addEventListener('keydown', handleMenuKeydown);
-  elements.shareLinkAction?.addEventListener('click', () => openBuilder());
+  elements.shareLinkAction?.addEventListener('click', () => openBuilder(null, 'share'));
+  elements.embedAction?.addEventListener('click', () => openBuilder(null, 'embed'));
   elements.closeModal?.addEventListener('click', () => closeBuilder());
   elements.cancelModal?.addEventListener('click', () => closeBuilder());
-  elements.copyButton?.addEventListener('click', copyShareLink);
-  elements.previewButton?.addEventListener('click', previewSharePage);
+  elements.copyButton?.addEventListener('click', copyPrimaryAction);
+  elements.previewButton?.addEventListener('click', previewPrimaryAction);
 
   [elements.statsToggle, elements.calendarToggle, elements.reposToggle].forEach((toggle) => {
     toggle?.addEventListener('change', syncDependentControls);
   });
 
-  elements.sharedEdit?.addEventListener('click', () => openBuilder(activeConfig));
+  elements.sharedEdit?.addEventListener('click', () => openBuilder(activeConfig, 'share'));
 
   elements.modal?.addEventListener('click', (event) => {
     if (event.target === elements.modal) closeBuilder();
