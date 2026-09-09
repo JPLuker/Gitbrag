@@ -18,7 +18,7 @@
     statsHeight: 176,
     panelRadius: 18,
     repoGap: 12,
-    brandReserve: 180,
+    brandReserve: 240,
   });
 
   const elements = {
@@ -337,14 +337,14 @@
   }
 
   function drawBrand(ctx, colors) {
-    font(ctx, 18, 800);
+    font(ctx, 28, 800);
     const gitWidth = ctx.measureText('GIT').width;
     const bragWidth = ctx.measureText('BRAG').width;
-    const start = 1020 - gitWidth - bragWidth;
+    const start = SIZE - CANVAS.padding - gitWidth - bragWidth;
     ctx.fillStyle = colors.text;
-    ctx.fillText('GIT', start, 76);
+    ctx.fillText('GIT', start, 80);
     ctx.fillStyle = colors.accent;
-    ctx.fillText('BRAG', start + gitWidth, 76);
+    ctx.fillText('BRAG', start + gitWidth, 80);
   }
 
   function repoGrid(repoCount) {
@@ -584,13 +584,6 @@
     ctx.moveTo(CANVAS.padding, CANVAS.footerTop);
     ctx.lineTo(SIZE - CANVAS.padding, CANVAS.footerTop);
     ctx.stroke();
-
-    ctx.fillStyle = colors.text;
-    font(ctx, 14, 800);
-    ctx.fillText('GIT', CANVAS.padding, CANVAS.footerBaseline);
-    const gitWidth = ctx.measureText('GIT').width;
-    ctx.fillStyle = colors.accent;
-    ctx.fillText('BRAG', CANVAS.padding + gitWidth, CANVAS.footerBaseline);
 
     ctx.textAlign = 'right';
     ctx.fillStyle = colors.muted;
