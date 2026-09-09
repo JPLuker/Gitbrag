@@ -2,7 +2,7 @@
 
 Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub profile, recent contribution activity, customized shareable profile pages, website embeds, exportable social images, and an optional Chrome extension that surfaces Gitbrag stats directly on GitHub profiles.
 
-**v0.9.2** adds the first Gitbrag Chrome extension. The Manifest V3 extension automatically injects a compact stats card into public GitHub profile pages, supports 7D/1M/6M/1Y contribution views, caches recent public profile data locally, and links back to the full Gitbrag profile.
+**v0.9.3** is the Chrome-extension pre-test hardening release. It adds extension settings, stricter profile/API validation, request timeouts, cache pruning and clearing, visible loading/error/retry states, DOM reinjection guards, additional tests, and draft privacy/store documentation before live GitHub placement testing.
 
 ## Current features
 
@@ -33,6 +33,7 @@ Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub pr
 - Lock PNG controls during export so a settings change cannot supersede an in-progress download.
 - Automatically add a compact Gitbrag card to public GitHub profile pages through the optional Chrome extension.
 - Switch the extension card between 7D, 1M, 6M, and 1Y contribution summaries without leaving GitHub.
+- Configure the extension's default period, turn automatic cards on/off, and clear its short-lived profile cache from the toolbar popup.
 - Run the website entirely as a static site with no Gitbrag backend or database.
 
 ## Architecture
@@ -48,7 +49,8 @@ Gitbrag intentionally keeps the application small and static:
 - `share-page.js` owns the custom-link/embed builder UI and responsive HTML shared-page renderer.
 - `embed.js` owns embed URL/code generation, embed-mode presentation state, and iframe auto-height messaging.
 - `png.js` owns only the image-builder UI, adaptive 1080 × 1080 canvas renderer, preview, and PNG download path.
-- `extension/` contains the optional Manifest V3 Chrome extension, with a background data layer, pure stats module, GitHub profile content script, isolated styling, and extension-specific tests.
+- `extension/` contains the optional Manifest V3 Chrome extension, its testable validation/stat modules, background data layer, GitHub content script, popup settings, isolated styling, privacy/store drafts, and extension-specific tests.
+- `docs/landing-page-direction.md` records the v0.9.5 marketing-page direction based on the supplied visual references without copying their branding/content.
 
 ### Renderer boundary
 
@@ -139,11 +141,15 @@ When a user opens a public profile such as:
 https://github.com/octocat
 ```
 
-the extension detects the profile route, fetches public profile/contribution data through its background service worker, and injects a compact Gitbrag card into the GitHub layout. The card includes 7D, 1M, 6M, and 1Y tabs plus contributions, active days, best day, longest streak, public repos, followers, and account age.
+the extension detects the profile route, fetches public profile/contribution data through its background service worker, and injects a compact Gitbrag card into the GitHub layout. The card includes 7D, 1M, 6M, and 1Y tabs plus contributions, active days, best day, longest streak, public repos, followers, following, and account age.
 
-Recent results are cached in extension-local storage for 15 minutes to reduce repeated API traffic. GitHub's SPA/Turbo navigation is handled without requiring a full browser refresh.
+Recent results are cached in extension-local storage for 15 minutes to reduce repeated API traffic. Expired entries are pruned, the cache is capped at 50 profiles, and users can clear it from the popup. Retry bypasses the cache.
 
-The extension does not request a GitHub token, account credentials, private-repository access, cookies, tabs, or browsing-history permissions. Its only extension permission is local storage plus host access to the public GitHub and contribution APIs.
+The extension now keeps explicit loading, partial-data, timeout, rate-limit, malformed-response, and background-service error states instead of silently disappearing on failure. GitHub SPA/Turbo navigation plus DOM replacement are monitored so a card can be re-injected if GitHub rebuilds the profile layout.
+
+The popup lets users enable/disable the extension and choose the default 7D/1M/6M/1Y period. Preferences use Chrome sync storage when available.
+
+The extension does not request a GitHub token, account credentials, private-repository access, cookies, tabs, identity, or browsing-history permissions. Its extension permission is `storage`, plus host access to the public GitHub and contribution APIs.
 
 To test it locally:
 
@@ -153,7 +159,15 @@ To test it locally:
 4. Select the repository's `extension` directory.
 5. Open a public GitHub profile.
 
-Chrome Web Store publication still requires final extension icons/branding assets, screenshots, listing copy, privacy disclosures, and store submission.
+The extension's code/package structure, privacy draft, and Chrome Web Store listing draft are prepared. Final store icons and screenshots should wait until the injected card is visually tested against GitHub's current live layout.
+
+## Landing-page direction
+
+The v0.9.5 homepage direction is recorded in `docs/landing-page-direction.md`.
+
+The supplied stats.fm references influence the pacing and presentation: dark full-width sections, oversized editorial hero type, a prominent real product visual, alternating screenshot-led feature blocks, factual number callouts, a strong final CTA, and a structured footer. Gitbrag will keep its own blue/dark visual language and use original copy/product screenshots.
+
+The page must not invent usage counts. Product proof can instead use factual numbers such as six activity ranges, 1080 × 1080 PNG output, up to four featured social repositories, and zero Gitbrag accounts required.
 
 ## Data sources
 
@@ -211,9 +225,10 @@ node tests/share-config.test.js
 
 The suite covers defaults, normalization, compact round-trips, zero-repository selections, zero-module configs, legacy-token compatibility, overlong tokens, unsupported versions, invalid module masks, invalid enum indexes, malformed repository payloads, and default-object mutation safety.
 
-The extension stats engine has a separate regression test:
+The extension has pure regression tests for its route/cache/response-validation core and contribution-stat engine:
 
 ```bash
+node extension/tests/core.test.js
 node extension/tests/stats.test.js
 ```
 
@@ -225,9 +240,11 @@ node --check share-page.js
 node --check share-config.js
 node --check embed.js
 node --check png.js
+node --check extension/core.js
 node --check extension/background.js
 node --check extension/stats.js
 node --check extension/content.js
+node --check extension/popup.js
 ```
 
 ## Run locally
@@ -259,5 +276,6 @@ Then open `http://localhost:8000`.
 - **0.9** — social feature hardening and regression fixes
 - **0.9.1** — configurable website embeds
 - **0.9.2** — first-party Chrome extension for GitHub profile stats
+- **0.9.3** — extension pre-test hardening, settings, privacy/store preparation, and landing-page direction
 - **0.9.5** — marketing-focused front page that showcases Gitbrag's core, share-link, PNG, embed, and extension features
 - **1.0** — stable Gitbrag release
