@@ -14,7 +14,7 @@
   const MAX_TOKEN_LENGTH = 8192;
 
   const ALLOWED = Object.freeze({
-    statsPeriod: Object.freeze(['day', 'month', 'sixmonths', 'year', 'lifetime']),
+    statsPeriod: Object.freeze(['day', 'week', 'month', 'sixmonths', 'year', 'lifetime']),
     calendarRange: Object.freeze(['1m', '3m', '6m', '1y', '2y', 'all']),
     textSize: Object.freeze(['compact', 'balanced', 'large', 'huge']),
     accent: Object.freeze(['auto', 'blue', 'white', 'cyan', 'purple', 'green']),
