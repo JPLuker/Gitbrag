@@ -11,11 +11,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=0.5.1">
+  <link rel="stylesheet" href="style.css?v=0.5.2">
 </head>
 <body>
   <main class="app">
-    <div class="app-version" aria-label="Gitbrag version 0.5.1">v0.5.1</div>
+    <div class="app-version" aria-label="Gitbrag version 0.5.2">v0.5.2</div>
 
     <section id="searchView" class="hero" aria-labelledby="searchTitle">
       <div class="brand">GIT<span>BRAG</span></div>
@@ -25,7 +25,7 @@
       <form id="searchForm" class="search">
         <label class="input-wrap" for="username">
           <span aria-hidden="true">@</span>
-          <input id="username" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="username or github.com/username" required>
+          <input id="username" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="username or github.com/username" aria-label="GitHub username or GitHub profile URL" required>
         </label>
         <button type="submit">Generate stats</button>
       </form>
@@ -101,6 +101,6 @@
     </section>
   </main>
 
-  <script src="app.js?v=0.5.1"></script>
+  <script src="app.js?v=0.5.2"></script>
 </body>
 </html>
