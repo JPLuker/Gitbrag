@@ -27,12 +27,17 @@
     accent: $('#shareAccent'),
     cardStyle: $('#shareCardStyle'),
     sharedPage: $('#sharedPage'),
+    previewBar: $('#sharedPreviewBar'),
+    footerActions: $('#sharedFooterActions'),
     sharedEdit: $('#sharedEdit'),
   };
 
   let activeConfig = null;
   let builderConfig = null;
   let repoOptions = [];
+  let nextRenderIsPreview = false;
+  let calendarResizeObserver = null;
+  let calendarResizeFrame = 0;
 
   function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, (character) => ({
@@ -201,6 +206,7 @@
     const app = root.GitbragApp;
     if (!app?.previewShare) return;
     const config = readBuilderValues();
+    nextRenderIsPreview = true;
     closeBuilder();
     app.previewShare(config);
   }
@@ -256,7 +262,7 @@
       <section class="shared-section">
         <div class="shared-section-title"><span>CONTRIBUTION CALENDAR</span><span>${escapeHtml(model.calendar.label)}</span></div>
         <div class="shared-calendar-scroll">
-          <div class="shared-calendar" style="grid-template-columns:repeat(${model.calendar.weeks}, 10px)">
+          <div class="shared-calendar" data-calendar-weeks="${model.calendar.weeks}">
             ${model.calendar.days.map((day) => `<i class="level-${day.level}" title="${escapeHtml(`${day.count} contribution${day.count === 1 ? '' : 's'} · ${day.date}`)}"></i>`).join('')}
           </div>
         </div>
@@ -285,10 +291,58 @@
     `;
   }
 
+  function maxCalendarCellSize(weeks) {
+    if (weeks <= 6) return 44;
+    if (weeks <= 14) return 24;
+    if (weeks <= 28) return 16;
+    return 10;
+  }
+
+  function scaleCalendars() {
+    calendarResizeFrame = 0;
+    $$('.shared-calendar', elements.sharedPage).forEach((calendar) => {
+      const weeks = Math.max(1, Number(calendar.dataset.calendarWeeks) || 1);
+      const scroller = calendar.closest('.shared-calendar-scroll');
+      if (!scroller) return;
+
+      const computed = getComputedStyle(scroller);
+      const horizontalPadding = (parseFloat(computed.paddingLeft) || 0) + (parseFloat(computed.paddingRight) || 0);
+      const available = Math.max(1, scroller.clientWidth - horizontalPadding);
+      const gap = available <= 520 ? 3 : 4;
+      const fitCell = Math.floor((available - Math.max(0, weeks - 1) * gap) / weeks);
+      const cell = Math.max(7, Math.min(maxCalendarCellSize(weeks), fitCell > 0 ? fitCell : 7));
+      const contentWidth = weeks * cell + Math.max(0, weeks - 1) * gap;
+
+      calendar.style.setProperty('--calendar-cell', `${cell}px`);
+      calendar.style.setProperty('--calendar-gap', `${gap}px`);
+      calendar.style.width = `${contentWidth}px`;
+      calendar.style.marginInline = 'auto';
+    });
+  }
+
+  function scheduleCalendarScale() {
+    if (calendarResizeFrame) cancelAnimationFrame(calendarResizeFrame);
+    calendarResizeFrame = requestAnimationFrame(scaleCalendars);
+  }
+
+  function observeCalendarScale() {
+    calendarResizeObserver?.disconnect();
+    calendarResizeObserver = null;
+
+    if ('ResizeObserver' in root && elements.sharedPage) {
+      calendarResizeObserver = new ResizeObserver(scheduleCalendarScale);
+      calendarResizeObserver.observe(elements.sharedPage);
+    }
+
+    scheduleCalendarScale();
+  }
+
   function render(model, config) {
     activeConfig = ShareConfig.normalize(config);
     const appearance = activeConfig.appearance;
     const sections = [];
+    const isPreview = nextRenderIsPreview;
+    nextRenderIsPreview = false;
 
     if (activeConfig.modules.profile) sections.push(renderProfile(model));
     if (activeConfig.modules.stats) sections.push(renderStats(model));
@@ -298,6 +352,9 @@
     if (!sections.length) {
       sections.push('<div class="shared-empty-card">This shared Gitbrag has no enabled sections.</div>');
     }
+
+    elements.previewBar?.classList.toggle('hidden', !isPreview);
+    elements.footerActions?.classList.toggle('hidden', isPreview);
 
     elements.sharedPage.className = [
       'shared-page',
@@ -313,11 +370,7 @@
       </div>
     `;
 
-    requestAnimationFrame(() => {
-      $$('.shared-calendar-scroll', elements.sharedPage).forEach((scroll) => {
-        scroll.scrollLeft = scroll.scrollWidth;
-      });
-    });
+    observeCalendarScale();
   }
 
   elements.shareButton?.addEventListener('click', (event) => {
@@ -346,6 +399,8 @@
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closeMenu();
   });
+
+  root.addEventListener('resize', scheduleCalendarScale, { passive: true });
 
   root.GitbragSharePage = Object.freeze({
     render,
