@@ -11,13 +11,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=0.8.3">
-  <link rel="stylesheet" href="share-page.css?v=0.8.3">
-  <link rel="stylesheet" href="png.css?v=0.8.3">
+  <link rel="stylesheet" href="style.css?v=0.9.0">
+  <link rel="stylesheet" href="share-page.css?v=0.9.0">
+  <link rel="stylesheet" href="png.css?v=0.9.0">
 </head>
 <body>
   <main class="app">
-    <div class="app-version" aria-label="Gitbrag version 0.8.3">v0.8.3</div>
+    <div class="app-version" aria-label="Gitbrag version 0.9.0">v0.9.0</div>
 
     <section id="searchView" class="hero" aria-labelledby="searchTitle">
       <div class="brand">GIT<span>BRAG</span></div>
@@ -45,8 +45,8 @@
         <button id="backBtn" class="back" type="button">← New user</button>
         <div class="brand small">GIT<span>BRAG</span></div>
         <div class="share-control">
-          <button id="shareBtn" class="share-button" type="button" aria-haspopup="menu" aria-expanded="false">Share</button>
-          <div id="shareMenu" class="share-menu hidden" role="menu">
+          <button id="shareBtn" class="share-button" type="button" aria-haspopup="menu" aria-controls="shareMenu" aria-expanded="false">Share</button>
+          <div id="shareMenu" class="share-menu hidden" role="menu" aria-label="Share options">
             <button id="shareLinkAction" type="button" role="menuitem">Share link</button>
             <button id="generateImageAction" type="button" role="menuitem">Generate image</button>
           </div>
@@ -123,7 +123,7 @@
     </section>
   </main>
 
-  <dialog id="shareModal" class="share-dialog" aria-labelledby="shareModalTitle">
+  <dialog id="shareModal" class="share-dialog" aria-labelledby="shareModalTitle" aria-describedby="shareModalDescription">
     <div class="share-dialog-card">
       <header class="share-dialog-head">
         <div>
@@ -132,7 +132,7 @@
         </div>
         <button id="closeShareModal" class="icon-button" type="button" aria-label="Close share settings">×</button>
       </header>
-      <p class="share-dialog-copy">Choose what appears when someone opens your Gitbrag link. This is a responsive webpage, not an image.</p>
+      <p id="shareModalDescription" class="share-dialog-copy">Choose what appears when someone opens your Gitbrag link. This is a responsive webpage, not an image.</p>
 
       <div class="share-settings-grid">
         <fieldset class="share-fieldset">
@@ -161,12 +161,12 @@
       <div class="share-dialog-actions">
         <button id="cancelShareModal" class="secondary-button" type="button">Cancel</button>
         <button id="previewSharePage" class="secondary-button" type="button">Preview page</button>
-        <button id="copyShareLink" class="primary-button" type="button">Copy share link</button>
+        <button id="copyShareLink" class="primary-button" type="button" aria-live="polite">Copy share link</button>
       </div>
     </div>
   </dialog>
 
-  <dialog id="pngModal" class="png-dialog" aria-labelledby="pngModalTitle">
+  <dialog id="pngModal" class="png-dialog" aria-labelledby="pngModalTitle" aria-describedby="pngModalDescription">
     <div class="png-dialog-card">
       <header class="png-dialog-head">
         <div>
@@ -175,7 +175,7 @@
         </div>
         <button id="closePngModal" class="icon-button" type="button" aria-label="Close image generator">×</button>
       </header>
-      <p class="png-dialog-copy">The preview is the actual 1080 × 1080 canvas that will be exported. Image rendering is separate from shared-page rendering.</p>
+      <p id="pngModalDescription" class="png-dialog-copy">The preview is the actual 1080 × 1080 canvas that will be exported. Image rendering is separate from shared-page rendering.</p>
 
       <div class="png-workspace">
         <div class="png-settings">
@@ -205,7 +205,7 @@
         <div class="png-preview">
           <div class="png-preview-frame">
             <canvas id="pngCanvas" width="1080" height="1080" aria-label="Gitbrag PNG preview"></canvas>
-            <div class="png-preview-meta"><span id="pngStatus">1080 × 1080</span><span>1:1 PNG</span></div>
+            <div class="png-preview-meta"><span id="pngStatus" role="status" aria-live="polite">1080 × 1080</span><span>1:1 PNG</span></div>
           </div>
         </div>
       </div>
@@ -217,9 +217,9 @@
     </div>
   </dialog>
 
-  <script src="share-config.js?v=0.8.3"></script>
-  <script src="share-page.js?v=0.8.3"></script>
-  <script src="app.js?v=0.8.3"></script>
-  <script src="png.js?v=0.8.3"></script>
+  <script src="share-config.js?v=0.9.0"></script>
+  <script src="share-page.js?v=0.9.0"></script>
+  <script src="app.js?v=0.9.0"></script>
+  <script src="png.js?v=0.9.0"></script>
 </body>
 </html>
