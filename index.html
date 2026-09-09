@@ -11,12 +11,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=0.7.1">
-  <link rel="stylesheet" href="share-page.css?v=0.7.1">
+  <link rel="stylesheet" href="style.css?v=0.8.0">
+  <link rel="stylesheet" href="share-page.css?v=0.8.0">
+  <link rel="stylesheet" href="png.css?v=0.8.0">
 </head>
 <body>
   <main class="app">
-    <div class="app-version" aria-label="Gitbrag version 0.7.1">v0.7.1</div>
+    <div class="app-version" aria-label="Gitbrag version 0.8.0">v0.8.0</div>
 
     <section id="searchView" class="hero" aria-labelledby="searchTitle">
       <div class="brand">GIT<span>BRAG</span></div>
@@ -47,6 +48,7 @@
           <button id="shareBtn" class="share-button" type="button" aria-haspopup="menu" aria-expanded="false">Share</button>
           <div id="shareMenu" class="share-menu hidden" role="menu">
             <button id="shareLinkAction" type="button" role="menuitem">Share link</button>
+            <button id="generateImageAction" type="button" role="menuitem">Generate image</button>
           </div>
         </div>
       </header>
@@ -164,8 +166,60 @@
     </div>
   </dialog>
 
-  <script src="share-config.js?v=0.7.1"></script>
-  <script src="share-page.js?v=0.7.1"></script>
-  <script src="app.js?v=0.7.1"></script>
+  <dialog id="pngModal" class="png-dialog" aria-labelledby="pngModalTitle">
+    <div class="png-dialog-card">
+      <header class="png-dialog-head">
+        <div>
+          <p class="eyebrow">GENERATE IMAGE</p>
+          <h2 id="pngModalTitle">Build a shareable Gitbrag PNG.</h2>
+        </div>
+        <button id="closePngModal" class="icon-button" type="button" aria-label="Close image generator">×</button>
+      </header>
+      <p class="png-dialog-copy">The preview is the actual 1080 × 1080 canvas that will be exported. Image rendering is separate from shared-page rendering.</p>
+
+      <div class="png-workspace">
+        <div class="png-settings">
+          <fieldset class="png-fieldset">
+            <legend>Image sections</legend>
+            <label><span>Profile</span><input id="pngProfile" type="checkbox" checked></label>
+            <label><span>Stats</span><input id="pngStats" type="checkbox" checked></label>
+            <label><span>Contribution calendar</span><input id="pngCalendar" type="checkbox" checked></label>
+            <label><span>Repositories</span><input id="pngRepos" type="checkbox" checked></label>
+          </fieldset>
+
+          <fieldset class="png-fieldset">
+            <legend>Image settings</legend>
+            <label><span>Stats period</span><select id="pngStatsPeriod"><option value="day">24 hours</option><option value="week">7 days</option><option value="month">1 month</option><option value="sixmonths">6 months</option><option value="year">1 year</option><option value="lifetime">All time</option></select></label>
+            <label><span>Calendar range</span><select id="pngCalendarRange"><option value="1m">1 month</option><option value="3m">3 months</option><option value="6m">6 months</option><option value="1y">1 year</option><option value="2y">2 years</option><option value="all">All available</option></select></label>
+            <label><span>Text size</span><select id="pngTextSize"><option value="compact">Compact</option><option value="balanced">Balanced</option><option value="large">Large</option><option value="huge">Huge</option></select></label>
+            <label><span>Accent</span><select id="pngAccent"><option value="auto">Profile accent</option><option value="blue">Blue</option><option value="white">White</option><option value="cyan">Cyan</option><option value="purple">Purple</option><option value="green">Green</option></select></label>
+            <label><span>Card style</span><select id="pngCardStyle"><option value="solid">Solid</option><option value="outline">Outline</option><option value="glass">Glass</option></select></label>
+          </fieldset>
+
+          <fieldset class="png-fieldset">
+            <legend>Repositories</legend>
+            <div id="pngRepoPicker"></div>
+          </fieldset>
+        </div>
+
+        <div class="png-preview">
+          <div class="png-preview-frame">
+            <canvas id="pngCanvas" width="1080" height="1080" aria-label="Gitbrag PNG preview"></canvas>
+            <div class="png-preview-meta"><span id="pngStatus">1080 × 1080</span><span>1:1 PNG</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="png-dialog-actions">
+        <button id="cancelPngModal" class="secondary-button" type="button">Cancel</button>
+        <button id="downloadPng" class="primary-button" type="button">Download PNG</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="share-config.js?v=0.8.0"></script>
+  <script src="share-page.js?v=0.8.0"></script>
+  <script src="app.js?v=0.8.0"></script>
+  <script src="png.js?v=0.8.0"></script>
 </body>
 </html>
