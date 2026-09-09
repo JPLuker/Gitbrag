@@ -1,0 +1,75 @@
+/* PNG generator UI. The export renderer itself lives entirely in png.js canvas code. */
+.png-dialog {
+  width: min(1180px, calc(100% - 28px));
+  max-height: 94vh;
+  padding: 0;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  overflow: visible;
+}
+.png-dialog::backdrop { background: rgba(0, 0, 0, .78); backdrop-filter: blur(4px); }
+.png-dialog-card {
+  max-height: 94vh;
+  overflow: auto;
+  padding: 24px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .55);
+}
+.png-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.png-dialog-head .eyebrow { margin: 0 0 5px; }
+.png-dialog-head h2 { margin: 0; font-size: 27px; letter-spacing: -.035em; }
+.png-dialog-copy { margin: 10px 0 18px; color: var(--muted); font-size: 13px; }
+.png-workspace { display: grid; grid-template-columns: minmax(290px, 390px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.png-settings { display: grid; gap: 10px; }
+.png-fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 13px 15px;
+  background: #0d0d11;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.png-fieldset legend { padding: 0 5px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.png-fieldset > label { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; color: #c3c3c9; border-bottom: 1px solid #1f1f25; font-size: 12px; }
+.png-fieldset > label:last-child { border-bottom: 0; }
+.png-fieldset input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); }
+.png-fieldset select { min-width: 140px; max-width: 58%; padding: 7px 8px; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+.png-fieldset.is-disabled { opacity: .45; pointer-events: none; }
+.png-repo-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
+.png-repo-head > div { display: grid; gap: 2px; }
+.png-repo-head b { font-size: 12px; }
+.png-repo-head small { color: var(--muted); font-size: 10px; }
+.png-repo-head > span { color: var(--accent); font-size: 11px; font-weight: 800; }
+.png-repo-list { display: grid; gap: 6px; max-height: 190px; overflow: auto; }
+.png-repo-choice { display: flex; align-items: center; gap: 9px; min-width: 0; padding: 9px; background: var(--panel); border: 1px solid #24242a; border-radius: 9px; cursor: pointer; }
+.png-repo-choice:hover { border-color: var(--accent); }
+.png-repo-choice input { width: 17px; height: 17px; flex: none; accent-color: var(--accent); }
+.png-repo-choice > span { display: grid; gap: 1px; min-width: 0; }
+.png-repo-choice b, .png-repo-choice small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.png-repo-choice b { font-size: 11px; }
+.png-repo-choice small { color: var(--muted); font-size: 9px; }
+.png-empty { color: var(--muted); font-size: 11px; }
+.png-preview { min-width: 0; }
+.png-preview-frame { width: 100%; padding: 12px; background: #0d0d11; border: 1px solid var(--line); border-radius: 16px; }
+#pngCanvas { display: block; width: 100%; height: auto; aspect-ratio: 1; background: #09090b; border-radius: 10px; }
+.png-preview-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 9px; color: var(--muted); font-size: 10px; }
+.png-dialog-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 16px; }
+.png-dialog-actions button:disabled { opacity: .55; cursor: wait; }
+@media (max-width: 860px) {
+  .png-workspace { grid-template-columns: 1fr; }
+  .png-settings { grid-template-columns: 1fr 1fr; }
+  .png-fieldset:last-child { grid-column: 1 / -1; }
+}
+@media (max-width: 560px) {
+  .png-dialog { width: min(100% - 16px, 1180px); }
+  .png-dialog-card { padding: 18px; }
+  .png-workspace, .png-settings { grid-template-columns: 1fr; }
+  .png-fieldset:last-child { grid-column: auto; }
+  .png-fieldset > label { align-items: flex-start; flex-direction: column; gap: 5px; }
+  .png-fieldset select { width: 100%; max-width: none; }
+  .png-dialog-actions { flex-direction: column; }
+  .png-dialog-actions button { width: 100%; }
+}
