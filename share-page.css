@@ -1,0 +1,101 @@
+/* Shared-page refinements. Kept separate from the PNG renderer by design. */
+
+.shared-preview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.shared-preview-label {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.shared-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.shared-footer-actions {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0 2px;
+}
+
+.shared-create-button {
+  padding: 7px 11px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  font: 700 11px/1.2 Inter, system-ui, sans-serif;
+  cursor: pointer;
+  transition: color .15s ease, border-color .15s ease, background .15s ease, transform .15s ease;
+}
+
+.shared-create-button:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.shared-create-button:active {
+  transform: translateY(1px);
+}
+
+.shared-calendar-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.shared-calendar {
+  --calendar-cell: 10px;
+  --calendar-gap: 4px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, var(--calendar-cell));
+  grid-auto-columns: var(--calendar-cell);
+  width: max-content;
+  max-width: none;
+  gap: var(--calendar-gap);
+  margin-inline: auto;
+}
+
+.shared-calendar i {
+  width: var(--calendar-cell);
+  height: var(--calendar-cell);
+}
+
+@media (max-width: 700px) {
+  .shared-preview-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .shared-preview-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .shared-preview-actions {
+    width: 100%;
+  }
+
+  .shared-preview-actions .secondary-button {
+    flex: 1;
+    padding: 9px 11px;
+    font-size: 12px;
+  }
+
+  .shared-footer-actions {
+    margin-top: 13px;
+  }
+}
