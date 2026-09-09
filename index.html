@@ -1,46 +1,106 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Gitbrag — a GitHub stats profile.">
-<title>Gitbrag — GitHub Stats</title>
-<link rel="icon" href="data:,">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=0.4.9">
-<link rel="stylesheet" href="version.css?v=0.4.9">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Gitbrag — a clean snapshot of public GitHub profile activity.">
+  <meta name="theme-color" content="#09090b">
+  <meta name="color-scheme" content="dark">
+  <title>Gitbrag — GitHub Stats</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=0.5.0">
 </head>
 <body>
-<main class="app">
-<div class="app-version" aria-label="Gitbrag version">v0.4.9</div>
-<section id="searchView" class="hero">
-<div class="brand">GIT<span>BRAG</span></div>
-<p class="eyebrow">YOUR GITHUB, YOUR STATS</p>
-<h1>See what you’ve been<br><span>building.</span></h1>
-<p class="subhead">A simple snapshot of your GitHub activity.</p>
-<form id="searchForm" class="search">
-<div class="input-wrap"><span>@</span><input id="username" autocomplete="off" placeholder="username or github.com/username" aria-label="GitHub username or GitHub profile URL" required></div>
-<button type="submit">Generate stats</button>
-</form>
-<p class="hint">Enter a username or paste a GitHub profile link.</p>
-</section>
-<section id="loadingView" class="loading hidden"><div class="spinner"></div><h2>Building your Gitbrag...</h2><p id="loadingText">Finding your profile.</p></section>
-<section id="profileView" class="profile hidden">
-<header class="profile-header"><button id="backBtn" class="back">← New user</button><div class="brand small">GIT<span>BRAG</span></div></header>
-<div class="profile-intro"><img id="avatar" class="avatar" alt="GitHub profile picture"><div><h2 id="displayName"></h2><p id="handle" class="handle"></p></div></div>
-<div class="periods" aria-label="Stats period"><button data-period="day">24H</button><button data-period="week" class="active">7D</button><button data-period="month">1M</button><button data-period="sixmonths">6M</button><button data-period="year">1Y</button><button data-period="lifetime">ALL TIME</button></div>
-<div id="statsGrid" class="stats-grid"></div>
-<div id="extraStats" class="extra-grid"></div>
-<div class="section-title"><span>CONTRIBUTION CALENDAR</span><span>LAST YEAR</span></div>
-<div class="calendar-card"><div id="contributionGraph" class="contribution-graph"></div><div class="calendar-footer"><span id="calendarTotal"></span><a id="githubProfile" target="_blank" rel="noreferrer">View on GitHub ↗</a></div></div>
-<div class="section-title"><span>YOUR GITHUB AT A GLANCE</span><span id="periodLabel"></span></div>
-<div id="repos" class="repo-list"></div>
-<footer>Gitbrag uses public GitHub data. Contribution totals follow GitHub’s public contribution graph.</footer>
-</section>
-<section id="errorView" class="error hidden"><div class="brand">GIT<span>BRAG</span></div><h2>Couldn’t load that profile.</h2><p id="errorText">Check the username or GitHub link and try again.</p><button id="errorBack">Try again</button></section>
-</main>
-<script src="app.js?v=0.4.9"></script>
+  <main class="app">
+    <div class="app-version" aria-label="Gitbrag version 0.5.0">v0.5.0</div>
+
+    <section id="searchView" class="hero" aria-labelledby="searchTitle">
+      <div class="brand">GIT<span>BRAG</span></div>
+      <p class="eyebrow">YOUR GITHUB, YOUR STATS</p>
+      <h1 id="searchTitle">See what you’ve been<br><span>building.</span></h1>
+      <p class="subhead">A focused snapshot of public GitHub activity.</p>
+      <form id="searchForm" class="search">
+        <label class="input-wrap" for="username">
+          <span aria-hidden="true">@</span>
+          <input id="username" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="username or github.com/username" required>
+        </label>
+        <button type="submit">Generate stats</button>
+      </form>
+      <p class="hint">Enter a username or paste a GitHub profile link.</p>
+    </section>
+
+    <section id="loadingView" class="loading hidden" role="status" aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <h2>Building your Gitbrag…</h2>
+      <p id="loadingText">Finding the GitHub profile…</p>
+    </section>
+
+    <section id="profileView" class="profile hidden" aria-labelledby="displayName">
+      <header class="profile-header">
+        <button id="backBtn" class="back" type="button">← New user</button>
+        <div class="brand small">GIT<span>BRAG</span></div>
+      </header>
+
+      <div class="profile-intro">
+        <img id="avatar" class="avatar" alt="">
+        <div class="profile-copy">
+          <h2 id="displayName"></h2>
+          <p id="handle" class="handle"></p>
+        </div>
+      </div>
+
+      <div class="periods" role="group" aria-label="Activity period">
+        <button type="button" data-period="day" aria-pressed="false">24H</button>
+        <button type="button" data-period="month" class="active" aria-pressed="true">1M</button>
+        <button type="button" data-period="sixmonths" aria-pressed="false">6M</button>
+        <button type="button" data-period="year" aria-pressed="false">1Y</button>
+        <button type="button" data-period="lifetime" aria-pressed="false">ALL TIME</button>
+      </div>
+
+      <div class="section-title stats-title">
+        <span>ACTIVITY SUMMARY</span>
+        <span id="periodLabel">LAST 30 DAYS</span>
+      </div>
+      <div id="contributionNotice" class="notice hidden" role="status"></div>
+      <div id="statsGrid" class="stats-grid"></div>
+      <div id="extraStats" class="extra-grid" aria-label="Profile summary"></div>
+
+      <div class="section-title">
+        <span>CONTRIBUTION CALENDAR</span>
+        <span>LAST YEAR</span>
+      </div>
+      <div class="calendar-card">
+        <div class="calendar-scroll">
+          <div id="contributionGraph" class="contribution-graph" role="img" aria-label="GitHub contribution calendar"></div>
+        </div>
+        <div class="calendar-footer">
+          <span id="calendarTotal"></span>
+          <a id="githubProfile" target="_blank" rel="noreferrer">View on GitHub ↗</a>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span>TOP PUBLIC REPOSITORIES</span>
+        <span>NON-FORKS</span>
+      </div>
+      <div id="repos" class="repo-list"></div>
+
+      <footer>
+        Gitbrag uses public GitHub data. Contribution totals follow GitHub’s public contribution graph.
+      </footer>
+    </section>
+
+    <section id="errorView" class="error hidden" aria-live="assertive">
+      <div class="brand">GIT<span>BRAG</span></div>
+      <h2>Couldn’t load that profile.</h2>
+      <p id="errorText">Check the username or GitHub link and try again.</p>
+      <button id="errorBack" type="button">Try again</button>
+    </section>
+  </main>
+
+  <script src="app.js?v=0.5.0"></script>
 </body>
 </html>
