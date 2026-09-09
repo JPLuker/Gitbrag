@@ -38,6 +38,9 @@
   let nextRenderIsPreview = false;
   let calendarResizeObserver = null;
   let calendarResizeFrame = 0;
+  let modalReturnFocus = null;
+  let restoreFocusAfterClose = true;
+  let copyResetTimer = 0;
 
   function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, (character) => ({
@@ -53,15 +56,25 @@
     return new Intl.NumberFormat().format(Number(value) || 0);
   }
 
-  function closeMenu() {
+  function menuItems() {
+    return $$('[role="menuitem"]', elements.shareMenu).filter((item) => !item.disabled);
+  }
+
+  function closeMenu({ restoreFocus = false } = {}) {
     elements.shareMenu?.classList.add('hidden');
     elements.shareButton?.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) elements.shareButton?.focus();
+  }
+
+  function openMenu() {
+    elements.shareMenu?.classList.remove('hidden');
+    elements.shareButton?.setAttribute('aria-expanded', 'true');
+    requestAnimationFrame(() => menuItems()[0]?.focus());
   }
 
   function toggleMenu() {
-    const willOpen = elements.shareMenu?.classList.contains('hidden');
-    elements.shareMenu?.classList.toggle('hidden', !willOpen);
-    elements.shareButton?.setAttribute('aria-expanded', String(Boolean(willOpen)));
+    if (elements.shareMenu?.classList.contains('hidden')) openMenu();
+    else closeMenu({ restoreFocus: true });
   }
 
   function selectedRepoIds() {
@@ -79,6 +92,17 @@
     });
     const count = $('#shareRepoCount', elements.repoPicker);
     if (count) count.textContent = `${checked.length}/${ShareConfig.MAX_SELECTED_REPOS}`;
+  }
+
+  function syncDependentControls() {
+    if (elements.statsPeriod) elements.statsPeriod.disabled = !elements.statsToggle.checked;
+    if (elements.calendarRange) elements.calendarRange.disabled = !elements.calendarToggle.checked;
+
+    const repoFieldset = elements.repoPicker?.closest('.share-fieldset');
+    if (repoFieldset) {
+      repoFieldset.disabled = !elements.reposToggle.checked;
+      repoFieldset.classList.toggle('is-disabled', !elements.reposToggle.checked);
+    }
   }
 
   function renderRepoPicker(selectedIds) {
@@ -112,6 +136,7 @@
       updateRepoPickerState();
     };
     updateRepoPickerState();
+    syncDependentControls();
   }
 
   function setBuilderValues(config) {
@@ -126,20 +151,21 @@
     elements.accent.value = builderConfig.appearance.accent;
     elements.cardStyle.value = builderConfig.appearance.cardStyle;
     renderRepoPicker(builderConfig.selectedRepos);
-    elements.repoPicker.closest('.share-fieldset')?.classList.toggle('is-disabled', !builderConfig.modules.repos);
+    syncDependentControls();
   }
 
   function readBuilderValues() {
+    const repos = selectedRepoIds();
     return ShareConfig.normalize({
       modules: {
         profile: elements.profileToggle.checked,
         stats: elements.statsToggle.checked,
         calendar: elements.calendarToggle.checked,
-        repos: elements.reposToggle.checked,
+        repos: elements.reposToggle.checked && repos.length > 0,
       },
       statsPeriod: elements.statsPeriod.value,
       calendarRange: elements.calendarRange.value,
-      selectedRepos: selectedRepoIds(),
+      selectedRepos: repos,
       appearance: {
         textSize: elements.textSize.value,
         accent: elements.accent.value,
@@ -150,10 +176,12 @@
 
   function openBuilder(config = null) {
     const app = root.GitbragApp;
-    if (!app?.getShareBuilderContext) return;
+    if (!app?.getShareBuilderContext || !elements.modal) return;
     const context = app.getShareBuilderContext();
     if (!context) return;
 
+    modalReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : elements.shareButton;
+    restoreFocusAfterClose = true;
     repoOptions = context.repos;
     const base = config || activeConfig || context.defaultConfig;
     setBuilderValues(base);
@@ -162,7 +190,8 @@
     elements.profileToggle.focus();
   }
 
-  function closeBuilder() {
+  function closeBuilder({ restoreFocus = true } = {}) {
+    restoreFocusAfterClose = restoreFocus;
     if (elements.modal?.open) elements.modal.close();
   }
 
@@ -186,19 +215,26 @@
 
   async function copyShareLink() {
     const app = root.GitbragApp;
-    if (!app?.createShareUrl) return;
+    if (!app?.createShareUrl || !elements.copyButton || elements.copyButton.disabled) return;
     const config = readBuilderValues();
     const url = app.createShareUrl(config);
     const original = elements.copyButton.textContent;
 
+    clearTimeout(copyResetTimer);
+    elements.copyButton.disabled = true;
+    elements.copyButton.textContent = 'Copying…';
+
     try {
       await copyText(url);
       elements.copyButton.textContent = 'Copied!';
-      setTimeout(() => {
-        elements.copyButton.textContent = original;
-      }, 1400);
     } catch {
+      elements.copyButton.textContent = original;
       window.prompt('Copy your Gitbrag share link:', url);
+    } finally {
+      elements.copyButton.disabled = false;
+      copyResetTimer = root.setTimeout(() => {
+        if (elements.copyButton) elements.copyButton.textContent = original;
+      }, 1400);
     }
   }
 
@@ -207,7 +243,7 @@
     if (!app?.previewShare) return;
     const config = readBuilderValues();
     nextRenderIsPreview = true;
-    closeBuilder();
+    closeBuilder({ restoreFocus: false });
     app.previewShare(config);
   }
 
@@ -229,7 +265,7 @@
 
   function renderStats(model) {
     if (model.contributionError) {
-      return `<section class="shared-notice">${escapeHtml(model.contributionError)}</section>`;
+      return `<section class="shared-notice" role="status">${escapeHtml(model.contributionError)}</section>`;
     }
 
     return `
@@ -253,17 +289,18 @@
       return `
         <section class="shared-section">
           <div class="shared-section-title"><span>CONTRIBUTION CALENDAR</span><span>${escapeHtml(model.calendar.label)}</span></div>
-          <div class="shared-calendar-unavailable">Contribution calendar unavailable.</div>
+          <div class="shared-calendar-unavailable" role="status">Contribution calendar unavailable.</div>
         </section>
       `;
     }
 
+    const calendarLabel = `${model.calendar.label.toLowerCase()}, ${formatNumber(model.calendar.total)} contributions`;
     return `
       <section class="shared-section">
         <div class="shared-section-title"><span>CONTRIBUTION CALENDAR</span><span>${escapeHtml(model.calendar.label)}</span></div>
         <div class="shared-calendar-scroll">
-          <div class="shared-calendar" data-calendar-weeks="${model.calendar.weeks}">
-            ${model.calendar.days.map((day) => `<i class="level-${day.level}" title="${escapeHtml(`${day.count} contribution${day.count === 1 ? '' : 's'} · ${day.date}`)}"></i>`).join('')}
+          <div class="shared-calendar" data-calendar-weeks="${model.calendar.weeks}" role="img" aria-label="${escapeHtml(calendarLabel)}">
+            ${model.calendar.days.map((day) => `<i class="level-${day.level}" title="${escapeHtml(`${day.count} contribution${day.count === 1 ? '' : 's'} · ${day.date}`)}" aria-hidden="true"></i>`).join('')}
           </div>
         </div>
         <div class="shared-calendar-total">${formatNumber(model.calendar.total)} contributions in this calendar range</div>
@@ -279,7 +316,7 @@
           ${model.repos.map((repo) => `
             <article>
               <div class="shared-repo-top">
-                <a href="${escapeHtml(repo.url)}" target="_blank" rel="noreferrer">${escapeHtml(repo.name)}</a>
+                <a href="${escapeHtml(repo.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(repo.name)}</a>
                 <span>★ ${formatNumber(repo.stars)}</span>
               </div>
               <p>${escapeHtml(repo.description || 'No description')}</p>
@@ -373,23 +410,63 @@
     observeCalendarScale();
   }
 
+  function handleMenuKeydown(event) {
+    if (elements.shareMenu?.classList.contains('hidden')) return;
+    const items = menuItems();
+    if (!items.length) return;
+    const currentIndex = Math.max(0, items.indexOf(document.activeElement));
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      items[(currentIndex + 1) % items.length].focus();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      items[(currentIndex - 1 + items.length) % items.length].focus();
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      items[0].focus();
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      items[items.length - 1].focus();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      closeMenu({ restoreFocus: true });
+    }
+  }
+
   elements.shareButton?.addEventListener('click', (event) => {
     event.stopPropagation();
     toggleMenu();
   });
 
+  elements.shareButton?.addEventListener('keydown', (event) => {
+    if ((event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') && elements.shareMenu?.classList.contains('hidden')) {
+      event.preventDefault();
+      openMenu();
+    }
+  });
+
+  elements.shareMenu?.addEventListener('keydown', handleMenuKeydown);
   elements.shareLinkAction?.addEventListener('click', () => openBuilder());
-  elements.closeModal?.addEventListener('click', closeBuilder);
-  elements.cancelModal?.addEventListener('click', closeBuilder);
+  elements.closeModal?.addEventListener('click', () => closeBuilder());
+  elements.cancelModal?.addEventListener('click', () => closeBuilder());
   elements.copyButton?.addEventListener('click', copyShareLink);
   elements.previewButton?.addEventListener('click', previewSharePage);
-  elements.reposToggle?.addEventListener('change', () => {
-    elements.repoPicker.closest('.share-fieldset')?.classList.toggle('is-disabled', !elements.reposToggle.checked);
+
+  [elements.statsToggle, elements.calendarToggle, elements.reposToggle].forEach((toggle) => {
+    toggle?.addEventListener('change', syncDependentControls);
   });
+
   elements.sharedEdit?.addEventListener('click', () => openBuilder(activeConfig));
 
   elements.modal?.addEventListener('click', (event) => {
     if (event.target === elements.modal) closeBuilder();
+  });
+
+  elements.modal?.addEventListener('close', () => {
+    if (restoreFocusAfterClose && modalReturnFocus?.isConnected) modalReturnFocus.focus();
+    modalReturnFocus = null;
+    restoreFocusAfterClose = true;
   });
 
   document.addEventListener('click', (event) => {
@@ -397,14 +474,24 @@
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeMenu();
+    if (event.key === 'Escape' && !elements.shareMenu?.classList.contains('hidden')) {
+      closeMenu({ restoreFocus: true });
+    }
   });
 
+  const closeTransientUi = () => {
+    closeMenu();
+    if (elements.modal?.open) closeBuilder({ restoreFocus: false });
+  };
+
+  root.addEventListener('hashchange', closeTransientUi);
+  root.addEventListener('popstate', closeTransientUi);
   root.addEventListener('resize', scheduleCalendarScale, { passive: true });
 
   root.GitbragSharePage = Object.freeze({
     render,
     openBuilder,
+    closeBuilder,
     getActiveConfig: () => activeConfig ? ShareConfig.normalize(activeConfig) : null,
   });
 })(window);
