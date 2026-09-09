@@ -2,7 +2,7 @@
 
 Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub profile, recent contribution activity, customized shareable profile pages, and exportable social images.
 
-**v0.8.0** adds the rebuilt 1:1 PNG generator and a shorter static share-link format. The shared webpage renderer and PNG renderer remain completely separate.
+**v0.8.1** makes the PNG renderer adaptive inside its fixed 1080 × 1080 canvas. Calendar and repository sections now consume the available square instead of leaving a large unused lower area.
 
 ## Current features
 
@@ -20,6 +20,8 @@ Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub pr
 - Generate a dedicated 1080 × 1080 PNG using a canvas renderer that does not depend on the shared-page renderer.
 - Customize PNG modules, stats period, calendar range, up to four repositories, text size, accent, and card style.
 - Preview the exact canvas that is exported as the PNG.
+- Scale PNG calendar cells from the selected calendar range and available panel size.
+- Scale repository cards based on whether 1, 2, 3, or 4 repositories are selected.
 - Run entirely as a static site with no Gitbrag backend or database.
 
 ## Architecture
@@ -33,7 +35,7 @@ Gitbrag intentionally keeps the application small and static:
 - `app.js` owns routing, public data loading, calculations, the main profile UI, and creation of renderer-neutral view models.
 - `share-config.js` owns the versioned configuration schema, normalization, validation, compact URL-safe encoding, and backward-compatible decoding.
 - `share-page.js` owns only the custom-link builder UI and responsive HTML shared-page renderer.
-- `png.js` owns only the image-builder UI, 1080 × 1080 canvas renderer, preview, and PNG download path.
+- `png.js` owns only the image-builder UI, adaptive 1080 × 1080 canvas renderer, preview, and PNG download path.
 
 ### Renderer boundary
 
@@ -85,6 +87,8 @@ PNG
 ```
 
 The visible preview is the same canvas that is exported, so preview/export layout cannot drift because of DOM screenshot scaling.
+
+The internal layout is adaptive: enabled sections are assigned the usable canvas height, calendar cells are fitted to their panel, and repository cards expand to consume the repository section. One or two selected repositories use a single tall row; three or four use a 2 × 2 grid.
 
 Gitbrag branding is always drawn into the output.
 
