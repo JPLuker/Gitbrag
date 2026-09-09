@@ -8,6 +8,18 @@
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
 
   const SIZE = 1080;
+  const CANVAS = Object.freeze({
+    padding: 60,
+    footerTop: 995,
+    footerBaseline: 1040,
+    sectionGap: 24,
+    sectionTitle: 34,
+    profileHeight: 92,
+    statsHeight: 176,
+    panelRadius: 18,
+    repoGap: 12,
+  });
+
   const elements = {
     action: $('#generateImageAction'),
     menu: $('#shareMenu'),
@@ -33,6 +45,10 @@
   let repoOptions = [];
   let renderSequence = 0;
   const avatarCache = new Map();
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
 
   function formatNumber(value) {
     return new Intl.NumberFormat().format(Number(value) || 0);
@@ -73,7 +89,7 @@
           const id = String(repo.id ?? repo.name);
           return `
             <label class="png-repo-choice">
-              <input type="checkbox" data-png-repo="${id.replace(/"/g, '&quot;')}" ${selected.has(id) ? 'checked' : ''}>
+              <input type="checkbox" data-png-repo="${escapeHtml(id)}" ${selected.has(id) ? 'checked' : ''}>
               <span><b>${escapeHtml(repo.name)}</b><small>★ ${formatNumber(repo.stargazers_count)} · ${escapeHtml(repo.language || 'Unknown')}</small></span>
             </label>`;
         }).join('') || '<p class="png-empty">No original public repositories available.</p>'}
@@ -127,8 +143,7 @@
   }
 
   async function openBuilder() {
-    const app = root.GitbragApp;
-    const context = app?.getShareBuilderContext?.();
+    const context = root.GitbragApp?.getShareBuilderContext?.();
     if (!context) return;
     repoOptions = context.repos;
     setValues(context.defaultConfig);
@@ -189,7 +204,7 @@
     ctx.closePath();
   }
 
-  function drawPanel(ctx, colors, x, y, width, height, radius = 18) {
+  function drawPanel(ctx, colors, x, y, width, height, radius = CANVAS.panelRadius) {
     roundedRect(ctx, x, y, width, height, radius);
     ctx.fillStyle = colors.panel;
     ctx.fill();
@@ -293,78 +308,156 @@
     font(ctx, 18, 800);
     const gitWidth = ctx.measureText('GIT').width;
     const bragWidth = ctx.measureText('BRAG').width;
-    const start = 1000 - gitWidth - bragWidth;
+    const start = 1020 - gitWidth - bragWidth;
     ctx.fillStyle = colors.text;
     ctx.fillText('GIT', start, 76);
     ctx.fillStyle = colors.accent;
     ctx.fillText('BRAG', start + gitWidth, 76);
   }
 
-  function drawProfile(ctx, colors, model, image, x, y, width, scale) {
-    const avatarSize = 88;
-    drawAvatar(ctx, image, colors, x, y, avatarSize, model.user.displayName);
+  function repoGrid(repoCount) {
+    if (repoCount <= 1) return { columns: 1, rows: 1 };
+    if (repoCount === 2) return { columns: 2, rows: 1 };
+    return { columns: 2, rows: 2 };
+  }
+
+  function computeLayout(config, model) {
+    const enabled = ['profile', 'stats', 'calendar', 'repos'].filter((key) => config.modules[key]);
+    const gaps = Math.max(0, enabled.length - 1) * CANVAS.sectionGap;
+    const contentTop = 60;
+    const contentBottom = CANVAS.footerTop - 22;
+    const totalHeight = contentBottom - contentTop - gaps;
+
+    const heights = { profile: 0, stats: 0, calendar: 0, repos: 0 };
+    if (config.modules.profile) heights.profile = CANVAS.profileHeight;
+    if (config.modules.stats) heights.stats = CANVAS.statsHeight;
+
+    let flexibleHeight = totalHeight - heights.profile - heights.stats;
+    flexibleHeight = Math.max(0, flexibleHeight);
+
+    if (config.modules.calendar && config.modules.repos) {
+      const { rows } = repoGrid(model.repos.length);
+      const minRepos = rows === 2 ? 320 : 250;
+      const minCalendar = rows === 2 ? 200 : 250;
+      const calendarShare = rows === 2 ? .38 : .52;
+      heights.calendar = clamp(
+        Math.round(flexibleHeight * calendarShare),
+        minCalendar,
+        Math.max(minCalendar, flexibleHeight - minRepos),
+      );
+      heights.repos = flexibleHeight - heights.calendar;
+      if (heights.repos < minRepos) {
+        heights.repos = minRepos;
+        heights.calendar = flexibleHeight - minRepos;
+      }
+    } else if (config.modules.calendar) {
+      heights.calendar = flexibleHeight;
+    } else if (config.modules.repos) {
+      heights.repos = flexibleHeight;
+    } else if (config.modules.stats) {
+      heights.stats += flexibleHeight;
+    } else if (config.modules.profile) {
+      heights.profile += flexibleHeight;
+    }
+
+    const positions = {};
+    let y = contentTop;
+    enabled.forEach((key, index) => {
+      positions[key] = { y, height: heights[key] };
+      y += heights[key];
+      if (index < enabled.length - 1) y += CANVAS.sectionGap;
+    });
+
+    return {
+      x: CANVAS.padding,
+      width: SIZE - CANVAS.padding * 2,
+      positions,
+    };
+  }
+
+  function fitHeatmap(cols, rows, maxWidth, maxHeight) {
+    const safeCols = Math.max(1, cols);
+    const safeRows = Math.max(1, rows);
+    let gap = safeCols > 100 ? 0 : safeCols > 60 ? 1 : safeCols > 30 ? 2 : 4;
+    const fitByWidth = Math.floor((maxWidth - gap * (safeCols - 1)) / safeCols);
+    const fitByHeight = Math.floor((maxHeight - gap * (safeRows - 1)) / safeRows);
+    const maxCell = safeCols <= 6 ? 30 : safeCols <= 14 ? 24 : safeCols <= 28 ? 16 : safeCols <= 60 ? 10 : 6;
+    let cell = Math.max(1, Math.min(maxCell, fitByWidth, fitByHeight));
+
+    if (safeCols * cell + gap * (safeCols - 1) > maxWidth) {
+      gap = 0;
+      cell = Math.max(1, Math.min(maxCell, Math.floor(maxWidth / safeCols), Math.floor(maxHeight / safeRows)));
+    }
+
+    return {
+      cell,
+      gap,
+      width: safeCols * cell + Math.max(0, safeCols - 1) * gap,
+      height: safeRows * cell + Math.max(0, safeRows - 1) * gap,
+    };
+  }
+
+  function drawProfile(ctx, colors, model, image, x, y, width, height, scale) {
+    const avatarSize = clamp(Math.min(height, 98), 72, 98);
+    const avatarY = y + Math.max(0, (height - avatarSize) / 2);
+    drawAvatar(ctx, image, colors, x, avatarY, avatarSize, model.user.displayName);
     ctx.fillStyle = colors.text;
-    font(ctx, 40 * scale, 800);
-    ctx.fillText(fitText(ctx, model.user.displayName, width - avatarSize - 28), x + avatarSize + 22, y + 42);
+    font(ctx, 42 * scale, 800);
+    ctx.fillText(fitText(ctx, model.user.displayName, width - avatarSize - 32), x + avatarSize + 24, avatarY + 44);
     ctx.fillStyle = colors.muted;
     font(ctx, 18 * scale, 500);
     const handle = `@${model.user.login}${model.user.bio ? ` · ${model.user.bio}` : ''}`;
-    ctx.fillText(fitText(ctx, handle, width - avatarSize - 28), x + avatarSize + 22, y + 72);
-    return y + avatarSize;
+    ctx.fillText(fitText(ctx, handle, width - avatarSize - 32), x + avatarSize + 24, avatarY + 75);
   }
 
-  function drawStats(ctx, colors, model, x, y, width, scale) {
+  function drawStats(ctx, colors, model, x, y, width, height, scale) {
     drawSectionTitle(ctx, colors, 'ACTIVITY SUMMARY', model.stats.periodLabel.toUpperCase(), x, y + 14, width, scale);
-    const top = y + 34;
+    const top = y + CANVAS.sectionTitle;
     const gap = 12;
     const cardWidth = (width - gap * 3) / 4;
-    const cardHeight = 142;
+    const cardHeight = Math.max(120, height - CANVAS.sectionTitle);
+
     model.stats.cards.forEach((card, index) => {
       const cx = x + index * (cardWidth + gap);
       drawPanel(ctx, colors, cx, top, cardWidth, cardHeight, 16);
+      const padding = 16;
       ctx.fillStyle = colors.muted;
       font(ctx, 11 * scale, 800);
-      ctx.fillText(card.label, cx + 16, top + 28);
+      ctx.fillText(card.label, cx + padding, top + 28);
       ctx.fillStyle = colors.text;
-      font(ctx, 34 * scale, 800);
-      ctx.fillText(fitText(ctx, card.value, cardWidth - 32), cx + 16, top + 78);
+      font(ctx, clamp(cardHeight * .25, 32, 46) * scale, 800);
+      ctx.fillText(fitText(ctx, card.value, cardWidth - padding * 2), cx + padding, top + Math.min(86, cardHeight * .53));
       ctx.fillStyle = colors.muted;
       font(ctx, 10 * scale, 500);
-      wrapText(ctx, card.note, cardWidth - 32, 2).forEach((line, lineIndex) => {
-        ctx.fillText(line, cx + 16, top + 108 + lineIndex * 15);
+      wrapText(ctx, card.note, cardWidth - padding * 2, 2).forEach((line, lineIndex) => {
+        ctx.fillText(line, cx + padding, top + cardHeight - 30 + lineIndex * 14);
       });
     });
-    return top + cardHeight;
   }
 
-  function drawCalendar(ctx, colors, model, x, y, width, scale) {
+  function drawCalendar(ctx, colors, model, x, y, width, height, scale) {
     drawSectionTitle(ctx, colors, 'CONTRIBUTION CALENDAR', model.calendar.label, x, y + 14, width, scale);
-    const top = y + 34;
-    const height = 170;
-    drawPanel(ctx, colors, x, top, width, height, 16);
+    const top = y + CANVAS.sectionTitle;
+    const panelHeight = Math.max(130, height - CANVAS.sectionTitle);
+    drawPanel(ctx, colors, x, top, width, panelHeight, 16);
 
     if (model.contributionError) {
       ctx.fillStyle = colors.muted;
       font(ctx, 17 * scale, 600);
       ctx.textAlign = 'center';
-      ctx.fillText('Contribution calendar unavailable.', x + width / 2, top + height / 2);
+      ctx.fillText('Contribution calendar unavailable.', x + width / 2, top + panelHeight / 2);
       ctx.textAlign = 'left';
-      return top + height;
+      return;
     }
 
     const weeks = Math.max(1, model.calendar.weeks);
-    const innerWidth = width - 44;
-    let gap = weeks > 180 ? 0 : weeks > 80 ? 1 : weeks > 32 ? 2 : 4;
-    const maxCell = weeks <= 6 ? 18 : weeks <= 14 ? 14 : weeks <= 28 ? 11 : weeks <= 60 ? 8 : 5;
-    const fit = Math.floor((innerWidth - Math.max(0, weeks - 1) * gap) / weeks);
-    const graphAreaHeight = 105;
-    const maxByHeight = Math.max(1, Math.floor((graphAreaHeight - 6 * gap) / 7));
-    const cell = Math.max(1, Math.min(maxCell, maxByHeight, fit > 0 ? fit : 1));
-    if (weeks * cell + Math.max(0, weeks - 1) * gap > innerWidth) gap = 0;
-    const graphWidth = weeks * cell + Math.max(0, weeks - 1) * gap;
-    const graphHeight = 7 * cell + 6 * gap;
-    const gx = x + (width - graphWidth) / 2;
-    const gy = top + 18 + Math.max(0, (graphAreaHeight - graphHeight) / 2);
+    const innerPadding = 22;
+    const summaryHeight = 30;
+    const graphMaxWidth = width - innerPadding * 2;
+    const graphMaxHeight = Math.max(30, panelHeight - innerPadding * 2 - summaryHeight);
+    const heatmap = fitHeatmap(weeks, 7, graphMaxWidth, graphMaxHeight);
+    const gx = x + (width - heatmap.width) / 2;
+    const gy = top + innerPadding + Math.max(0, (graphMaxHeight - heatmap.height) / 2);
 
     model.calendar.days.forEach((day, index) => {
       const column = Math.floor(index / 7);
@@ -372,33 +465,41 @@
       const level = Math.min(4, Math.max(0, day.level));
       ctx.fillStyle = level ? colors.accent : colors.line;
       ctx.globalAlpha = level ? [0, .4, .6, .8, 1][level] : 1;
-      roundedRect(ctx, gx + column * (cell + gap), gy + row * (cell + gap), cell, cell, Math.min(2, cell / 3));
+      roundedRect(
+        ctx,
+        gx + column * (heatmap.cell + heatmap.gap),
+        gy + row * (heatmap.cell + heatmap.gap),
+        heatmap.cell,
+        heatmap.cell,
+        Math.min(3, heatmap.cell / 3),
+      );
       ctx.fill();
       ctx.globalAlpha = 1;
     });
 
     ctx.fillStyle = colors.muted;
     font(ctx, 11 * scale, 500);
-    ctx.fillText(`${formatNumber(model.calendar.total)} contributions in this calendar range`, x + 18, top + height - 16);
-    return top + height;
+    ctx.fillText(`${formatNumber(model.calendar.total)} contributions in this calendar range`, x + innerPadding, top + panelHeight - 16);
   }
 
-  function drawRepos(ctx, colors, model, x, y, width, availableHeight, scale) {
+  function drawRepos(ctx, colors, model, x, y, width, height, scale) {
     drawSectionTitle(ctx, colors, 'FEATURED REPOSITORIES', `${model.repos.length} SELECTED`, x, y + 14, width, scale);
-    const top = y + 34;
+    const top = y + CANVAS.sectionTitle;
+    const gridHeight = Math.max(100, height - CANVAS.sectionTitle);
+
     if (!model.repos.length) {
-      drawPanel(ctx, colors, x, top, width, Math.min(120, availableHeight), 16);
+      drawPanel(ctx, colors, x, top, width, gridHeight, 16);
       ctx.fillStyle = colors.muted;
       font(ctx, 16 * scale, 600);
       ctx.fillText('No repositories selected.', x + 18, top + 48);
-      return top + Math.min(120, availableHeight);
+      return;
     }
 
-    const gap = 12;
-    const columns = model.repos.length === 1 ? 1 : 2;
-    const rows = Math.ceil(model.repos.length / columns);
+    const { columns, rows } = repoGrid(model.repos.length);
+    const gap = CANVAS.repoGap;
     const cardWidth = (width - gap * (columns - 1)) / columns;
-    const cardHeight = Math.max(112, Math.min(148, (availableHeight - gap * (rows - 1)) / rows));
+    const cardHeight = (gridHeight - gap * (rows - 1)) / rows;
+    const roomy = rows === 1;
 
     model.repos.forEach((repo, index) => {
       const column = index % columns;
@@ -406,24 +507,51 @@
       const cx = x + column * (cardWidth + gap);
       const cy = top + row * (cardHeight + gap);
       drawPanel(ctx, colors, cx, cy, cardWidth, cardHeight, 16);
-      ctx.fillStyle = colors.text;
-      font(ctx, 18 * scale, 700);
-      ctx.fillText(fitText(ctx, repo.name, cardWidth - 82), cx + 16, cy + 31);
-      ctx.fillStyle = colors.accent;
-      font(ctx, 13 * scale, 700);
-      const stars = `★ ${formatNumber(repo.stars)}`;
-      ctx.fillText(stars, cx + cardWidth - 16 - ctx.measureText(stars).width, cy + 31);
-      ctx.fillStyle = colors.muted;
-      font(ctx, 12 * scale, 500);
-      wrapText(ctx, repo.description || 'No description', cardWidth - 32, 2).forEach((line, lineIndex) => {
-        ctx.fillText(line, cx + 16, cy + 61 + lineIndex * 18);
-      });
-      ctx.fillStyle = colors.muted;
-      font(ctx, 11 * scale, 600);
-      ctx.fillText(fitText(ctx, repo.language || 'Unknown', cardWidth - 32), cx + 16, cy + cardHeight - 18);
-    });
 
-    return top + rows * cardHeight + (rows - 1) * gap;
+      const padding = roomy ? 20 : 16;
+      ctx.fillStyle = colors.text;
+      font(ctx, (roomy ? 21 : 18) * scale, 700);
+      ctx.fillText(fitText(ctx, repo.name, cardWidth - 90), cx + padding, cy + (roomy ? 38 : 31));
+
+      ctx.fillStyle = colors.accent;
+      font(ctx, (roomy ? 14 : 13) * scale, 700);
+      const stars = `★ ${formatNumber(repo.stars)}`;
+      ctx.fillText(stars, cx + cardWidth - padding - ctx.measureText(stars).width, cy + (roomy ? 38 : 31));
+
+      ctx.fillStyle = colors.muted;
+      font(ctx, (roomy ? 14 : 12) * scale, 500);
+      const descriptionTop = cy + (roomy ? 76 : 61);
+      const maxLines = roomy && cardHeight > 210 ? 4 : 2;
+      wrapText(ctx, repo.description || 'No description', cardWidth - padding * 2, maxLines).forEach((line, lineIndex) => {
+        ctx.fillText(line, cx + padding, descriptionTop + lineIndex * (roomy ? 22 : 18));
+      });
+
+      ctx.fillStyle = colors.muted;
+      font(ctx, (roomy ? 13 : 11) * scale, 600);
+      ctx.fillText(fitText(ctx, repo.language || 'Unknown', cardWidth - padding * 2), cx + padding, cy + cardHeight - 20);
+    });
+  }
+
+  function drawFooter(ctx, colors, model) {
+    ctx.strokeStyle = colors.line;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(CANVAS.padding, CANVAS.footerTop);
+    ctx.lineTo(SIZE - CANVAS.padding, CANVAS.footerTop);
+    ctx.stroke();
+
+    ctx.fillStyle = colors.text;
+    font(ctx, 14, 800);
+    ctx.fillText('GIT', CANVAS.padding, CANVAS.footerBaseline);
+    const gitWidth = ctx.measureText('GIT').width;
+    ctx.fillStyle = colors.accent;
+    ctx.fillText('BRAG', CANVAS.padding + gitWidth, CANVAS.footerBaseline);
+
+    ctx.textAlign = 'right';
+    ctx.fillStyle = colors.muted;
+    font(ctx, 13, 500);
+    ctx.fillText(`github.com/${model.user.login}`, SIZE - CANVAS.padding, CANVAS.footerBaseline);
+    ctx.textAlign = 'left';
   }
 
   async function draw(config, model, sequence = null) {
@@ -433,6 +561,7 @@
     canvas.height = SIZE;
     const colors = palette(config);
     const scale = textScale(config);
+
     ctx.clearRect(0, 0, SIZE, SIZE);
     ctx.fillStyle = colors.bg;
     ctx.fillRect(0, 0, SIZE, SIZE);
@@ -441,41 +570,27 @@
     const avatar = config.modules.profile ? await getAvatar(model.user.avatarUrl) : null;
     if (sequence !== null && sequence !== renderSequence) return false;
 
+    const layout = computeLayout(config, model);
     drawBrand(ctx, colors);
-    const x = 60;
-    const width = 960;
-    let y = 72;
-    const gap = 24;
 
-    if (config.modules.profile) y = drawProfile(ctx, colors, model, avatar, x, y, width, scale) + gap;
-    else y = 105;
-
-    if (config.modules.stats) y = drawStats(ctx, colors, model, x, y, width, scale) + gap;
-    if (config.modules.calendar) y = drawCalendar(ctx, colors, model, x, y, width, scale) + gap;
-
+    if (config.modules.profile) {
+      const section = layout.positions.profile;
+      drawProfile(ctx, colors, model, avatar, layout.x, section.y, layout.width, section.height, scale);
+    }
+    if (config.modules.stats) {
+      const section = layout.positions.stats;
+      drawStats(ctx, colors, model, layout.x, section.y, layout.width, section.height, scale);
+    }
+    if (config.modules.calendar) {
+      const section = layout.positions.calendar;
+      drawCalendar(ctx, colors, model, layout.x, section.y, layout.width, section.height, scale);
+    }
     if (config.modules.repos) {
-      const footerTop = 1010;
-      const available = Math.max(120, footerTop - y - 44);
-      drawRepos(ctx, colors, model, x, y, width, available, scale);
+      const section = layout.positions.repos;
+      drawRepos(ctx, colors, model, layout.x, section.y, layout.width, section.height, scale);
     }
 
-    ctx.strokeStyle = colors.line;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(60, 1010);
-    ctx.lineTo(1020, 1010);
-    ctx.stroke();
-    ctx.fillStyle = colors.text;
-    font(ctx, 14, 800);
-    ctx.fillText('GIT', 60, 1043);
-    const gitWidth = ctx.measureText('GIT').width;
-    ctx.fillStyle = colors.accent;
-    ctx.fillText('BRAG', 60 + gitWidth, 1043);
-    ctx.textAlign = 'right';
-    ctx.fillStyle = colors.muted;
-    font(ctx, 13, 500);
-    ctx.fillText(`github.com/${model.user.login}`, 1020, 1043);
-    ctx.textAlign = 'left';
+    drawFooter(ctx, colors, model);
     return true;
   }
 
@@ -490,7 +605,7 @@
     try {
       const rendered = await draw(config, model, sequence);
       if (!rendered || sequence !== renderSequence) return;
-      elements.status.textContent = '1080 × 1080 · preview matches export';
+      elements.status.textContent = '1080 × 1080 · adaptive layout · preview matches export';
     } catch (error) {
       console.error('PNG preview failed.', error);
       elements.status.textContent = 'Could not render the image preview.';
@@ -516,6 +631,7 @@
     const original = elements.download.textContent;
     elements.download.disabled = true;
     elements.download.textContent = 'Rendering…';
+
     try {
       const sequence = ++renderSequence;
       const rendered = await draw(config, model, sequence);
