@@ -38,6 +38,12 @@
     return new Intl.NumberFormat().format(Number(value) || 0);
   }
 
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[character]);
+  }
+
   function selectedRepoIds() {
     return $$('input[data-png-repo]', elements.repoPicker)
       .filter((input) => input.checked)
@@ -79,12 +85,6 @@
       scheduleRender();
     };
     updateRepoPickerState();
-  }
-
-  function escapeHtml(value) {
-    return String(value).replace(/[&<>"']/g, (character) => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    })[character]);
   }
 
   function setValues(config) {
@@ -168,7 +168,6 @@
       bg: '#09090b',
       text: '#f5f5f7',
       muted: '#92929b',
-      subtle: '#686870',
       accent,
       line: '#29292f',
       panel: style === 'outline' ? '#09090b' : style === 'glass' ? '#17171d' : '#121216',
@@ -190,11 +189,11 @@
     ctx.closePath();
   }
 
-  function drawPanel(ctx, p, x, y, width, height, radius = 18) {
+  function drawPanel(ctx, colors, x, y, width, height, radius = 18) {
     roundedRect(ctx, x, y, width, height, radius);
-    ctx.fillStyle = p.panel;
+    ctx.fillStyle = colors.panel;
     ctx.fill();
-    ctx.strokeStyle = p.line;
+    ctx.strokeStyle = colors.line;
     ctx.lineWidth = 2;
     ctx.stroke();
   }
@@ -218,22 +217,19 @@
     while (words.length && lines.length < maxLines) {
       const word = words.shift();
       const candidate = line ? `${line} ${word}` : word;
-      if (ctx.measureText(candidate).width <= maxWidth) {
-        line = candidate;
-      } else if (line) {
+      if (ctx.measureText(candidate).width <= maxWidth) line = candidate;
+      else if (line) {
         lines.push(line);
         line = word;
-      } else {
-        lines.push(fitText(ctx, word, maxWidth));
-      }
+      } else lines.push(fitText(ctx, word, maxWidth));
     }
     if (line && lines.length < maxLines) lines.push(line);
     if (words.length && lines.length) lines[lines.length - 1] = fitText(ctx, `${lines[lines.length - 1]}…`, maxWidth);
     return lines;
   }
 
-  function drawSectionTitle(ctx, p, left, right, x, y, width, scale) {
-    ctx.fillStyle = p.muted;
+  function drawSectionTitle(ctx, colors, left, right, x, y, width, scale) {
+    ctx.fillStyle = colors.muted;
     font(ctx, 13 * scale, 800);
     ctx.textBaseline = 'alphabetic';
     ctx.fillText(left, x, y);
@@ -255,16 +251,18 @@
     return promise;
   }
 
-  function drawAvatar(ctx, image, p, x, y, size, fallbackText) {
+  function drawAvatar(ctx, image, colors, x, y, size, fallbackText) {
     ctx.save();
     ctx.beginPath();
     ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
     ctx.clip();
     if (image) {
       const sourceRatio = image.width / image.height;
-      const targetRatio = 1;
-      let sx = 0, sy = 0, sw = image.width, sh = image.height;
-      if (sourceRatio > targetRatio) {
+      let sx = 0;
+      let sy = 0;
+      let sw = image.width;
+      let sh = image.height;
+      if (sourceRatio > 1) {
         sw = image.height;
         sx = (image.width - sw) / 2;
       } else {
@@ -273,9 +271,9 @@
       }
       ctx.drawImage(image, sx, sy, sw, sh, x, y, size, size);
     } else {
-      ctx.fillStyle = p.accent;
+      ctx.fillStyle = colors.accent;
       ctx.fillRect(x, y, size, size);
-      ctx.fillStyle = p.bg;
+      ctx.fillStyle = colors.bg;
       font(ctx, size * .32, 800);
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -284,70 +282,69 @@
       ctx.textBaseline = 'alphabetic';
     }
     ctx.restore();
-    ctx.strokeStyle = p.accent;
+    ctx.strokeStyle = colors.accent;
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.arc(x + size / 2, y + size / 2, size / 2 - 2, 0, Math.PI * 2);
     ctx.stroke();
   }
 
-  function drawBrand(ctx, p) {
+  function drawBrand(ctx, colors) {
     font(ctx, 18, 800);
     const gitWidth = ctx.measureText('GIT').width;
     const bragWidth = ctx.measureText('BRAG').width;
     const start = 1000 - gitWidth - bragWidth;
-    ctx.textAlign = 'left';
-    ctx.fillStyle = p.text;
+    ctx.fillStyle = colors.text;
     ctx.fillText('GIT', start, 76);
-    ctx.fillStyle = p.accent;
+    ctx.fillStyle = colors.accent;
     ctx.fillText('BRAG', start + gitWidth, 76);
   }
 
-  function drawProfile(ctx, p, model, image, x, y, width, scale) {
+  function drawProfile(ctx, colors, model, image, x, y, width, scale) {
     const avatarSize = 88;
-    drawAvatar(ctx, image, p, x, y, avatarSize, model.user.displayName);
-    ctx.fillStyle = p.text;
+    drawAvatar(ctx, image, colors, x, y, avatarSize, model.user.displayName);
+    ctx.fillStyle = colors.text;
     font(ctx, 40 * scale, 800);
-    const name = fitText(ctx, model.user.displayName, width - avatarSize - 28);
-    ctx.fillText(name, x + avatarSize + 22, y + 42);
-    ctx.fillStyle = p.muted;
+    ctx.fillText(fitText(ctx, model.user.displayName, width - avatarSize - 28), x + avatarSize + 22, y + 42);
+    ctx.fillStyle = colors.muted;
     font(ctx, 18 * scale, 500);
     const handle = `@${model.user.login}${model.user.bio ? ` · ${model.user.bio}` : ''}`;
     ctx.fillText(fitText(ctx, handle, width - avatarSize - 28), x + avatarSize + 22, y + 72);
     return y + avatarSize;
   }
 
-  function drawStats(ctx, p, model, x, y, width, scale) {
-    drawSectionTitle(ctx, p, 'ACTIVITY SUMMARY', model.stats.periodLabel.toUpperCase(), x, y + 14, width, scale);
+  function drawStats(ctx, colors, model, x, y, width, scale) {
+    drawSectionTitle(ctx, colors, 'ACTIVITY SUMMARY', model.stats.periodLabel.toUpperCase(), x, y + 14, width, scale);
     const top = y + 34;
     const gap = 12;
     const cardWidth = (width - gap * 3) / 4;
     const cardHeight = 142;
     model.stats.cards.forEach((card, index) => {
       const cx = x + index * (cardWidth + gap);
-      drawPanel(ctx, p, cx, top, cardWidth, cardHeight, 16);
-      ctx.fillStyle = p.muted;
+      drawPanel(ctx, colors, cx, top, cardWidth, cardHeight, 16);
+      ctx.fillStyle = colors.muted;
       font(ctx, 11 * scale, 800);
       ctx.fillText(card.label, cx + 16, top + 28);
-      ctx.fillStyle = p.text;
+      ctx.fillStyle = colors.text;
       font(ctx, 34 * scale, 800);
       ctx.fillText(fitText(ctx, card.value, cardWidth - 32), cx + 16, top + 78);
-      ctx.fillStyle = p.muted;
+      ctx.fillStyle = colors.muted;
       font(ctx, 10 * scale, 500);
-      const lines = wrapText(ctx, card.note, cardWidth - 32, 2);
-      lines.forEach((line, lineIndex) => ctx.fillText(line, cx + 16, top + 108 + lineIndex * 15));
+      wrapText(ctx, card.note, cardWidth - 32, 2).forEach((line, lineIndex) => {
+        ctx.fillText(line, cx + 16, top + 108 + lineIndex * 15);
+      });
     });
     return top + cardHeight;
   }
 
-  function drawCalendar(ctx, p, model, x, y, width, scale) {
-    drawSectionTitle(ctx, p, 'CONTRIBUTION CALENDAR', model.calendar.label, x, y + 14, width, scale);
+  function drawCalendar(ctx, colors, model, x, y, width, scale) {
+    drawSectionTitle(ctx, colors, 'CONTRIBUTION CALENDAR', model.calendar.label, x, y + 14, width, scale);
     const top = y + 34;
-    const height = 150;
-    drawPanel(ctx, p, x, top, width, height, 16);
+    const height = 170;
+    drawPanel(ctx, colors, x, top, width, height, 16);
 
     if (model.contributionError) {
-      ctx.fillStyle = p.muted;
+      ctx.fillStyle = colors.muted;
       font(ctx, 17 * scale, 600);
       ctx.textAlign = 'center';
       ctx.fillText('Contribution calendar unavailable.', x + width / 2, top + height / 2);
@@ -360,36 +357,38 @@
     let gap = weeks > 180 ? 0 : weeks > 80 ? 1 : weeks > 32 ? 2 : 4;
     const maxCell = weeks <= 6 ? 18 : weeks <= 14 ? 14 : weeks <= 28 ? 11 : weeks <= 60 ? 8 : 5;
     const fit = Math.floor((innerWidth - Math.max(0, weeks - 1) * gap) / weeks);
-    const cell = Math.max(1, Math.min(maxCell, fit > 0 ? fit : 1));
+    const graphAreaHeight = 105;
+    const maxByHeight = Math.max(1, Math.floor((graphAreaHeight - 6 * gap) / 7));
+    const cell = Math.max(1, Math.min(maxCell, maxByHeight, fit > 0 ? fit : 1));
     if (weeks * cell + Math.max(0, weeks - 1) * gap > innerWidth) gap = 0;
     const graphWidth = weeks * cell + Math.max(0, weeks - 1) * gap;
     const graphHeight = 7 * cell + 6 * gap;
     const gx = x + (width - graphWidth) / 2;
-    const gy = top + 24 + Math.max(0, (88 - graphHeight) / 2);
+    const gy = top + 18 + Math.max(0, (graphAreaHeight - graphHeight) / 2);
 
     model.calendar.days.forEach((day, index) => {
       const column = Math.floor(index / 7);
       const row = index % 7;
       const level = Math.min(4, Math.max(0, day.level));
-      ctx.fillStyle = level ? p.accent : p.line;
+      ctx.fillStyle = level ? colors.accent : colors.line;
       ctx.globalAlpha = level ? [0, .4, .6, .8, 1][level] : 1;
       roundedRect(ctx, gx + column * (cell + gap), gy + row * (cell + gap), cell, cell, Math.min(2, cell / 3));
       ctx.fill();
       ctx.globalAlpha = 1;
     });
 
-    ctx.fillStyle = p.muted;
+    ctx.fillStyle = colors.muted;
     font(ctx, 11 * scale, 500);
     ctx.fillText(`${formatNumber(model.calendar.total)} contributions in this calendar range`, x + 18, top + height - 16);
     return top + height;
   }
 
-  function drawRepos(ctx, p, model, x, y, width, availableHeight, scale) {
-    drawSectionTitle(ctx, p, 'FEATURED REPOSITORIES', `${model.repos.length} SELECTED`, x, y + 14, width, scale);
+  function drawRepos(ctx, colors, model, x, y, width, availableHeight, scale) {
+    drawSectionTitle(ctx, colors, 'FEATURED REPOSITORIES', `${model.repos.length} SELECTED`, x, y + 14, width, scale);
     const top = y + 34;
     if (!model.repos.length) {
-      drawPanel(ctx, p, x, top, width, Math.min(120, availableHeight), 16);
-      ctx.fillStyle = p.muted;
+      drawPanel(ctx, colors, x, top, width, Math.min(120, availableHeight), 16);
+      ctx.fillStyle = colors.muted;
       font(ctx, 16 * scale, 600);
       ctx.fillText('No repositories selected.', x + 18, top + 48);
       return top + Math.min(120, availableHeight);
@@ -406,19 +405,20 @@
       const row = Math.floor(index / columns);
       const cx = x + column * (cardWidth + gap);
       const cy = top + row * (cardHeight + gap);
-      drawPanel(ctx, p, cx, cy, cardWidth, cardHeight, 16);
-      ctx.fillStyle = p.text;
+      drawPanel(ctx, colors, cx, cy, cardWidth, cardHeight, 16);
+      ctx.fillStyle = colors.text;
       font(ctx, 18 * scale, 700);
       ctx.fillText(fitText(ctx, repo.name, cardWidth - 82), cx + 16, cy + 31);
-      ctx.fillStyle = p.accent;
+      ctx.fillStyle = colors.accent;
       font(ctx, 13 * scale, 700);
       const stars = `★ ${formatNumber(repo.stars)}`;
       ctx.fillText(stars, cx + cardWidth - 16 - ctx.measureText(stars).width, cy + 31);
-      ctx.fillStyle = p.muted;
+      ctx.fillStyle = colors.muted;
       font(ctx, 12 * scale, 500);
-      const lines = wrapText(ctx, repo.description || 'No description', cardWidth - 32, 2);
-      lines.forEach((line, lineIndex) => ctx.fillText(line, cx + 16, cy + 61 + lineIndex * 18));
-      ctx.fillStyle = p.muted;
+      wrapText(ctx, repo.description || 'No description', cardWidth - 32, 2).forEach((line, lineIndex) => {
+        ctx.fillText(line, cx + 16, cy + 61 + lineIndex * 18);
+      });
+      ctx.fillStyle = colors.muted;
       font(ctx, 11 * scale, 600);
       ctx.fillText(fitText(ctx, repo.language || 'Unknown', cardWidth - 32), cx + 16, cy + cardHeight - 18);
     });
@@ -431,51 +431,48 @@
     const ctx = canvas.getContext('2d');
     canvas.width = SIZE;
     canvas.height = SIZE;
-    const p = palette(config);
+    const colors = palette(config);
     const scale = textScale(config);
     ctx.clearRect(0, 0, SIZE, SIZE);
-    ctx.fillStyle = p.bg;
+    ctx.fillStyle = colors.bg;
     ctx.fillRect(0, 0, SIZE, SIZE);
 
     if (document.fonts?.ready) await document.fonts.ready;
     const avatar = config.modules.profile ? await getAvatar(model.user.avatarUrl) : null;
     if (sequence !== null && sequence !== renderSequence) return false;
 
-    drawBrand(ctx, p);
+    drawBrand(ctx, colors);
     const x = 60;
     const width = 960;
     let y = 72;
     const gap = 24;
 
-    if (config.modules.profile) {
-      y = drawProfile(ctx, p, model, avatar, x, y, width, scale) + gap;
-    } else {
-      y = 105;
-    }
+    if (config.modules.profile) y = drawProfile(ctx, colors, model, avatar, x, y, width, scale) + gap;
+    else y = 105;
 
-    if (config.modules.stats) y = drawStats(ctx, p, model, x, y, width, scale) + gap;
-    if (config.modules.calendar) y = drawCalendar(ctx, p, model, x, y, width, scale) + gap;
+    if (config.modules.stats) y = drawStats(ctx, colors, model, x, y, width, scale) + gap;
+    if (config.modules.calendar) y = drawCalendar(ctx, colors, model, x, y, width, scale) + gap;
 
     if (config.modules.repos) {
       const footerTop = 1010;
       const available = Math.max(120, footerTop - y - 44);
-      drawRepos(ctx, p, model, x, y, width, available, scale);
+      drawRepos(ctx, colors, model, x, y, width, available, scale);
     }
 
-    ctx.strokeStyle = p.line;
+    ctx.strokeStyle = colors.line;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(60, 1010);
     ctx.lineTo(1020, 1010);
     ctx.stroke();
-    ctx.fillStyle = p.text;
+    ctx.fillStyle = colors.text;
     font(ctx, 14, 800);
     ctx.fillText('GIT', 60, 1043);
     const gitWidth = ctx.measureText('GIT').width;
-    ctx.fillStyle = p.accent;
+    ctx.fillStyle = colors.accent;
     ctx.fillText('BRAG', 60 + gitWidth, 1043);
     ctx.textAlign = 'right';
-    ctx.fillStyle = p.muted;
+    ctx.fillStyle = colors.muted;
     font(ctx, 13, 500);
     ctx.fillText(`github.com/${model.user.login}`, 1020, 1043);
     ctx.textAlign = 'left';
@@ -552,9 +549,14 @@
     scheduleRender();
   });
   [
-    elements.profileToggle, elements.statsToggle, elements.calendarToggle,
-    elements.statsPeriod, elements.calendarRange, elements.textSize,
-    elements.accent, elements.cardStyle,
+    elements.profileToggle,
+    elements.statsToggle,
+    elements.calendarToggle,
+    elements.statsPeriod,
+    elements.calendarRange,
+    elements.textSize,
+    elements.accent,
+    elements.cardStyle,
   ].forEach((element) => element?.addEventListener('change', scheduleRender));
 
   elements.modal?.addEventListener('click', (event) => {
