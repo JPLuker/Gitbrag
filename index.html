@@ -3,35 +3,331 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Gitbrag — a clean snapshot of public GitHub profile activity.">
+  <meta name="description" content="Gitbrag turns public GitHub activity into focused stats, shareable profiles, social images, embeds, and in-GitHub cards.">
   <meta name="theme-color" content="#09090b">
   <meta name="color-scheme" content="dark">
-  <title>Gitbrag — GitHub Stats</title>
+  <title>Gitbrag — Your GitHub, Your Stats</title>
   <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=0.9.4.1">
-  <link rel="stylesheet" href="share-page.css?v=0.9.4.1">
-  <link rel="stylesheet" href="png.css?v=0.9.4.1">
+  <link rel="stylesheet" href="style.css?v=0.9.5">
+  <link rel="stylesheet" href="share-page.css?v=0.9.5">
+  <link rel="stylesheet" href="png.css?v=0.9.5">
+  <link rel="stylesheet" href="landing.css?v=0.9.5">
 </head>
 <body>
   <main class="app">
-    <div class="app-version" aria-label="Gitbrag version 0.9.4.1">v0.9.4.1</div>
+    <div class="app-version" aria-label="Gitbrag version 0.9.5">v0.9.5</div>
 
-    <section id="searchView" class="hero" aria-labelledby="searchTitle">
-      <div class="brand">GIT<span>BRAG</span></div>
-      <p class="eyebrow">YOUR GITHUB, YOUR STATS</p>
-      <h1 id="searchTitle">See what you’ve been<br><span>building.</span></h1>
-      <p class="subhead">A focused snapshot of public GitHub activity.</p>
-      <form id="searchForm" class="search">
-        <label class="input-wrap" for="username">
-          <span aria-hidden="true">@</span>
-          <input id="username" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="username or github.com/username" aria-label="GitHub username or GitHub profile URL" required>
-        </label>
-        <button type="submit">Generate stats</button>
-      </form>
-      <p class="hint">Enter a username or paste a GitHub profile link.</p>
+    <section id="searchView" class="landing" aria-labelledby="searchTitle">
+      <div class="landing-shell">
+        <nav class="landing-nav" aria-label="Gitbrag navigation">
+          <a class="landing-nav-brand" href="https://jpluker.github.io/Gitbrag/" aria-label="Gitbrag home">GIT<span>BRAG</span></a>
+          <div class="landing-nav-actions">
+            <button class="landing-nav-button" type="button" data-scroll-target="landingFeatures">Features</button>
+            <button class="landing-nav-button" type="button" data-scroll-target="landingTrust">Data & privacy</button>
+            <a class="landing-nav-link" href="https://github.com/JPLuker/Gitbrag" target="_blank" rel="noopener noreferrer">GitHub source ↗</a>
+            <button class="landing-nav-button primary" type="button" data-focus-gitbrag-search>Generate stats</button>
+          </div>
+        </nav>
+
+        <div class="landing-hero">
+          <div class="landing-hero-copy">
+            <p class="landing-kicker">PUBLIC GITHUB ACTIVITY, MADE SHAREABLE</p>
+            <h1 id="searchTitle">Your code.<br><span>Your stats.</span><br>Your Gitbrag.</h1>
+            <p>Turn a public GitHub profile into a focused view of contribution activity, streaks, repositories, and shareable proof of what you have been building.</p>
+
+            <form id="searchForm" class="search landing-search">
+              <label class="input-wrap" for="username">
+                <span aria-hidden="true">@</span>
+                <input id="username" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="username or github.com/username" aria-label="GitHub username or GitHub profile URL" required>
+              </label>
+              <button type="submit">Generate Gitbrag</button>
+            </form>
+
+            <p class="landing-trustline" aria-label="Gitbrag data notes">
+              <span>No Gitbrag account</span>
+              <span>No GitHub token</span>
+              <span>Public data only</span>
+            </p>
+          </div>
+
+          <div class="landing-product-stage" aria-label="Illustrative Gitbrag dashboard preview">
+            <div class="landing-demo">
+              <div class="landing-demo-top">
+                <div class="landing-demo-profile">
+                  <div class="landing-demo-avatar" aria-hidden="true">GH</div>
+                  <div><strong>Example Developer</strong><small>@example</small></div>
+                </div>
+                <div class="landing-demo-brand">GIT<span>BRAG</span></div>
+              </div>
+
+              <div class="landing-demo-label"><span>Activity summary</span><span>Example · last 30 days</span></div>
+              <div class="landing-demo-stats">
+                <article class="landing-demo-stat"><span>Contributions</span><b>348</b><small>in this period</small></article>
+                <article class="landing-demo-stat"><span>Active days</span><b>15</b><small>with activity</small></article>
+                <article class="landing-demo-stat"><span>Best day</span><b>155</b><small>contributions</small></article>
+                <article class="landing-demo-stat"><span>Longest streak</span><b>10</b><small>consecutive days</small></article>
+              </div>
+
+              <div class="landing-demo-label"><span>Contribution calendar</span><span>Last month</span></div>
+              <div class="landing-demo-calendar"><div class="landing-demo-heatmap" aria-hidden="true"></div></div>
+
+              <div class="landing-demo-label"><span>Featured repositories</span><span>2 selected</span></div>
+              <div class="landing-demo-repos">
+                <article class="landing-demo-repo">
+                  <div class="landing-demo-repo-top"><strong>project-one</strong><span>★ 12</span></div>
+                  <p>A focused example of a recent public repository.</p>
+                  <small>JavaScript</small>
+                </article>
+                <article class="landing-demo-repo">
+                  <div class="landing-demo-repo-top"><strong>project-two</strong><span>★ 8</span></div>
+                  <p>Another project surfaced directly from the profile.</p>
+                  <small>Python</small>
+                </article>
+              </div>
+              <p class="landing-demo-note">Illustrative product preview</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="landing-proof-wrap" aria-label="Gitbrag product facts">
+        <div class="landing-proof">
+          <article><b>6</b><span>activity ranges from 24H to all time</span></article>
+          <article><b>1080×1080</b><span>dedicated social PNG output</span></article>
+          <article><b>4</b><span>featured repositories in social layouts</span></article>
+          <article><b>0</b><span>Gitbrag accounts required</span></article>
+        </div>
+      </div>
+
+      <div id="landingFeatures">
+        <section class="landing-section">
+          <div class="landing-shell landing-feature">
+            <div class="landing-feature-copy">
+              <p class="landing-section-kicker">SEE THE WORK AT A GLANCE</p>
+              <h2>A profile built around <span>activity.</span></h2>
+              <p>Gitbrag pulls the useful parts of a public GitHub profile into one focused dashboard: contribution volume, active days, best days, streaks, account context, and recent repositories.</p>
+              <div class="landing-feature-points">
+                <div>Switch instantly between 24H, 7D, 1M, 6M, 1Y, and all-time views.</div>
+                <div>Keep contribution-service failures visibly unavailable instead of turning them into fake zeroes.</div>
+                <div>Rank original public repositories without forks distorting the view.</div>
+              </div>
+            </div>
+            <div class="landing-feature-visual">
+              <div class="landing-feature-window">
+                <div class="landing-feature-window-head"><span>ACTIVITY SUMMARY</span><span>LAST 30 DAYS</span></div>
+                <div class="landing-period-pills"><span>24H</span><span>7D</span><span class="active">1M</span><span>6M</span><span>1Y</span><span>ALL TIME</span></div>
+                <div class="landing-feature-stats">
+                  <article class="landing-feature-stat"><small>Contributions</small><b>348</b></article>
+                  <article class="landing-feature-stat"><small>Active days</small><b>15</b></article>
+                  <article class="landing-feature-stat"><small>Best day</small><b>155</b></article>
+                  <article class="landing-feature-stat"><small>Longest streak</small><b>10</b></article>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="landing-section">
+          <div class="landing-shell landing-feature is-reversed">
+            <div class="landing-feature-copy">
+              <p class="landing-section-kicker">SHARE IT YOUR WAY</p>
+              <h2>One profile. <span>Your configuration.</span></h2>
+              <p>Create a compact share link that remembers exactly which modules, period, repositories, accent, text size, and card style you chose.</p>
+              <div class="landing-feature-points">
+                <div>Responsive HTML instead of a screenshot pretending to be a webpage.</div>
+                <div>Compact self-contained share tokens with legacy link compatibility.</div>
+                <div>Turn profile, stats, calendar, and repository sections on or off independently.</div>
+              </div>
+            </div>
+            <div class="landing-feature-visual">
+              <div class="landing-share-builder">
+                <div class="landing-feature-window-head"><span>SHARE LINK</span><span>CUSTOMIZE</span></div>
+                <div class="landing-share-builder-grid">
+                  <div class="landing-builder-card">
+                    <b>Page sections</b>
+                    <div class="landing-setting-row"><span>Profile</span><i class="landing-toggle on"></i></div>
+                    <div class="landing-setting-row"><span>Stats</span><i class="landing-toggle on"></i></div>
+                    <div class="landing-setting-row"><span>Calendar</span><i class="landing-toggle on"></i></div>
+                    <div class="landing-setting-row"><span>Repositories</span><i class="landing-toggle on"></i></div>
+                  </div>
+                  <div class="landing-builder-card">
+                    <b>Page settings</b>
+                    <div class="landing-setting-row"><span>Stats period</span><span class="landing-select-chip">1 month</span></div>
+                    <div class="landing-setting-row"><span>Calendar</span><span class="landing-select-chip">6 months</span></div>
+                    <div class="landing-setting-row"><span>Accent</span><span class="landing-select-chip">Profile</span></div>
+                    <div class="landing-setting-row"><span>Card style</span><span class="landing-select-chip">Solid</span></div>
+                  </div>
+                </div>
+                <div class="landing-url-chip">jpluker.github.io/Gitbrag/#/example?s=compact-share-config</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="landing-section">
+          <div class="landing-shell landing-feature">
+            <div class="landing-feature-copy">
+              <p class="landing-section-kicker">TURN IT INTO AN IMAGE</p>
+              <h2>Built for the <span>share button.</span></h2>
+              <p>Generate a dedicated 1080 × 1080 PNG with a fixed Canvas renderer designed for social sharing—not a screenshot of the webpage.</p>
+              <div class="landing-feature-points">
+                <div>Preview the exact Canvas that gets exported.</div>
+                <div>Choose modules, calendar range, repositories, accent, text size, and card style.</div>
+                <div>Adaptive calendar and repository layouts use the full square instead of leaving arbitrary dead space.</div>
+              </div>
+            </div>
+            <div class="landing-feature-visual">
+              <div class="landing-png-builder">
+                <div class="landing-png-settings">
+                  <div class="landing-builder-card">
+                    <b>Image settings</b>
+                    <div class="landing-setting-row"><span>Profile</span><i class="landing-toggle on"></i></div>
+                    <div class="landing-setting-row"><span>Stats</span><i class="landing-toggle on"></i></div>
+                    <div class="landing-setting-row"><span>Calendar</span><i class="landing-toggle on"></i></div>
+                    <div class="landing-setting-row"><span>Repositories</span><i class="landing-toggle on"></i></div>
+                    <div class="landing-setting-row"><span>Accent</span><span class="landing-select-chip">Blue</span></div>
+                  </div>
+                </div>
+                <div class="landing-png-square" aria-label="Illustrative square PNG preview">
+                  <div class="landing-png-square-top">
+                    <div class="landing-png-profile"><i class="landing-png-avatar"></i><div><strong>Example Developer</strong><small>@example</small></div></div>
+                    <div class="landing-png-brand">GIT<span>BRAG</span></div>
+                  </div>
+                  <div class="landing-png-mini-stats"><i></i><i></i><i></i><i></i></div>
+                  <div class="landing-png-mini-map"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                  <div class="landing-png-mini-repos"><i></i><i></i><i></i><i></i></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="landing-section">
+          <div class="landing-shell landing-feature is-reversed">
+            <div class="landing-feature-copy">
+              <p class="landing-section-kicker">PUT IT ON YOUR SITE</p>
+              <h2>Your Gitbrag, <span>embedded.</span></h2>
+              <p>Use the same share configuration to create a responsive website embed. Gitbrag strips away normal app chrome and can resize the iframe automatically as its content changes.</p>
+              <div class="landing-feature-points">
+                <div>Works as a normal iframe without requiring a framework.</div>
+                <div>Optional auto-height helper validates the iframe source and expected origin.</div>
+                <div>Responsive shared-page rendering stays independent from PNG generation.</div>
+              </div>
+            </div>
+            <div class="landing-feature-visual">
+              <div class="landing-embed-window">
+                <div class="landing-embed-head"><span>WEBSITE EMBED</span><span>RESPONSIVE</span></div>
+                <pre class="landing-embed-code">&lt;iframe
+  src="https://jpluker.github.io/Gitbrag/#/example?s=...&amp;embed=1"
+  width="100%"
+  loading="lazy"&gt;
+&lt;/iframe&gt;</pre>
+                <div class="landing-embed-preview">
+                  <div class="landing-embed-preview-top"><strong>Example Developer</strong><span>GITBRAG</span></div>
+                  <div class="landing-embed-preview-grid"><i></i><i></i><i></i></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="landing-section">
+          <div class="landing-shell landing-feature">
+            <div class="landing-feature-copy">
+              <p class="landing-section-kicker">BRING GITBRAG INTO GITHUB</p>
+              <h2>Stats where you are <span>already looking.</span></h2>
+              <p>The optional Chrome extension adds a compact Gitbrag card directly to public GitHub profile pages with quick contribution-period switching and profile context.</p>
+              <div class="landing-feature-points">
+                <div>Manifest V3 extension with local short-lived caching.</div>
+                <div>7D, 1M, 6M, and 1Y contribution summaries without leaving GitHub.</div>
+                <div>No GitHub login, token, private-repository, cookie, tabs, or browsing-history permissions.</div>
+              </div>
+            </div>
+            <div class="landing-feature-visual">
+              <div class="landing-extension-window">
+                <div class="landing-extension-head"><span>github.com/example</span><span>Gitbrag extension preview</span></div>
+                <div class="landing-github-profile">
+                  <div class="landing-github-sidebar">
+                    <div class="landing-github-line"></div><div class="landing-github-line short"></div><div class="landing-github-line"></div>
+                    <div class="landing-extension-card">
+                      <div class="landing-extension-card-head"><strong>GIT<span>BRAG</span></strong><small>Open ↗</small></div>
+                      <div class="landing-extension-tabs"><i></i><i></i><i></i><i></i></div>
+                      <div class="landing-extension-stats"><i></i><i></i><i></i><i></i></div>
+                    </div>
+                  </div>
+                  <div class="landing-github-main">
+                    <div class="landing-github-box"></div><div class="landing-github-box"></div><div class="landing-github-box"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section id="landingTrust" class="landing-trust-section">
+        <div class="landing-shell landing-trust-grid">
+          <div class="landing-trust-copy">
+            <p class="landing-section-kicker">PUBLIC DATA, CLEAR BOUNDARIES</p>
+            <h2>Useful stats without another <span>account.</span></h2>
+            <p>Gitbrag is built around public GitHub information. The main web app is static, and unavailable contribution data is shown as unavailable instead of being silently replaced with misleading values.</p>
+          </div>
+          <div class="landing-trust-list">
+            <article class="landing-trust-item"><div class="landing-trust-icon">0</div><div><strong>No Gitbrag account required</strong><p>Enter a public GitHub username or profile URL and generate the dashboard directly.</p></div></article>
+            <article class="landing-trust-item"><div class="landing-trust-icon">↗</div><div><strong>Public GitHub data</strong><p>Profile and repository information comes from GitHub's public API; contribution history follows the public contribution graph.</p></div></article>
+            <article class="landing-trust-item"><div class="landing-trust-icon">{ }</div><div><strong>Static web architecture</strong><p>The main Gitbrag website runs on GitHub Pages without a Gitbrag database or account backend.</p></div></article>
+            <article class="landing-trust-item"><div class="landing-trust-icon">—</div><div><strong>Failure stays visible</strong><p>If contribution history cannot be loaded, Gitbrag marks those stats unavailable while continuing to show profile data.</p></div></article>
+          </div>
+        </div>
+      </section>
+
+      <div class="landing-shell landing-final-wrap">
+        <section class="landing-final" aria-labelledby="landingFinalTitle">
+          <p class="landing-section-kicker">YOUR PROFILE IS ALREADY PUBLIC</p>
+          <h2 id="landingFinalTitle">Turn it into something worth sharing.</h2>
+          <p>Paste a GitHub username or profile URL. No signup flow, no onboarding maze.</p>
+          <form id="finalSearchForm" class="search landing-search">
+            <label class="input-wrap" for="finalUsername">
+              <span aria-hidden="true">@</span>
+              <input id="finalUsername" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="username or github.com/username" aria-label="GitHub username or GitHub profile URL" required>
+            </label>
+            <button type="submit">Generate Gitbrag</button>
+          </form>
+          <small>Uses public GitHub data. No Gitbrag account required.</small>
+        </section>
+      </div>
+
+      <div class="landing-footer-wrap">
+        <footer class="landing-shell landing-footer">
+          <div>
+            <a class="landing-footer-brand" href="https://jpluker.github.io/Gitbrag/">GIT<span>BRAG</span></a>
+            <p class="landing-footer-copy">A focused snapshot of public GitHub activity with sharing tools built in.</p>
+          </div>
+          <div class="landing-footer-column">
+            <strong>Gitbrag</strong>
+            <button type="button" data-focus-gitbrag-search>Generate stats</button>
+            <button type="button" data-scroll-target="landingFeatures">Features</button>
+            <button type="button" data-scroll-target="landingTrust">Data & privacy</button>
+          </div>
+          <div class="landing-footer-column">
+            <strong>Features</strong>
+            <span>Share links</span>
+            <span>Social PNG</span>
+            <span>Website embed</span>
+            <span>Chrome extension</span>
+          </div>
+          <div class="landing-footer-column">
+            <strong>Project</strong>
+            <a href="https://github.com/JPLuker/Gitbrag" target="_blank" rel="noopener noreferrer">GitHub source ↗</a>
+            <a href="https://github.com/JPLuker/Gitbrag/blob/main/README.md" target="_blank" rel="noopener noreferrer">Documentation ↗</a>
+            <a href="https://github.com/JPLuker/Gitbrag/blob/main/extension/PRIVACY.md" target="_blank" rel="noopener noreferrer">Extension privacy ↗</a>
+          </div>
+        </footer>
+        <div class="landing-shell landing-footer-bottom"><span>Gitbrag v0.9.5 · built as a static GitHub Pages app.</span><a href="https://github.com/JPLuker/Gitbrag" target="_blank" rel="noopener noreferrer">Open source on GitHub ↗</a></div>
+      </div>
     </section>
 
     <section id="loadingView" class="loading hidden" role="status" aria-live="polite">
@@ -218,10 +514,11 @@
     </div>
   </dialog>
 
-  <script src="share-config.js?v=0.9.4.1"></script>
-  <script src="share-page.js?v=0.9.4.1"></script>
-  <script src="app.js?v=0.9.4.1"></script>
-  <script src="embed.js?v=0.9.4.1"></script>
-  <script src="png.js?v=0.9.4.1"></script>
+  <script src="share-config.js?v=0.9.5"></script>
+  <script src="share-page.js?v=0.9.5"></script>
+  <script src="app.js?v=0.9.5"></script>
+  <script src="landing.js?v=0.9.5"></script>
+  <script src="embed.js?v=0.9.5"></script>
+  <script src="png.js?v=0.9.5"></script>
 </body>
 </html>
