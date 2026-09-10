@@ -2,7 +2,7 @@
 
 Gitbrag is a lightweight GitHub Pages app that turns public GitHub activity into a focused stats dashboard with share links, social PNGs, website embeds, and an optional Chrome extension.
 
-**v0.9.5** adds the full marketing landing page. The homepage now presents Gitbrag as a finished product rather than a single search box, while keeping username/profile-URL search as the primary action.
+**v0.9.6** simplifies the landing page to the product essentials: the Gitbrag hero/search experience plus a compact project/creator footer. The inaccurate marketing mockups and feature-tour sections from v0.9.5 are removed; the actual dashboard, share links, PNG generator, embeds, and extension are unchanged.
 
 ## Current features
 
@@ -18,32 +18,26 @@ Gitbrag is a lightweight GitHub Pages app that turns public GitHub activity into
 - Use the optional Manifest V3 Chrome extension to surface Gitbrag stats directly on public GitHub profile pages.
 - Run the main website entirely as a static GitHub Pages app with no Gitbrag account backend or database.
 
-## v0.9.5 landing page
+## v0.9.6 landing page
 
-The homepage now includes:
+The homepage is deliberately small and product-first:
 
-- A full-width dark marketing layout with large editorial hero typography.
-- A working GitHub username/profile-URL field in the hero.
-- An illustrative Gitbrag dashboard composition that makes the product visible immediately.
-- Factual product proof blocks: six activity ranges, 1080 × 1080 PNG output, up to four featured social repositories, and zero Gitbrag accounts required.
-- Dedicated sections for the dashboard, custom share links, PNG generation, website embeds, and Chrome extension.
-- A public-data/static-architecture trust section.
-- A second working username/profile-URL CTA near the bottom of the page.
-- A structured product/project footer.
-- Responsive desktop, tablet, and mobile layouts.
+- A centered Gitbrag hero with the primary GitHub username/profile-URL search.
+- A short explanation of what Gitbrag does.
+- Clear notes that no Gitbrag account or GitHub token is required and that the app uses public data.
+- A restrained footer with project documentation plus creator links.
+- Responsive desktop and mobile layouts.
 
-The page is influenced by the pacing of the supplied stats.fm reference screenshots—dark full-width sections, prominent product visuals, alternating feature storytelling, quantitative proof, and a strong final CTA—while retaining Gitbrag's own blue/black visual system and original copy.
-
-The marketing page intentionally does **not** invent user counts, generated-profile counts, or activity totals. Numeric marketing claims describe actual product capabilities.
+The v0.9.5 marketing mockups, product-stat strip, secondary CTA, and long feature-tour sections were removed. The real dashboard is now responsible for demonstrating Gitbrag after a profile is opened.
 
 ## Architecture
 
 Gitbrag intentionally keeps its rendering paths separated:
 
-- `index.html` — application structure, marketing homepage, profile views, and modal shells.
+- `index.html` — application structure, simplified landing page, profile views, and modal shells.
 - `style.css` — core application/profile design system.
-- `landing.css` — v0.9.5 marketing homepage presentation only.
-- `landing.js` — lightweight landing-page interactions and the secondary CTA bridge into the existing search flow.
+- `landing.css` — simplified landing-page presentation only.
+- `landing.js` — lightweight landing-page visibility state used to hide the floating version badge while the landing page is active.
 - `share-config.js` — versioned configuration schema, normalization, validation, compact encoding, and legacy decoding.
 - `share-page.js` — responsive shared-webpage renderer and builder UI.
 - `embed.js` — embed URL/code generation and iframe auto-height behavior.
@@ -188,4 +182,5 @@ Then open `http://localhost:8000`.
 - **0.9.3** — extension pre-test hardening and store/privacy preparation
 - **0.9.4 / 0.9.4.1** — PNG branding and rounded-corner cleanup
 - **0.9.5** — full marketing landing page
+- **0.9.6** — simplified launch landing page and creator/project footer
 - **1.0** — final regression, documentation freeze, and stable release
