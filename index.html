@@ -23,26 +23,60 @@
     <section id="searchView" class="landing-simple" aria-labelledby="searchTitle">
       <div class="landing-simple-shell">
         <div class="landing-simple-hero">
-          <div class="landing-simple-brand">GIT<span>BRAG</span></div>
-          <p class="landing-simple-kicker">YOUR GITHUB, YOUR STATS</p>
-          <h1 id="searchTitle">See what you’ve been<br><span>building.</span></h1>
-          <p class="landing-simple-copy">A focused snapshot of public GitHub activity, ready to view and share.</p>
+          <div class="landing-simple-hero-copy">
+            <div class="landing-simple-brand">GIT<span>BRAG</span></div>
+            <p class="landing-simple-kicker">YOUR GITHUB, YOUR STATS</p>
+            <h1 id="searchTitle">See what you've been<br><span>building.</span></h1>
+            <p class="landing-simple-copy">A focused snapshot of public GitHub activity, ready to view and share.</p>
 
-          <form id="searchForm" class="search landing-simple-search">
-            <label class="input-wrap" for="username">
-              <span aria-hidden="true">@</span>
-              <input id="username" autocomplete="off" autocapitalize="none" spellcheck="false"
-                     placeholder="username or github.com/username"
-                     aria-label="GitHub username or GitHub profile URL" required>
-            </label>
-            <button type="submit">Generate Gitbrag</button>
-          </form>
+            <form id="searchForm" class="search landing-simple-search">
+              <label class="input-wrap" for="username">
+                <span aria-hidden="true">@</span>
+                <input id="username" autocomplete="off" autocapitalize="none" spellcheck="false"
+                       placeholder="username or github.com/username"
+                       aria-label="GitHub username or GitHub profile URL" required>
+              </label>
+              <button type="submit">Generate Gitbrag</button>
+            </form>
+          </div>
 
-          <p class="landing-simple-trust">
-            <span>No Gitbrag account</span>
-            <span>No GitHub token</span>
-            <span>Public data only</span>
-          </p>
+          <div class="landing-product-stage" aria-label="Illustrative Gitbrag dashboard preview">
+            <div class="landing-demo">
+              <div class="landing-demo-top">
+                <div class="landing-demo-profile">
+                  <div class="landing-demo-avatar" aria-hidden="true">GH</div>
+                  <div><strong>Example Developer</strong><small>@example</small></div>
+                </div>
+                <div class="landing-demo-brand">GIT<span>BRAG</span></div>
+              </div>
+
+              <div class="landing-demo-label"><span>Activity summary</span><span>Example · last 30 days</span></div>
+              <div class="landing-demo-stats">
+                <article class="landing-demo-stat"><span>Contributions</span><b>348</b><small>in this period</small></article>
+                <article class="landing-demo-stat"><span>Active days</span><b>15</b><small>with activity</small></article>
+                <article class="landing-demo-stat"><span>Best day</span><b>155</b><small>contributions</small></article>
+                <article class="landing-demo-stat"><span>Longest streak</span><b>10</b><small>consecutive days</small></article>
+              </div>
+
+              <div class="landing-demo-label"><span>Contribution calendar</span><span>Last month</span></div>
+              <div class="landing-demo-calendar"><div class="landing-demo-heatmap" aria-hidden="true"></div></div>
+
+              <div class="landing-demo-label"><span>Featured repositories</span><span>2 selected</span></div>
+              <div class="landing-demo-repos">
+                <article class="landing-demo-repo">
+                  <div class="landing-demo-repo-top"><strong>project-one</strong><span>★ 12</span></div>
+                  <p>A focused example of a recent public repository.</p>
+                  <small>JavaScript</small>
+                </article>
+                <article class="landing-demo-repo">
+                  <div class="landing-demo-repo-top"><strong>project-two</strong><span>★ 8</span></div>
+                  <p>Another project surfaced directly from the profile.</p>
+                  <small>Python</small>
+                </article>
+              </div>
+              <p class="landing-demo-note">Illustrative product preview</p>
+            </div>
+          </div>
         </div>
 
         <footer class="landing-simple-footer">
