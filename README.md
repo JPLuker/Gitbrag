@@ -1,115 +1,87 @@
 # Gitbrag
 
-Gitbrag is a lightweight GitHub Pages dashboard for exploring a public GitHub profile, recent contribution activity, customized shareable profile pages, website embeds, exportable social images, and an optional Chrome extension that surfaces Gitbrag stats directly on GitHub profiles.
+Gitbrag is a lightweight GitHub Pages app that turns public GitHub activity into a focused stats dashboard with share links, social PNGs, website embeds, and an optional Chrome extension.
 
-**v0.9.4.1** fixes the PNG rounded-rectangle path so calendar tiles and card panels render all four corners correctly. It keeps the single enlarged top-right Gitbrag wordmark introduced in v0.9.4.
+**v0.9.5** adds the full marketing landing page. The homepage now presents Gitbrag as a finished product rather than a single search box, while keeping username/profile-URL search as the primary action.
 
 ## Current features
 
 - Search by GitHub username or paste a `github.com/username` profile URL.
 - Open a profile directly with a hash route such as `#/octocat`.
 - Browse contribution activity for 24H, 7D, 1M, 6M, 1Y, and all available history.
-- View contributions, active days, best day, and longest streak for the selected period.
-- View public repository count, stars across loaded original repositories, followers, following, and account age.
-- View a date-safe contribution heatmap for the last year.
-- View up to six top original public repositories, ranked by stars.
-- Exclude forked repositories from repository rankings and loaded-repository star totals.
-- Derive an accent color from the profile avatar when browser canvas access permits it.
-- Build a customized share link with a versioned configuration stored in the URL fragment.
-- Open shared links as responsive HTML pages with independently configurable sections, stats period, calendar range, selected repositories, text size, accent, and card style.
-- Generate configurable website embed code from **Share → Embed** using the same share settings.
-- Resize embedded Gitbrag profiles automatically with `postMessage` when the host page includes the generated helper script.
-- Generate a dedicated 1080 × 1080 PNG using a canvas renderer that does not depend on the shared-page renderer.
-- Customize PNG modules, stats period, calendar range, up to four repositories, text size, accent, and card style.
-- Preview the exact canvas that is exported as the PNG.
-- Reflow PNG contribution days into a dense chronological square-cell grid that uses the available calendar panel.
-- Scale repository cards based on whether 1, 2, 3, or 4 repositories are selected.
-- Navigate the Share menu by keyboard with Arrow keys, Home, End, Enter/Space, and Escape.
-- Restore focus after closing share/image dialogs and close transient share UI during navigation.
-- Disable settings that do not apply when their corresponding section is turned off.
-- Reject malformed compact share tokens instead of silently accepting invalid enum indexes or payload shapes.
-- Keep legacy v1 share tokens decodable while using compact tokens for newly generated links.
-- Fall back to a generated avatar placeholder if the GitHub avatar cannot load quickly enough for PNG rendering.
-- Lock PNG controls during export so a settings change cannot supersede an in-progress download.
-- Automatically add a compact Gitbrag card to public GitHub profile pages through the optional Chrome extension.
-- Switch the extension card between 7D, 1M, 6M, and 1Y contribution summaries without leaving GitHub.
-- Configure the extension's default period, turn automatic cards on/off, and clear its short-lived profile cache from the toolbar popup.
-- Run the website entirely as a static site with no Gitbrag backend or database.
+- View contributions, active days, best day, longest streak, public repositories, repository stars, followers, following, and account age.
+- View a contribution heatmap and ranked original public repositories.
+- Build configurable responsive share links with a compact versioned URL token.
+- Generate a dedicated 1080 × 1080 social PNG from an isolated Canvas 2D renderer.
+- Customize PNG modules, period, calendar range, up to four repositories, text size, accent, and card style.
+- Generate responsive website embed code from **Share → Embed**.
+- Use the optional Manifest V3 Chrome extension to surface Gitbrag stats directly on public GitHub profile pages.
+- Run the main website entirely as a static GitHub Pages app with no Gitbrag account backend or database.
+
+## v0.9.5 landing page
+
+The homepage now includes:
+
+- A full-width dark marketing layout with large editorial hero typography.
+- A working GitHub username/profile-URL field in the hero.
+- An illustrative Gitbrag dashboard composition that makes the product visible immediately.
+- Factual product proof blocks: six activity ranges, 1080 × 1080 PNG output, up to four featured social repositories, and zero Gitbrag accounts required.
+- Dedicated sections for the dashboard, custom share links, PNG generation, website embeds, and Chrome extension.
+- A public-data/static-architecture trust section.
+- A second working username/profile-URL CTA near the bottom of the page.
+- A structured product/project footer.
+- Responsive desktop, tablet, and mobile layouts.
+
+The page is influenced by the pacing of the supplied stats.fm reference screenshots—dark full-width sections, prominent product visuals, alternating feature storytelling, quantitative proof, and a strong final CTA—while retaining Gitbrag's own blue/black visual system and original copy.
+
+The marketing page intentionally does **not** invent user counts, generated-profile counts, or activity totals. Numeric marketing claims describe actual product capabilities.
 
 ## Architecture
 
-Gitbrag intentionally keeps the application small and static:
+Gitbrag intentionally keeps its rendering paths separated:
 
-- `index.html` contains the semantic application structure and modal shells.
-- `style.css` contains the core design system and responsive application layout.
-- `share-page.css` contains shared-webpage and embed presentation refinements.
-- `png.css` contains only PNG-generator UI styling.
-- `app.js` owns routing, public data loading, calculations, the main profile UI, and creation of renderer-neutral view models.
-- `share-config.js` owns the versioned configuration schema, normalization, validation, compact URL-safe encoding, and backward-compatible decoding.
-- `share-page.js` owns the custom-link/embed builder UI and responsive HTML shared-page renderer.
-- `embed.js` owns embed URL/code generation, embed-mode presentation state, and iframe auto-height messaging.
-- `png.js` owns only the image-builder UI, adaptive 1080 × 1080 canvas renderer, preview, and PNG download path.
-- `extension/` contains the optional Manifest V3 Chrome extension, its testable validation/stat modules, background data layer, GitHub content script, popup settings, isolated styling, privacy/store drafts, and extension-specific tests.
-- `docs/landing-page-direction.md` records the v0.9.5 marketing-page direction based on the supplied visual references without copying their branding/content.
+- `index.html` — application structure, marketing homepage, profile views, and modal shells.
+- `style.css` — core application/profile design system.
+- `landing.css` — v0.9.5 marketing homepage presentation only.
+- `landing.js` — lightweight landing-page interactions and the secondary CTA bridge into the existing search flow.
+- `share-config.js` — versioned configuration schema, normalization, validation, compact encoding, and legacy decoding.
+- `share-page.js` — responsive shared-webpage renderer and builder UI.
+- `embed.js` — embed URL/code generation and iframe auto-height behavior.
+- `png.css` — PNG-builder interface styling only.
+- `png.js` — isolated fixed 1080 × 1080 Canvas renderer and export flow.
+- `app.js` — routing, public-data loading, calculations, main profile rendering, and renderer-neutral view models.
+- `extension/` — optional Manifest V3 Chrome extension and its own tests/documentation.
 
 ### Renderer boundary
 
-The shared-page renderer produces responsive HTML. Website embeds reuse that responsive HTML renderer in a stripped-down iframe mode.
+The responsive share page and website embed use normal HTML. The PNG generator draws directly to its fixed 1080 × 1080 canvas. The PNG path does not clone, screenshot, or reuse the responsive shared-page DOM.
 
-The PNG renderer draws directly to a fixed 1080 × 1080 canvas. It does not clone the shared page, screenshot the main application, or reuse shared-page DOM/CSS.
-
-The renderers may consume the same validated configuration and renderer-neutral data model, but the PNG path does not call or wrap the shared-page/embed renderer.
-
-The Chrome extension is also isolated from the website renderers. It uses its own small GitHub-page card and pure contribution-stat calculation module rather than injecting or cloning the Gitbrag website UI.
+The Chrome extension is also independent of the website renderers. It injects its own compact card into GitHub and shares no DOM renderer with the site.
 
 ## Share links
 
-New share links use a compact route:
+New links use a compact route:
 
 ```text
 https://example.github.io/Gitbrag/#/octocat?s=<token>
 ```
 
-The v1 configuration semantics are unchanged, but new tokens are serialized as a compact positional payload before URL-safe Base64 encoding. This makes links substantially shorter without requiring a database or third-party URL shortener.
+The configuration can control:
 
-Older v1 links using the original verbose JSON token and `?share=` parameter continue to decode.
-
-A true short-link slug such as `/abc123` would require persistent server-side storage or an external shortener. Gitbrag intentionally remains backend-free, so the compact token format is the shortest self-contained option.
-
-The configuration supports:
-
-- Profile section on/off
-- Stats section on/off
-- Contribution calendar on/off
-- Repository section on/off
-- Stats period: 24H, 7D, 1M, 6M, 1Y, or all time
-- Calendar range: 1M, 3M, 6M, 1Y, 2Y, or all available
+- Profile section
+- Stats section
+- Contribution calendar
+- Repository section
+- Stats period
+- Calendar range
 - Up to four featured repositories
 - Text size
 - Accent
 - Card style
 
-Malformed or unsupported share tokens fall back to the normal profile instead of breaking the application. Compact tokens are validated strictly for version, module mask, enum indexes, array shape, token alphabet, and maximum token length. Legacy object-form v1 tokens remain normalized for compatibility.
-
-If a user turns the repository section on but selects zero repositories in a builder, the repository section is omitted rather than unexpectedly falling back to the default top repositories.
-
-## Website embeds
-
-The embed builder is available from **Share → Embed** and uses the same configurable modules and appearance settings as the shared-page builder.
-
-Embed URLs use the compact share token plus an embed flag:
-
-```text
-#/octocat?s=<token>&embed=1
-```
-
-The generated snippet includes an iframe plus a small optional helper script. The iframe works on its own with a fixed starting height; the helper listens only to messages from that specific iframe and origin, then updates the iframe height as the Gitbrag content changes.
-
-Embed mode removes Gitbrag's normal page chrome, version badge, preview controls, and "Create your own" action while preserving the configured shared profile and Gitbrag branding.
+Legacy v1 `?share=` tokens remain decodable. Malformed or unsupported compact tokens fall back safely instead of breaking the app.
 
 ## PNG generation
-
-The image generator is available from **Share → Generate image**.
 
 PNG output is intentionally fixed to:
 
@@ -119,39 +91,36 @@ PNG output is intentionally fixed to:
 PNG
 ```
 
-The visible preview is the same canvas that is exported, so preview/export layout cannot drift because of DOM screenshot scaling.
+The visible preview is the same canvas that is exported. The layout adapts to enabled sections, calendar range, and repository count. Contribution days are packed into a dense square-cell matrix for the social image, while the normal responsive webpage keeps its conventional calendar renderer.
 
-The internal layout is adaptive: enabled sections are assigned the usable canvas height, the contribution days are packed into the square-cell matrix that best fits the calendar panel, and repository cards expand to consume the repository section. One or two selected repositories use a single tall row; three or four use a 2 × 2 grid.
+Generated PNGs use a single enlarged Gitbrag wordmark in the top-right and retain the GitHub profile URL in the footer.
 
-The PNG renderer also reserves space for top-right branding when long profile names are rendered, moves non-profile content below the branding band, protects repository names from star-count overlap, and renders a clear empty state if all image sections are disabled.
+## Website embeds
 
-Avatar loading is bounded by a timeout. If the remote avatar cannot be used, the renderer falls back to initials rather than hanging the preview or export indefinitely.
+The embed builder is available from **Share → Embed**. Embed URLs use the same compact configuration plus an embed flag:
 
-The responsive shared webpage keeps its normal calendar renderer. The space-filling tile layout is specific to the PNG renderer.
+```text
+#/octocat?s=<token>&embed=1
+```
 
-PNG output uses one enlarged Gitbrag wordmark in the top-right. The footer keeps the profile URL but no longer repeats the Gitbrag brand.
+The generated iframe can work by itself or with the included auto-height helper. The helper accepts resize messages only from the generated iframe and expected Gitbrag origin.
 
 ## Chrome extension
 
-The first-party extension lives in `extension/` and is designed for Chrome/Chromium browsers using Manifest V3.
+The optional extension lives in `extension/` and uses Manifest V3.
 
-When a user opens a public profile such as:
+It currently supports:
 
-```text
-https://github.com/octocat
-```
+- Automatic public-profile detection on GitHub.
+- 7D, 1M, 6M, and 1Y contribution views.
+- Contributions, active days, best day, longest streak, public repos, followers, following, and account age.
+- A toolbar popup for enable/disable, default period, and cache clearing.
+- Local short-lived caching to reduce public API traffic.
+- Explicit loading, timeout, rate-limit, partial-data, retry, and malformed-response handling.
 
-the extension detects the profile route, fetches public profile/contribution data through its background service worker, and injects a compact Gitbrag card into the GitHub layout. The card includes 7D, 1M, 6M, and 1Y tabs plus contributions, active days, best day, longest streak, public repos, followers, following, and account age.
+The extension does not request a GitHub token, private-repository access, cookies, tabs, identity, or browsing-history permissions.
 
-Recent results are cached in extension-local storage for 15 minutes to reduce repeated API traffic. Expired entries are pruned, the cache is capped at 50 profiles, and users can clear it from the popup. Retry bypasses the cache.
-
-The extension now keeps explicit loading, partial-data, timeout, rate-limit, malformed-response, and background-service error states instead of silently disappearing on failure. GitHub SPA/Turbo navigation plus DOM replacement are monitored so a card can be re-injected if GitHub rebuilds the profile layout.
-
-The popup lets users enable/disable the extension and choose the default 7D/1M/6M/1Y period. Preferences use Chrome sync storage when available.
-
-The extension does not request a GitHub token, account credentials, private-repository access, cookies, tabs, identity, or browsing-history permissions. Its extension permission is `storage`, plus host access to the public GitHub and contribution APIs.
-
-To test it locally:
+To test locally:
 
 1. Open `chrome://extensions`.
 2. Enable **Developer mode**.
@@ -159,87 +128,27 @@ To test it locally:
 4. Select the repository's `extension` directory.
 5. Open a public GitHub profile.
 
-The extension's code/package structure, privacy draft, and Chrome Web Store listing draft are prepared. Final store icons and screenshots should wait until the injected card is visually tested against GitHub's current live layout.
-
-## Landing-page direction
-
-The v0.9.5 homepage direction is recorded in `docs/landing-page-direction.md`.
-
-The supplied stats.fm references influence the pacing and presentation: dark full-width sections, oversized editorial hero type, a prominent real product visual, alternating screenshot-led feature blocks, factual number callouts, a strong final CTA, and a structured footer. Gitbrag will keep its own blue/dark visual language and use original copy/product screenshots.
-
-The page must not invent usage counts. Product proof can instead use factual numbers such as six activity ranges, 1080 × 1080 PNG output, up to four featured social repositories, and zero Gitbrag accounts required.
-
 ## Data sources
 
-### GitHub REST API
+Basic profile and repository information comes from the public GitHub REST API. Gitbrag requests up to three repository pages of 100 repositories each for the full web dashboard and excludes forks from repository rankings/star aggregation.
 
-Basic profile and repository information comes directly from GitHub's public REST API.
+Contribution history comes from `github-contributions-api.jogruber.de` and follows GitHub's public contribution graph. If contribution history cannot be loaded, Gitbrag keeps profile/repository data visible and marks contribution-dependent output unavailable rather than converting the failure to zero.
 
-Gitbrag requests up to three repository pages of 100 repositories each. Forks are removed before repository ranking and star aggregation. For accounts with more than 300 repositories, the displayed repository-star total may therefore be incomplete.
-
-Because Gitbrag does not ask for a GitHub token, GitHub's unauthenticated API rate limits apply. Rate-limit failures are shown separately from a missing user.
-
-The Chrome extension currently uses one public user request per uncached profile rather than loading repository pages, keeping its GitHub API usage substantially lower than the full website.
-
-### Contribution history
-
-Contribution history comes from the public `github-contributions-api.jogruber.de` service.
-
-If that service is unavailable, Gitbrag continues to show profile and repository information and explicitly marks contribution-dependent statistics and calendars as unavailable. It does not convert a service failure into fake zero-contribution data.
-
-The Chrome extension follows the same failure principle: basic profile metadata can still render while contribution-dependent values become unavailable.
-
-GitHub's own contribution rules determine the underlying public contribution graph.
-
-## Routing
-
-Normal profile:
-
-```text
-#/octocat
-```
-
-Customized shared profile:
-
-```text
-#/octocat?s=<token>
-```
-
-Embedded shared profile:
-
-```text
-#/octocat?s=<token>&embed=1
-```
-
-Legacy `?share=<token>` links are still accepted.
-
-These are client-side hash routes so direct links remain compatible with GitHub Pages.
+Because Gitbrag does not request a GitHub token, GitHub's unauthenticated API limits apply.
 
 ## Tests
 
-The share configuration has a Node-based regression test:
-
 ```bash
 node tests/share-config.test.js
-```
-
-The suite covers defaults, normalization, compact round-trips, zero-repository selections, zero-module configs, legacy-token compatibility, overlong tokens, unsupported versions, invalid module masks, invalid enum indexes, malformed repository payloads, and default-object mutation safety.
-
-The extension has pure regression tests for its route/cache/response-validation core and contribution-stat engine:
-
-```bash
 node extension/tests/core.test.js
 node extension/tests/stats.test.js
-```
 
-Syntax can be checked with:
-
-```bash
 node --check app.js
 node --check share-page.js
 node --check share-config.js
 node --check embed.js
 node --check png.js
+node --check landing.js
 node --check extension/core.js
 node --check extension/background.js
 node --check extension/stats.js
@@ -275,9 +184,8 @@ Then open `http://localhost:8000`.
 - **0.8** — isolated 1:1 PNG generator and compact share URLs
 - **0.9** — social feature hardening and regression fixes
 - **0.9.1** — configurable website embeds
-- **0.9.2** — first-party Chrome extension for GitHub profile stats
-- **0.9.3** — extension pre-test hardening, settings, privacy/store preparation, and landing-page direction
-- **0.9.4** — PNG branding cleanup with one enlarged top-right Gitbrag wordmark
-- **0.9.4.1** — PNG rounded-corner hotfix
-- **0.9.5** — marketing-focused front page that showcases Gitbrag's core, share-link, PNG, embed, and extension features
-- **1.0** — stable Gitbrag release
+- **0.9.2** — first-party Chrome extension
+- **0.9.3** — extension pre-test hardening and store/privacy preparation
+- **0.9.4 / 0.9.4.1** — PNG branding and rounded-corner cleanup
+- **0.9.5** — full marketing landing page
+- **1.0** — final regression, documentation freeze, and stable release
