@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Gitbrag for GitHub",
   "short_name": "Gitbrag",
-  "description": "Automatically show Gitbrag contribution stats on public GitHub profiles.",
-  "version": "0.9.3",
+  "description": "Show the Gitbrag activity snapshot directly on public GitHub profiles.",
+  "version": "0.9.8",
   "homepage_url": "https://jpluker.github.io/Gitbrag/",
   "permissions": ["storage"],
   "host_permissions": [
