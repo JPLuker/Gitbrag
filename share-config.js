@@ -14,6 +14,7 @@
   const MAX_SELECTED_REPOS = 4;
   const MAX_TOKEN_LENGTH = 8192;
   const BASE_STATS_PERIODS = Object.freeze(['day', 'week', 'month', 'sixmonths', 'year', 'lifetime', 'twomonths']);
+  const LEGACY_STATS_PERIODS = Object.freeze(BASE_STATS_PERIODS.slice(0, 6));
   const CALENDAR_MONTH_PATTERN = /^calendar-month:(\d{4})-(0[1-9]|1[0-2])$/;
   const CALENDAR_YEAR_PATTERN = /^calendar-year:(\d{4})$/;
 
@@ -166,7 +167,7 @@
   }
 
   function expandStatsPeriod(value, version) {
-    if (version === LEGACY_VERSION) return compactEnumValue(BASE_STATS_PERIODS, value);
+    if (version === LEGACY_VERSION) return compactEnumValue(LEGACY_STATS_PERIODS, value);
     if (Number.isInteger(value)) return compactEnumValue(BASE_STATS_PERIODS, value);
     if (isCalendarStatsPeriod(value)) return value;
     throw new Error('Invalid Gitbrag share config token.');
@@ -282,7 +283,7 @@
 
     const version = versionOf(parsed);
     assertSupportedVersionNumber(version);
-    if (version === LEGACY_VERSION && !BASE_STATS_PERIODS.includes(parsed.statsPeriod || DEFAULTS.statsPeriod)) {
+    if (version === LEGACY_VERSION && !LEGACY_STATS_PERIODS.includes(parsed.statsPeriod || DEFAULTS.statsPeriod)) {
       throw new Error('Invalid Gitbrag share config token.');
     }
     return normalize(parsed);
