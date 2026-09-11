@@ -5,7 +5,7 @@ const ShareConfig = require('../share-config.js');
 
 const defaults = ShareConfig.defaults();
 assert.deepEqual(defaults, {
-  v: 1,
+  v: 2,
   modules: { profile: true, stats: true, calendar: true, repos: true },
   statsPeriod: 'month',
   calendarRange: '6m',
@@ -22,7 +22,7 @@ const normalized = ShareConfig.normalize({
 });
 
 assert.deepEqual(normalized, {
-  v: 1,
+  v: 2,
   modules: { profile: false, stats: true, calendar: true, repos: true },
   statsPeriod: 'week',
   calendarRange: '6m',
@@ -42,35 +42,56 @@ const token = ShareConfig.encode(roundTripSource);
 assert.match(token, /^[A-Za-z0-9_-]+$/);
 assert.deepEqual(ShareConfig.decode(token), roundTripSource);
 
+const datedMonth = ShareConfig.create({ statsPeriod: 'calendar-month:2026-08' });
+assert.deepEqual(ShareConfig.decode(ShareConfig.encode(datedMonth)), datedMonth);
+const datedYear = ShareConfig.create({ statsPeriod: 'calendar-year:2026' });
+assert.deepEqual(ShareConfig.decode(ShareConfig.encode(datedYear)), datedYear);
+assert.equal(ShareConfig.isStatsPeriod('calendar-month:2026-08'), true);
+assert.equal(ShareConfig.isStatsPeriod('calendar-year:2026'), true);
+assert.equal(ShareConfig.isStatsPeriod('calendar-month:2026-13'), false);
+
 const zeroSelection = ShareConfig.create({ selectedRepos: [], modules: { repos: true } });
 assert.deepEqual(ShareConfig.decode(ShareConfig.encode(zeroSelection)), zeroSelection);
 
 const noModules = ShareConfig.create({ modules: { profile: false, stats: false, calendar: false, repos: false } });
 assert.deepEqual(ShareConfig.decode(ShareConfig.encode(noModules)), noModules);
 
-const legacyToken = Buffer.from(JSON.stringify(roundTripSource), 'utf8').toString('base64url');
-assert.deepEqual(ShareConfig.decode(legacyToken), roundTripSource);
-assert.ok(token.length < legacyToken.length, 'compact share tokens should be shorter than legacy JSON tokens');
+const legacyObject = {
+  v: 1,
+  modules: { profile: true, stats: true, calendar: false, repos: true },
+  statsPeriod: 'lifetime',
+  calendarRange: 'all',
+  selectedRepos: ['repo-α', '42'],
+  appearance: { accent: 'cyan', textSize: 'compact', cardStyle: 'outline' }
+};
+const legacyJsonToken = Buffer.from(JSON.stringify(legacyObject), 'utf8').toString('base64url');
+assert.deepEqual(ShareConfig.decode(legacyJsonToken), roundTripSource);
+
+const legacyCompact = [1, 11, 5, 5, ['repo-α', '42'], 0, 3, 1];
+const legacyCompactToken = Buffer.from(JSON.stringify(legacyCompact), 'utf8').toString('base64url');
+assert.deepEqual(ShareConfig.decode(legacyCompactToken), roundTripSource);
+assert.ok(token.length < legacyJsonToken.length, 'compact share tokens should be shorter than legacy JSON tokens');
 
 assert.equal(ShareConfig.tryDecode('not valid!'), null);
 assert.equal(ShareConfig.tryDecode(''), null);
 assert.equal(ShareConfig.tryDecode('a'.repeat(ShareConfig.MAX_TOKEN_LENGTH + 1)), null);
 
-const unsupported = Buffer.from(JSON.stringify({ v: 2 }), 'utf8').toString('base64url');
-assert.throws(() => ShareConfig.decode(unsupported), /Unsupported Gitbrag share config version: 2/);
+const unsupported = Buffer.from(JSON.stringify({ v: 3 }), 'utf8').toString('base64url');
+assert.throws(() => ShareConfig.decode(unsupported), /Unsupported Gitbrag share config version: 3/);
 
-const unsupportedCompact = Buffer.from(JSON.stringify([2, 15, 0, 0, [], 0, 0, 0]), 'utf8').toString('base64url');
-assert.throws(() => ShareConfig.decode(unsupportedCompact), /Unsupported Gitbrag share config version: 2/);
+const unsupportedCompact = Buffer.from(JSON.stringify([3, 15, 0, 0, [], 0, 0, 0]), 'utf8').toString('base64url');
+assert.throws(() => ShareConfig.decode(unsupportedCompact), /Unsupported Gitbrag share config version: 3/);
 
 for (const malformed of [
-  [1, 15, 0, 0, []],
-  [1, 16, 0, 0, [], 0, 0, 0],
-  [1, 15, 99, 0, [], 0, 0, 0],
-  [1, 15, 0, 99, [], 0, 0, 0],
-  [1, 15, 0, 0, 'not-an-array', 0, 0, 0],
-  [1, 15, 0, 0, [], 99, 0, 0],
-  [1, 15, 0, 0, [], 0, 99, 0],
-  [1, 15, 0, 0, [], 0, 0, 99],
+  [2, 15, 0, 0, []],
+  [2, 16, 0, 0, [], 0, 0, 0],
+  [2, 15, 99, 0, [], 0, 0, 0],
+  [2, 15, 'calendar-month:2026-13', 0, [], 0, 0, 0],
+  [2, 15, 0, 99, [], 0, 0, 0],
+  [2, 15, 0, 0, 'not-an-array', 0, 0, 0],
+  [2, 15, 0, 0, [], 99, 0, 0],
+  [2, 15, 0, 0, [], 0, 99, 0],
+  [2, 15, 0, 0, [], 0, 0, 99],
 ]) {
   const malformedToken = Buffer.from(JSON.stringify(malformed), 'utf8').toString('base64url');
   assert.throws(() => ShareConfig.decode(malformedToken), /Invalid Gitbrag share config token/);
@@ -82,4 +103,4 @@ copy.appearance.accent = 'green';
 copy.selectedRepos.push('123');
 assert.deepEqual(ShareConfig.defaults(), defaults);
 
-console.log(`share-config tests passed; compact token ${token.length} chars vs legacy ${legacyToken.length}`);
+console.log(`share-config tests passed; compact token ${token.length} chars vs legacy ${legacyJsonToken.length}`);

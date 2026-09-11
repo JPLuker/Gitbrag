@@ -2,33 +2,59 @@
 
 Gitbrag is a lightweight GitHub Pages app that turns public GitHub activity into a focused stats dashboard with share links, social PNGs, website embeds, and an optional Chrome extension.
 
-**v0.9.6** simplifies the landing page to the product essentials: the Gitbrag hero/search experience plus a compact project/creator footer. The inaccurate marketing mockups and feature-tour sections from v0.9.5 are removed; the actual dashboard, share links, PNG generator, embeds, and extension are unchanged.
+**v0.9.7** adds calendar-based activity periods. In addition to rolling 24H/7D/1M/6M/1Y/all-time views, Gitbrag can now calculate a specific calendar month or year, including month-to-date and year-to-date labels for the current period. Dated periods flow through the dashboard, share links, embeds, and PNG generation.
 
 ## Current features
 
 - Search by GitHub username or paste a `github.com/username` profile URL.
 - Open a profile directly with a hash route such as `#/octocat`.
-- Browse contribution activity for 24H, 7D, 1M, 6M, 1Y, and all available history.
+- Browse rolling contribution activity for 24H, 7D, 1M, 6M, 1Y, and all available history.
+- Select a specific calendar month or calendar year from the **DATED** activity option.
 - View contributions, active days, best day, longest streak, public repositories, repository stars, followers, following, and account age.
 - View a contribution heatmap and ranked original public repositories.
 - Build configurable responsive share links with a compact versioned URL token.
+- Preserve dated month/year selections in share links and website embeds.
 - Generate a dedicated 1080 × 1080 social PNG from an isolated Canvas 2D renderer.
 - Customize PNG modules, period, calendar range, up to four repositories, text size, accent, and card style.
 - Generate responsive website embed code from **Share → Embed**.
 - Use the optional Manifest V3 Chrome extension to surface Gitbrag stats directly on public GitHub profile pages.
 - Run the main website entirely as a static GitHub Pages app with no Gitbrag account backend or database.
 
-## v0.9.6 landing page
+## Landing page
 
 The homepage is deliberately small and product-first:
 
-- A centered Gitbrag hero with the primary GitHub username/profile-URL search.
+- A Gitbrag hero with the primary GitHub username/profile-URL search.
 - A short explanation of what Gitbrag does.
-- Clear notes that no Gitbrag account or GitHub token is required and that the app uses public data.
+- An explicitly illustrative example dashboard preview so visitors can see the product before loading a profile.
 - A restrained footer with project documentation plus creator links.
 - Responsive desktop and mobile layouts.
 
-The v0.9.5 marketing mockups, product-stat strip, secondary CTA, and long feature-tour sections were removed. The real dashboard is now responsible for demonstrating Gitbrag after a profile is opened.
+The actual dashboard remains the primary place where users interact with Gitbrag's features.
+
+## Activity periods
+
+Gitbrag supports two kinds of stats periods.
+
+### Rolling periods
+
+- 24 hours
+- 7 days
+- 30 days
+- 6 months
+- 1 year
+- All available contribution history
+
+### Dated periods
+
+Use **DATED** to choose an exact calendar period:
+
+- A calendar month, such as **August 2026**
+- A calendar year, such as **2025**
+
+Historical calendar periods use their exact calendar boundaries. The current month/year is capped at today and labeled **Month to date** or **Year to date** so an incomplete period is not presented as final.
+
+Dated stats use the same four calculations as rolling periods: contributions, active days, best day, and longest streak.
 
 ## Architecture
 
@@ -38,6 +64,9 @@ Gitbrag intentionally keeps its rendering paths separated:
 - `style.css` — core application/profile design system.
 - `landing.css` — simplified landing-page presentation only.
 - `landing.js` — lightweight landing-page visibility state used to hide the floating version badge while the landing page is active.
+- `dated.css` — dated-period picker styling.
+- `stats-period.js` — pure rolling/calendar-period parsing, labeling, date-window calculation, and record filtering.
+- `dated-period.js` — dated-period UI integration for the dashboard and existing share/PNG period selectors.
 - `share-config.js` — versioned configuration schema, normalization, validation, compact encoding, and legacy decoding.
 - `share-page.js` — responsive shared-webpage renderer and builder UI.
 - `embed.js` — embed URL/code generation and iframe auto-height behavior.
@@ -66,14 +95,14 @@ The configuration can control:
 - Stats section
 - Contribution calendar
 - Repository section
-- Stats period
+- Rolling or dated stats period
 - Calendar range
 - Up to four featured repositories
 - Text size
 - Accent
 - Card style
 
-Legacy v1 `?share=` tokens remain decodable. Malformed or unsupported compact tokens fall back safely instead of breaking the app.
+Share-config schema v2 adds dated stats-period values while continuing to decode v1 compact and JSON tokens. Malformed or unsupported compact tokens fall back safely instead of breaking the app.
 
 ## PNG generation
 
@@ -85,7 +114,7 @@ PNG output is intentionally fixed to:
 PNG
 ```
 
-The visible preview is the same canvas that is exported. The layout adapts to enabled sections, calendar range, and repository count. Contribution days are packed into a dense square-cell matrix for the social image, while the normal responsive webpage keeps its conventional calendar renderer.
+The visible preview is the same canvas that is exported. The layout adapts to enabled sections, stats period, calendar range, and repository count. Contribution days are packed into a dense square-cell matrix for the social image, while the normal responsive webpage keeps its conventional calendar renderer.
 
 Generated PNGs use a single enlarged Gitbrag wordmark in the top-right and retain the GitHub profile URL in the footer.
 
@@ -133,10 +162,13 @@ Because Gitbrag does not request a GitHub token, GitHub's unauthenticated API li
 ## Tests
 
 ```bash
+node tests/stats-period.test.js
 node tests/share-config.test.js
 node extension/tests/core.test.js
 node extension/tests/stats.test.js
 
+node --check stats-period.js
+node --check dated-period.js
 node --check app.js
 node --check share-page.js
 node --check share-config.js
@@ -183,4 +215,5 @@ Then open `http://localhost:8000`.
 - **0.9.4 / 0.9.4.1** — PNG branding and rounded-corner cleanup
 - **0.9.5** — full marketing landing page
 - **0.9.6** — simplified launch landing page and creator/project footer
+- **0.9.7** — dated calendar-month/year stats across dashboard, shares, embeds, and PNGs
 - **1.0** — final regression, documentation freeze, and stable release

@@ -11,14 +11,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=0.9.6">
-  <link rel="stylesheet" href="share-page.css?v=0.9.6">
-  <link rel="stylesheet" href="png.css?v=0.9.6">
-  <link rel="stylesheet" href="landing.css?v=0.9.6">
+  <link rel="stylesheet" href="style.css?v=0.9.7">
+  <link rel="stylesheet" href="share-page.css?v=0.9.7">
+  <link rel="stylesheet" href="png.css?v=0.9.7">
+  <link rel="stylesheet" href="landing.css?v=0.9.7">
+  <link rel="stylesheet" href="dated.css?v=0.9.7">
 </head>
 <body>
   <main class="app">
-    <div class="app-version" aria-label="Gitbrag version 0.9.6">v0.9.6</div>
+    <div class="app-version" aria-label="Gitbrag version 0.9.7">v0.9.7</div>
 
     <section id="searchView" class="landing-simple" aria-labelledby="searchTitle">
       <div class="landing-simple-shell">
@@ -101,7 +102,7 @@
         </footer>
 
         <div class="landing-simple-footer-bottom">
-          <span>Gitbrag v0.9.6</span>
+          <span>Gitbrag v0.9.7</span>
           <span>Static GitHub Pages app · public GitHub data</span>
         </div>
       </div>
@@ -142,6 +143,15 @@
         <button type="button" data-period="sixmonths" aria-pressed="false">6M</button>
         <button type="button" data-period="year" aria-pressed="false">1Y</button>
         <button type="button" data-period="lifetime" aria-pressed="false">ALL TIME</button>
+        <button type="button" data-period-picker="dated" aria-pressed="false" aria-controls="datedPeriodPanel" aria-expanded="false">DATED</button>
+      </div>
+
+      <div id="datedPeriodPanel" class="dated-period-panel hidden">
+        <label for="datedPeriodSelect">
+          <span>Calendar period</span>
+          <select id="datedPeriodSelect" aria-label="Calendar month or year"></select>
+        </label>
+        <button id="applyDatedPeriod" type="button">Apply</button>
       </div>
 
       <div class="section-title stats-title">
@@ -291,11 +301,13 @@
     </div>
   </dialog>
 
-  <script src="share-config.js?v=0.9.6"></script>
-  <script src="share-page.js?v=0.9.6"></script>
-  <script src="app.js?v=0.9.6"></script>
-  <script src="landing.js?v=0.9.6"></script>
-  <script src="embed.js?v=0.9.6"></script>
-  <script src="png.js?v=0.9.6"></script>
+  <script src="stats-period.js?v=0.9.7"></script>
+  <script src="share-config.js?v=0.9.7"></script>
+  <script src="share-page.js?v=0.9.7"></script>
+  <script src="app.js?v=0.9.7"></script>
+  <script src="dated-period.js?v=0.9.7"></script>
+  <script src="landing.js?v=0.9.7"></script>
+  <script src="embed.js?v=0.9.7"></script>
+  <script src="png.js?v=0.9.7"></script>
 </body>
 </html>

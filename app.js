@@ -3,14 +3,9 @@ const CONTRIBUTIONS_API = 'https://github-contributions-api.jogruber.de/v4';
 const MAX_REPO_PAGES = 3;
 const REPOS_PER_PAGE = 100;
 
-const PERIODS = Object.freeze({
-  day: { days: 1, label: 'Last 24 hours' },
-  week: { days: 7, label: 'Last 7 days' },
-  month: { days: 30, label: 'Last 30 days' },
-  sixmonths: { days: 182, label: 'Last 6 months' },
-  year: { days: 365, label: 'Last year' },
-  lifetime: { days: null, label: 'All time' },
-});
+const StatsPeriod = window.GitbragStatsPeriod;
+if (!StatsPeriod) throw new Error('GitbragStatsPeriod must load before app.js.');
+const PERIODS = StatsPeriod.ROLLING;
 
 const CALENDAR_RANGES = Object.freeze({
   '1m': { days: 30, label: 'LAST MONTH' },
@@ -21,7 +16,7 @@ const CALENDAR_RANGES = Object.freeze({
   all: { days: null, label: 'ALL AVAILABLE' },
 });
 
-const DEFAULT_PERIOD = 'month';
+const DEFAULT_PERIOD = StatsPeriod.DEFAULT_PERIOD;
 const qs = (selector, root = document) => root.querySelector(selector);
 
 const elements = {
@@ -318,13 +313,7 @@ function contributionRecords() {
 function periodRecords(period) {
   const records = contributionRecords();
   if (!records) return null;
-  if (period === 'lifetime') return [...records];
-
-  const days = PERIODS[period]?.days;
-  if (!days) return [];
-  const end = todayKey();
-  const start = addDays(end, -days + 1);
-  return records.filter((record) => record.date >= start && record.date <= end);
+  return StatsPeriod.filterRecords(records, period);
 }
 
 function allTimeContributionTotal() {
@@ -431,7 +420,7 @@ function renderProfile() {
 
 function renderStats() {
   const period = state.period;
-  const periodLabel = PERIODS[period]?.label || PERIODS[DEFAULT_PERIOD].label;
+  const periodLabel = StatsPeriod.label(period);
   const activityCards = [
     ['CONTRIBUTIONS', contributionCount(period), 'contributions in this period'],
     ['ACTIVE DAYS', activeDays(period), 'days with contribution activity'],
@@ -470,6 +459,8 @@ function renderStats() {
     button.classList.toggle('active', active);
     button.setAttribute('aria-pressed', String(active));
   });
+
+  document.dispatchEvent(new CustomEvent('gitbrag:stats-period', { detail: { period } }));
 }
 
 function renderCalendar() {
@@ -595,7 +586,7 @@ function createShareModel(configInput) {
     },
     contributionError: state.contributionError,
     stats: {
-      periodLabel: PERIODS[config.statsPeriod]?.label || PERIODS[DEFAULT_PERIOD].label,
+      periodLabel: StatsPeriod.label(config.statsPeriod),
       cards: [
         { label: 'CONTRIBUTIONS', value: formatValue(contributionCount(config.statsPeriod)), note: 'contributions in this period' },
         { label: 'ACTIVE DAYS', value: formatValue(activeDays(config.statsPeriod)), note: 'days with contribution activity' },
@@ -613,6 +604,18 @@ function createShareModel(configInput) {
       url: safeGitHubUrl(repo.html_url),
     })),
   };
+}
+
+function datedPeriodOptions() {
+  if (!state.data) return { months: [], years: [] };
+  return StatsPeriod.datedOptions(state.data.user.created_at);
+}
+
+function setStatsPeriod(period) {
+  if (!state.data || !StatsPeriod.isValid(period)) return false;
+  state.period = period;
+  renderStats();
+  return true;
 }
 
 function defaultShareConfig() {
@@ -801,11 +804,17 @@ window.GitbragApp = Object.freeze({
     return {
       repos: rankedRepositories(),
       defaultConfig: defaultShareConfig(),
+      datedPeriods: datedPeriodOptions(),
     };
   },
   createRenderModel(config) {
     return createShareModel(config);
   },
+  getCurrentStatsPeriod() {
+    return state.period;
+  },
+  getStatsPeriodOptions: datedPeriodOptions,
+  setStatsPeriod,
   createShareUrl,
   previewShare(config) {
     renderSharedConfig(config, { updateHistory: true });
