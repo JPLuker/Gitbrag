@@ -13,6 +13,7 @@
     day: Object.freeze({ days: 1, label: 'Last 24 hours' }),
     week: Object.freeze({ days: 7, label: 'Last 7 days' }),
     month: Object.freeze({ days: 30, label: 'Last 30 days' }),
+    twomonths: Object.freeze({ days: 60, label: 'Last 60 days' }),
     sixmonths: Object.freeze({ days: 182, label: 'Last 6 months' }),
     year: Object.freeze({ days: 365, label: 'Last year' }),
     lifetime: Object.freeze({ days: null, label: 'All time' }),
@@ -56,6 +57,14 @@
     const y = Number(year);
     if (!Number.isInteger(y) || y < 1970 || y > 9999) return null;
     return `calendar-year:${String(y).padStart(4, '0')}`;
+  }
+
+  function currentMonthValue(now = new Date()) {
+    return valueForMonth(now.getUTCFullYear(), now.getUTCMonth() + 1);
+  }
+
+  function currentYearValue(now = new Date()) {
+    return valueForYear(now.getUTCFullYear());
   }
 
   function parse(value) {
@@ -203,5 +212,7 @@
     datedOptions,
     valueForMonth,
     valueForYear,
+    currentMonthValue,
+    currentYearValue,
   });
 });
