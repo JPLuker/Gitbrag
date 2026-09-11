@@ -226,6 +226,9 @@
     mainYearMode?.setAttribute('aria-pressed', String(mainMode === 'year'));
     mainMonthField?.classList.toggle('hidden', mainMode === 'year');
     mainFields?.classList.toggle('year-only', mainMode === 'year');
+    if (mainMode === 'month' && mainYearSelect?.value) {
+      replaceOptions(mainMonthSelect, monthItems(availableOptions(), mainYearSelect.value), mainMonthSelect?.value);
+    }
     if (apply) applyMainSelection();
   }
 
@@ -475,6 +478,24 @@
 
     parts.monthSelect?.addEventListener('change', () => commitBuilderDated(select, calendarRange, parts));
   }
+
+  function primeBuilderPeriod(select, period) {
+    if (!select || !StatsPeriod.isDated(period)) return;
+    ensureSentinelOptions(select);
+    setCurrentDatedOption(select, period);
+  }
+
+  $('#shareLinkAction')?.addEventListener('click', () => {
+    primeBuilderPeriod($('#shareStatsPeriod'), root.GitbragApp?.getCurrentStatsPeriod?.());
+  }, true);
+
+  $('#embedAction')?.addEventListener('click', () => {
+    primeBuilderPeriod($('#shareStatsPeriod'), root.GitbragApp?.getCurrentStatsPeriod?.());
+  }, true);
+
+  $('#generateImageAction')?.addEventListener('click', () => {
+    primeBuilderPeriod($('#pngStatsPeriod'), root.GitbragApp?.getCurrentStatsPeriod?.());
+  }, true);
 
   function preferredShareConfig() {
     return root.GitbragSharePage?.getActiveConfig?.() || currentContext()?.defaultConfig || null;
