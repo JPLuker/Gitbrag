@@ -8,180 +8,23 @@
   const SENTINEL_MONTH = '__gitbrag_specific_month__';
   const SENTINEL_YEAR = '__gitbrag_specific_year__';
 
-  const mainButton = $('[data-period-picker="dated"]');
-  const mainPanel = $('#datedPeriodPanel');
-  const mainMonthMode = $('#datedModeMonth');
-  const mainYearMode = $('#datedModeYear');
-  const mainMonthField = $('#datedMonthField');
-  const mainFields = $('.dated-period-fields', mainPanel);
-  const mainMonthSelect = $('#datedMonthSelect');
-  const mainYearSelect = $('#datedYearSelect');
+  const modeMonth = $('#periodModeMonth');
+  const modeYear = $('#periodModeYear');
+  const modeRolling = $('#periodModeRolling');
+  const datedPanel = $('#datedPeriodPanel');
+  const rollingPanel = $('#rollingPeriodPanel');
+  const monthField = $('#datedMonthField');
+  const fields = $('.dated-period-fields', datedPanel);
+  const monthSelect = $('#datedMonthSelect');
+  const yearSelect = $('#datedYearSelect');
   const shareModal = $('#shareModal');
   const pngModal = $('#pngModal');
 
   let mainMode = 'month';
+  let lastRollingPeriod = 'month';
 
-  const baseApp = root.GitbragApp;
-  const baseSharePage = root.GitbragSharePage;
-
-  function dateKeyFromDate(date) {
-    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
-  }
-
-  function dateFromKey(key) {
-    const [year, month, day] = String(key).split('-').map(Number);
-    return new Date(Date.UTC(year, month - 1, day));
-  }
-
-  function addDays(key, days) {
-    const date = dateFromKey(key);
-    date.setUTCDate(date.getUTCDate() + days);
-    return dateKeyFromDate(date);
-  }
-
-  function exactCalendar(model, period) {
-    if (!model?.calendar || !StatsPeriod.isDated(period)) return model?.calendar || null;
-    const selection = StatsPeriod.range(period);
-    if (!selection.start || !selection.end) return model.calendar;
-
-    const source = new Map((model.calendar.days || []).map((day) => [day.date, day]));
-    const first = dateFromKey(selection.start);
-    first.setUTCDate(first.getUTCDate() - first.getUTCDay());
-
-    const days = [];
-    let total = 0;
-    for (let key = dateKeyFromDate(first); key <= selection.end; key = addDays(key, 1)) {
-      const item = source.get(key) || { date: key, count: 0, level: 0 };
-      const count = Number(item.count) || 0;
-      if (key >= selection.start && key <= selection.end) total += count;
-      days.push({
-        date: key,
-        count,
-        level: Math.min(4, Math.max(0, Number(item.level) || 0)),
-      });
-    }
-
-    return {
-      label: selection.label.toUpperCase(),
-      days,
-      weeks: Math.max(1, Math.ceil(days.length / 7)),
-      total,
-    };
-  }
-
-  function modelForPeriod(period, config = null) {
-    if (!baseApp?.createRenderModel) return null;
-    const context = baseApp.getShareBuilderContext?.();
-    const baseConfig = config || context?.defaultConfig;
-    if (!baseConfig) return null;
-
-    const dated = StatsPeriod.isDated(period);
-    const request = {
-      ...baseConfig,
-      statsPeriod: period,
-      calendarRange: dated ? 'all' : '1y',
-    };
-    const model = baseApp.createRenderModel(request);
-    if (model && dated) model.calendar = exactCalendar(model, period);
-    return model;
-  }
-
-  function redrawMainCalendar(period) {
-    const graph = $('#contributionGraph');
-    const total = $('#calendarTotal');
-    const scroll = $('.calendar-scroll');
-    const header = $('#calendarPeriodLabel')
-      || graph?.closest('.calendar-card')?.previousElementSibling?.querySelector('span:last-child');
-    if (!graph || !total) return;
-
-    const model = modelForPeriod(period);
-    if (!model) return;
-    const dated = StatsPeriod.isDated(period);
-    const calendar = model.calendar;
-    const readableLabel = dated ? StatsPeriod.label(period) : 'the last year';
-
-    graph.innerHTML = '';
-    graph.classList.remove('is-unavailable');
-    if (header) header.textContent = dated ? StatsPeriod.label(period).toUpperCase() : 'LAST YEAR';
-
-    if (model.contributionError || !calendar) {
-      graph.classList.add('is-unavailable');
-      graph.textContent = 'Contribution calendar unavailable.';
-      graph.removeAttribute('style');
-      graph.setAttribute('aria-label', 'Contribution calendar unavailable');
-      total.textContent = '';
-      return;
-    }
-
-    const width = calendar.weeks * 10 + Math.max(0, calendar.weeks - 1) * 4;
-    graph.style.gridTemplateColumns = `repeat(${calendar.weeks}, 10px)`;
-    graph.style.width = `${width}px`;
-    graph.style.minWidth = `${width}px`;
-    graph.setAttribute('aria-label', `GitHub contribution calendar for ${readableLabel}. ${Number(calendar.total || 0).toLocaleString()} contributions.`);
-
-    calendar.days.forEach((item) => {
-      const cell = document.createElement('span');
-      cell.className = `contrib-cell level-${item.level}`;
-      cell.title = `${item.count} contribution${item.count === 1 ? '' : 's'} · ${item.date}`;
-      graph.appendChild(cell);
-    });
-
-    total.textContent = `${Number(calendar.total || 0).toLocaleString()} contributions in ${readableLabel}`;
-    requestAnimationFrame(() => {
-      if (scroll) scroll.scrollLeft = scroll.scrollWidth;
-    });
-  }
-
-  function installAppWrapper() {
-    if (!baseApp) return;
-    root.GitbragApp = Object.freeze({
-      ...baseApp,
-      createRenderModel(config) {
-        const period = config?.statsPeriod;
-        if (!StatsPeriod.isDated(period)) return baseApp.createRenderModel(config);
-        const model = baseApp.createRenderModel({ ...config, calendarRange: 'all' });
-        if (model) model.calendar = exactCalendar(model, period);
-        return model;
-      },
-      setStatsPeriod(period) {
-        const changed = baseApp.setStatsPeriod(period);
-        if (changed) {
-          redrawMainCalendar(period);
-          document.dispatchEvent(new CustomEvent('gitbrag:stats-period', { detail: { period } }));
-        }
-        return changed;
-      },
-    });
-  }
-
-  function installSharePageWrapper() {
-    if (!baseSharePage) return;
-    root.GitbragSharePage = Object.freeze({
-      ...baseSharePage,
-      render(model, config) {
-        if (StatsPeriod.isDated(config?.statsPeriod)) {
-          const exactModel = root.GitbragApp?.createRenderModel?.(config);
-          if (exactModel?.calendar) model = { ...model, calendar: exactModel.calendar };
-        }
-        return baseSharePage.render(model, config);
-      },
-    });
-  }
-
-  installAppWrapper();
-  installSharePageWrapper();
-
-  function currentContext() {
-    return root.GitbragApp?.getShareBuilderContext?.() || null;
-  }
-
-  function availableOptions() {
-    return currentContext()?.datedPeriods || { months: [], years: [] };
-  }
-
-  function parsedYear(value) {
-    return StatsPeriod.parse(value)?.year || null;
-  }
+  function app() { return root.GitbragApp || null; }
+  function availableOptions() { return app()?.getStatsPeriodOptions?.() || { months: [], years: [] }; }
 
   function yearItems(options) {
     return (options?.years || []).map((item) => {
@@ -207,143 +50,145 @@
       option.textContent = item.label;
       select.appendChild(option);
     });
-
     if (preferredValue !== null && [...select.options].some((option) => option.value === String(preferredValue))) {
       select.value = String(preferredValue);
     }
   }
 
-  function defaultDatedSelection(mode, options) {
-    const item = mode === 'year' ? options?.years?.[0] : options?.months?.[0];
-    return item?.value || null;
+  function setModeButtons(mode) {
+    mainMode = mode;
+    [[modeMonth, 'month'], [modeYear, 'year'], [modeRolling, 'rolling']].forEach(([button, key]) => {
+      const active = mode === key;
+      button?.classList.toggle('active', active);
+      button?.setAttribute('aria-pressed', String(active));
+    });
+    datedPanel?.classList.toggle('hidden', mode === 'rolling');
+    rollingPanel?.classList.toggle('hidden', mode !== 'rolling');
+    monthField?.classList.toggle('hidden', mode === 'year');
+    fields?.classList.toggle('year-only', mode === 'year');
   }
 
-  function setMainMode(mode, { apply = false } = {}) {
-    mainMode = mode === 'year' ? 'year' : 'month';
-    mainMonthMode?.classList.toggle('active', mainMode === 'month');
-    mainYearMode?.classList.toggle('active', mainMode === 'year');
-    mainMonthMode?.setAttribute('aria-pressed', String(mainMode === 'month'));
-    mainYearMode?.setAttribute('aria-pressed', String(mainMode === 'year'));
-    mainMonthField?.classList.toggle('hidden', mainMode === 'year');
-    mainFields?.classList.toggle('year-only', mainMode === 'year');
-    if (mainMode === 'month' && mainYearSelect?.value) {
-      replaceOptions(mainMonthSelect, monthItems(availableOptions(), mainYearSelect.value), mainMonthSelect?.value);
-    }
-    if (apply) applyMainSelection();
-  }
-
-  function populateMainPanel(period = root.GitbragApp?.getCurrentStatsPeriod?.()) {
+  function populateDated(period = app()?.getCurrentStatsPeriod?.()) {
     const options = availableOptions();
     if (!options.months.length && !options.years.length) return;
-
     const parsed = StatsPeriod.parse(period);
-    const fallback = StatsPeriod.parse(defaultDatedSelection('month', options));
-    const selectedYear = parsed?.year || fallback?.year || new Date().getUTCFullYear();
-    const selectedMonth = parsed?.month || fallback?.month || new Date().getUTCMonth() + 1;
-
-    replaceOptions(mainYearSelect, yearItems(options), selectedYear);
-    replaceOptions(mainMonthSelect, monthItems(options, mainYearSelect?.value || selectedYear), selectedMonth);
-    setMainMode(parsed?.type === 'calendar-year' ? 'year' : 'month');
+    const current = StatsPeriod.parse(StatsPeriod.currentMonthValue());
+    const selectedYear = parsed?.year || current?.year || new Date().getUTCFullYear();
+    const selectedMonth = parsed?.month || current?.month || new Date().getUTCMonth() + 1;
+    replaceOptions(yearSelect, yearItems(options), selectedYear);
+    replaceOptions(monthSelect, monthItems(options, yearSelect?.value || selectedYear), selectedMonth);
   }
 
-  function applyMainSelection() {
-    const year = Number(mainYearSelect?.value);
+  function applyDated(mode = mainMode) {
+    const year = Number(yearSelect?.value);
     if (!year) return;
-
-    const value = mainMode === 'year'
+    const value = mode === 'year'
       ? StatsPeriod.valueForYear(year)
-      : StatsPeriod.valueForMonth(year, Number(mainMonthSelect?.value));
-
-    if (!value) return;
-    root.GitbragApp?.setStatsPeriod?.(value);
+      : StatsPeriod.valueForMonth(year, Number(monthSelect?.value));
+    if (value) app()?.setStatsPeriod?.(value);
   }
 
-  function syncMainState(period) {
-    const dated = StatsPeriod.isDated(period);
-    mainButton?.classList.toggle('active', dated);
-    mainButton?.setAttribute('aria-pressed', String(dated));
-
-    if (!dated) {
-      mainPanel?.classList.add('hidden');
-      mainButton?.setAttribute('aria-expanded', 'false');
-      return;
+  function enterMonth() {
+    populateDated();
+    setModeButtons('month');
+    const current = StatsPeriod.parse(app()?.getCurrentStatsPeriod?.());
+    if (current?.type !== 'calendar-month') {
+      const now = StatsPeriod.parse(StatsPeriod.currentMonthValue());
+      if (now) {
+        yearSelect.value = String(now.year);
+        replaceOptions(monthSelect, monthItems(availableOptions(), now.year), now.month);
+      }
     }
-
-    if (mainPanel && !mainPanel.classList.contains('hidden')) populateMainPanel(period);
+    applyDated('month');
   }
 
-  mainButton?.addEventListener('click', () => {
-    populateMainPanel();
-    mainPanel?.classList.toggle('hidden');
-    const open = !mainPanel?.classList.contains('hidden');
-    mainButton?.setAttribute('aria-expanded', String(open));
-    if (open) (mainMode === 'year' ? mainYearSelect : mainMonthSelect)?.focus();
-  });
+  function enterYear() {
+    populateDated();
+    setModeButtons('year');
+    const current = StatsPeriod.parse(app()?.getCurrentStatsPeriod?.());
+    if (current?.type !== 'calendar-year') {
+      const now = StatsPeriod.parse(StatsPeriod.currentYearValue());
+      if (now && [...yearSelect.options].some((option) => option.value === String(now.year))) yearSelect.value = String(now.year);
+    }
+    applyDated('year');
+  }
 
-  mainMonthMode?.addEventListener('click', () => setMainMode('month', { apply: true }));
-  mainYearMode?.addEventListener('click', () => setMainMode('year', { apply: true }));
+  function enterRolling() {
+    setModeButtons('rolling');
+    app()?.setStatsPeriod?.(lastRollingPeriod);
+  }
 
-  mainYearSelect?.addEventListener('change', () => {
+  modeMonth?.addEventListener('click', enterMonth);
+  modeYear?.addEventListener('click', enterYear);
+  modeRolling?.addEventListener('click', enterRolling);
+
+  yearSelect?.addEventListener('change', () => {
     if (mainMode === 'month') {
-      const currentMonth = mainMonthSelect?.value;
-      replaceOptions(mainMonthSelect, monthItems(availableOptions(), mainYearSelect.value), currentMonth);
+      const previous = monthSelect?.value;
+      replaceOptions(monthSelect, monthItems(availableOptions(), yearSelect.value), previous);
     }
-    applyMainSelection();
+    applyDated(mainMode);
+  });
+  monthSelect?.addEventListener('change', () => applyDated('month'));
+
+  rollingPanel?.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-rolling-period]');
+    const period = button?.dataset.rollingPeriod;
+    if (!period || !StatsPeriod.ROLLING[period]) return;
+    lastRollingPeriod = period;
+    app()?.setStatsPeriod?.(period);
   });
 
-  mainMonthSelect?.addEventListener('change', applyMainSelection);
-
-  document.querySelector('.periods')?.addEventListener('click', (event) => {
-    if (event.target.closest('button[data-period]')) {
-      mainPanel?.classList.add('hidden');
-      mainButton?.setAttribute('aria-expanded', 'false');
-      requestAnimationFrame(() => {
-        const period = root.GitbragApp?.getCurrentStatsPeriod?.();
-        syncMainState(period);
-        redrawMainCalendar(period);
-      });
+  function syncMain(period) {
+    const parsed = StatsPeriod.parse(period);
+    if (!parsed) return;
+    if (parsed.type === 'calendar-month') {
+      setModeButtons('month');
+      populateDated(period);
+    } else if (parsed.type === 'calendar-year') {
+      setModeButtons('year');
+      populateDated(period);
+    } else {
+      lastRollingPeriod = period;
+      setModeButtons('rolling');
     }
-  });
+    rollingPanel?.querySelectorAll('button[data-rolling-period]').forEach((button) => {
+      button.classList.toggle('active', button.dataset.rollingPeriod === period);
+    });
+  }
 
-  document.addEventListener('gitbrag:stats-period', (event) => {
-    syncMainState(event.detail?.period);
-  });
+  document.addEventListener('gitbrag:stats-period', (event) => syncMain(event.detail?.period));
 
   function clearLegacyDatedOptions(select) {
-    if (!select) return;
-    select.querySelectorAll('optgroup[data-dated-options], option[data-dated-option]').forEach((node) => node.remove());
+    select?.querySelectorAll('optgroup[data-dated-options], option[data-dated-option], option[data-dated-current]').forEach((node) => node.remove());
   }
 
   function ensureSentinelOptions(select) {
     if (!select) return;
     clearLegacyDatedOptions(select);
-
     if (!select.querySelector(`option[value="${SENTINEL_MONTH}"]`)) {
-      const month = document.createElement('option');
-      month.value = SENTINEL_MONTH;
-      month.textContent = 'Specific month…';
-      month.dataset.datedSentinel = 'month';
-      select.appendChild(month);
+      const option = document.createElement('option');
+      option.value = SENTINEL_MONTH;
+      option.textContent = 'Specific month…';
+      option.dataset.datedSentinel = 'month';
+      select.appendChild(option);
     }
-
     if (!select.querySelector(`option[value="${SENTINEL_YEAR}"]`)) {
-      const year = document.createElement('option');
-      year.value = SENTINEL_YEAR;
-      year.textContent = 'Specific year…';
-      year.dataset.datedSentinel = 'year';
-      select.appendChild(year);
+      const option = document.createElement('option');
+      option.value = SENTINEL_YEAR;
+      option.textContent = 'Specific year…';
+      option.dataset.datedSentinel = 'year';
+      select.appendChild(option);
     }
   }
 
   function setCurrentDatedOption(select, value) {
     if (!select || !StatsPeriod.isDated(value)) return;
     select.querySelectorAll('option[data-dated-current]').forEach((option) => option.remove());
-
     const option = document.createElement('option');
     option.value = value;
     option.textContent = StatsPeriod.label(value);
     option.dataset.datedCurrent = 'true';
-
     const sentinel = select.querySelector('option[data-dated-sentinel]');
     select.insertBefore(option, sentinel || null);
     select.value = value;
@@ -352,51 +197,34 @@
   function createBuilderControls(select) {
     const statsLabel = select?.closest('label');
     if (!statsLabel) return null;
-
     const existing = statsLabel.parentElement?.querySelector(`[data-dated-builder-for="${select.id}"]`);
     if (existing) return existing;
-
     const controls = document.createElement('div');
     controls.className = 'dated-builder-controls hidden';
     controls.dataset.datedBuilderFor = select.id;
     controls.innerHTML = `
-      <label class="dated-builder-field" data-dated-builder-month-field>
-        <span>Month</span>
-        <select data-dated-builder-month aria-label="Specific calendar month"></select>
-      </label>
-      <label class="dated-builder-field">
-        <span>Year</span>
-        <select data-dated-builder-year aria-label="Specific calendar year"></select>
-      </label>
-      <small>Contribution calendar follows this exact period.</small>
-    `;
+      <label class="dated-builder-field" data-dated-builder-month-field><span>Month</span><select data-dated-builder-month aria-label="Specific calendar month"></select></label>
+      <label class="dated-builder-field"><span>Year</span><select data-dated-builder-year aria-label="Specific calendar year"></select></label>
+      <small>Contribution calendar follows this exact period.</small>`;
     statsLabel.insertAdjacentElement('afterend', controls);
     return controls;
   }
 
-  function showCalendarRange(calendarRange, show) {
-    calendarRange?.closest('label')?.classList.toggle('hidden', !show);
-  }
-
   function builderParts(select) {
     const controls = createBuilderControls(select);
-    return {
-      controls,
-      monthField: controls?.querySelector('[data-dated-builder-month-field]'),
-      monthSelect: controls?.querySelector('[data-dated-builder-month]'),
-      yearSelect: controls?.querySelector('[data-dated-builder-year]'),
-    };
+    return { controls, monthField: controls?.querySelector('[data-dated-builder-month-field]'), monthSelect: controls?.querySelector('[data-dated-builder-month]'), yearSelect: controls?.querySelector('[data-dated-builder-year]') };
   }
+  function showCalendarRange(calendarRange, show) { calendarRange?.closest('label')?.classList.toggle('hidden', !show); }
+  function defaultDatedSelection(mode, options) { return (mode === 'year' ? options?.years?.[0] : options?.months?.[0])?.value || null; }
 
-  function populateBuilderControls(select, calendarRange, value) {
+  function populateBuilderControls(select, calendarRange, value, forcedMode = null) {
     const options = availableOptions();
     const parsed = StatsPeriod.parse(value);
-    const mode = parsed?.type === 'calendar-year' ? 'year' : 'month';
+    const mode = forcedMode || (parsed?.type === 'calendar-year' ? 'year' : 'month');
     const fallback = StatsPeriod.parse(defaultDatedSelection(mode, options));
     const year = parsed?.year || fallback?.year || new Date().getUTCFullYear();
     const month = parsed?.month || fallback?.month || new Date().getUTCMonth() + 1;
     const parts = builderParts(select);
-
     replaceOptions(parts.yearSelect, yearItems(options), year);
     replaceOptions(parts.monthSelect, monthItems(options, parts.yearSelect?.value || year), month);
     parts.monthField?.classList.toggle('hidden', mode === 'year');
@@ -404,26 +232,16 @@
     parts.controls?.classList.remove('hidden');
     if (parts.controls) parts.controls.dataset.mode = mode;
     showCalendarRange(calendarRange, false);
-
     return parts;
-  }
-
-  function hideBuilderControls(select, calendarRange) {
-    const parts = builderParts(select);
-    parts.controls?.classList.add('hidden');
-    select?.querySelectorAll('option[data-dated-current]').forEach((option) => option.remove());
-    showCalendarRange(calendarRange, true);
   }
 
   function builderDatedValue(parts) {
     const year = Number(parts.yearSelect?.value);
     if (!year) return null;
-    return parts.controls?.dataset.mode === 'year'
-      ? StatsPeriod.valueForYear(year)
-      : StatsPeriod.valueForMonth(year, Number(parts.monthSelect?.value));
+    return parts.controls?.dataset.mode === 'year' ? StatsPeriod.valueForYear(year) : StatsPeriod.valueForMonth(year, Number(parts.monthSelect?.value));
   }
 
-  function commitBuilderDated(select, calendarRange, parts, { dispatch = true } = {}) {
+  function commitBuilderDated(select, calendarRange, parts, dispatch = true) {
     const value = builderDatedValue(parts);
     if (!value) return;
     setCurrentDatedOption(select, value);
@@ -431,17 +249,10 @@
     if (dispatch) select.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
-  function syncBuilder(select, calendarRange, preferredValue = null) {
-    if (!select) return;
-    ensureSentinelOptions(select);
-
-    const value = StatsPeriod.isDated(preferredValue) ? preferredValue : select.value;
-    if (StatsPeriod.isDated(value)) {
-      setCurrentDatedOption(select, value);
-      populateBuilderControls(select, calendarRange, value);
-    } else {
-      hideBuilderControls(select, calendarRange);
-    }
+  function hideBuilderControls(select, calendarRange) {
+    builderParts(select).controls?.classList.add('hidden');
+    select?.querySelectorAll('option[data-dated-current]').forEach((option) => option.remove());
+    showCalendarRange(calendarRange, true);
   }
 
   function setupBuilder(select, calendarRange) {
@@ -449,82 +260,58 @@
     select.dataset.datedSetup = 'true';
     ensureSentinelOptions(select);
     const parts = builderParts(select);
-
     select.addEventListener('change', () => {
       if (select.value === SENTINEL_MONTH || select.value === SENTINEL_YEAR) {
         const mode = select.value === SENTINEL_YEAR ? 'year' : 'month';
         const fallback = defaultDatedSelection(mode, availableOptions());
         if (!fallback) return;
-        const nextParts = populateBuilderControls(select, calendarRange, fallback);
-        if (nextParts.controls) nextParts.controls.dataset.mode = mode;
-        commitBuilderDated(select, calendarRange, nextParts, { dispatch: false });
-        return;
-      }
-
-      if (StatsPeriod.isDated(select.value)) {
+        const nextParts = populateBuilderControls(select, calendarRange, fallback, mode);
+        commitBuilderDated(select, calendarRange, nextParts, false);
+      } else if (StatsPeriod.isDated(select.value)) {
         populateBuilderControls(select, calendarRange, select.value);
       } else {
         hideBuilderControls(select, calendarRange);
       }
     });
-
     parts.yearSelect?.addEventListener('change', () => {
-      if (parts.controls?.dataset.mode === 'month') {
-        const previousMonth = parts.monthSelect?.value;
-        replaceOptions(parts.monthSelect, monthItems(availableOptions(), parts.yearSelect.value), previousMonth);
-      }
+      if (parts.controls?.dataset.mode === 'month') replaceOptions(parts.monthSelect, monthItems(availableOptions(), parts.yearSelect.value), parts.monthSelect?.value);
       commitBuilderDated(select, calendarRange, parts);
     });
-
     parts.monthSelect?.addEventListener('change', () => commitBuilderDated(select, calendarRange, parts));
   }
 
   function primeBuilderPeriod(select, period) {
-    if (!select || !StatsPeriod.isDated(period)) return;
+    if (!select) return;
     ensureSentinelOptions(select);
-    setCurrentDatedOption(select, period);
+    if (StatsPeriod.isDated(period)) setCurrentDatedOption(select, period);
   }
 
-  $('#shareLinkAction')?.addEventListener('click', () => {
-    primeBuilderPeriod($('#shareStatsPeriod'), root.GitbragApp?.getCurrentStatsPeriod?.());
-  }, true);
+  $('#shareLinkAction')?.addEventListener('click', () => primeBuilderPeriod($('#shareStatsPeriod'), app()?.getCurrentStatsPeriod?.()), true);
+  $('#embedAction')?.addEventListener('click', () => primeBuilderPeriod($('#shareStatsPeriod'), app()?.getCurrentStatsPeriod?.()), true);
+  $('#generateImageAction')?.addEventListener('click', () => primeBuilderPeriod($('#pngStatsPeriod'), app()?.getCurrentStatsPeriod?.()), true);
 
-  $('#embedAction')?.addEventListener('click', () => {
-    primeBuilderPeriod($('#shareStatsPeriod'), root.GitbragApp?.getCurrentStatsPeriod?.());
-  }, true);
-
-  $('#generateImageAction')?.addEventListener('click', () => {
-    primeBuilderPeriod($('#pngStatsPeriod'), root.GitbragApp?.getCurrentStatsPeriod?.());
-  }, true);
-
-  function preferredShareConfig() {
-    return root.GitbragSharePage?.getActiveConfig?.() || currentContext()?.defaultConfig || null;
-  }
+  function preferredShareConfig() { return root.GitbragSharePage?.getActiveConfig?.() || app()?.getShareBuilderContext?.()?.defaultConfig || null; }
 
   function observeDialog(dialog, select, calendarRange, configGetter, afterPopulate = null) {
     if (!dialog || !select) return;
     setupBuilder(select, calendarRange);
-
     const populate = () => {
       if (!dialog.open) return;
-      const preferred = configGetter?.();
-      syncBuilder(select, calendarRange, preferred?.statsPeriod || null);
+      const period = configGetter?.()?.statsPeriod || null;
+      if (StatsPeriod.isDated(period)) {
+        setCurrentDatedOption(select, period);
+        populateBuilderControls(select, calendarRange, period);
+      } else {
+        hideBuilderControls(select, calendarRange);
+      }
       afterPopulate?.();
     };
-
     const observer = new MutationObserver(populate);
     observer.observe(dialog, { attributes: true, attributeFilter: ['open'] });
-    populate();
   }
 
   observeDialog(shareModal, $('#shareStatsPeriod'), $('#shareCalendarRange'), preferredShareConfig);
-  observeDialog(
-    pngModal,
-    $('#pngStatsPeriod'),
-    $('#pngCalendarRange'),
-    () => currentContext()?.defaultConfig || null,
-    () => requestAnimationFrame(() => root.GitbragPng?.renderPreview?.()),
-  );
+  observeDialog(pngModal, $('#pngStatsPeriod'), $('#pngCalendarRange'), () => app()?.getShareBuilderContext?.()?.defaultConfig || null, () => requestAnimationFrame(() => root.GitbragPng?.renderPreview?.()));
 
-  syncMainState(root.GitbragApp?.getCurrentStatsPeriod?.());
+  syncMain(app()?.getCurrentStatsPeriod?.());
 })(window);
