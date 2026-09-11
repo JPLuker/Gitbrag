@@ -1,228 +1,130 @@
 # Gitbrag — Final Manual Test Gate for 1.0
 
-This file contains the checks that still require a real browser, live GitHub behavior, visual inspection, or failure-state simulation before Gitbrag can be tagged **v1.0.0**.
-
-Automated/static checks should be run before this document is used. Do not mark an item complete unless it was actually tested.
-
----
+This file contains checks that require a real browser, live GitHub behavior, visual inspection, or failure-state simulation before Gitbrag can be tagged **v1.0.0**. Automated/static checks should be run first. Do not mark an item complete unless it was actually tested.
 
 ## 1. Landing page
 
 - [ ] Desktop: hero copy, search field, example dashboard preview, and footer look intentional.
 - [ ] Desktop: hero heading has no overlapping letters at common widths.
-- [ ] Tablet: layout stacks cleanly without clipped text or horizontal overflow.
-- [ ] Small mobile: no horizontal scrolling; search field/button remain usable.
-- [ ] Search by plain GitHub username routes into the profile.
-- [ ] Search by `github.com/username` routes into the profile.
-- [ ] **New user** returns to the simplified landing page.
-- [ ] Footer links open the intended Gitbrag/creator destinations.
-- [ ] The example dashboard remains clearly illustrative and is not mistaken for live user data.
+- [ ] Mobile 320–430 px: no horizontal page overflow, clipped search controls, or unusable footer links.
+- [ ] Search works with a username and `github.com/username` URL.
 
----
+## 2. Default profile period — v0.9.7.2
 
-## 2. Dated month/year activity periods (v0.9.7.1)
+- [ ] Opening a normal profile defaults to **Month** mode and the current calendar month.
+- [ ] Current-month stats are month-to-date, not rolling 30-day stats.
+- [ ] The contribution calendar displays that same current calendar month.
+- [ ] The selected period is shown once as context; the calendar heading does not duplicate the same month/year label.
+- [ ] Navigating to a second user also defaults that profile to the current month.
+- [ ] Back / New user and re-opening a profile do not leave stale Month/Year/Rolling UI state.
 
-### Main dashboard
+## 3. Month / Year / Rolling controls
 
-- [ ] **DATE** opens the calendar-period picker.
-- [ ] DATE opens a compact Month/Year panel instead of one long native selector.
-- [ ] Month mode shows only a month selector plus year selector.
-- [ ] Year mode shows only the year selector.
-- [ ] Available months run from the GitHub account's creation month through the current month.
-- [ ] Available years run from the GitHub account's creation year through the current year.
-- [ ] Future months/years are not offered.
-- [ ] Selecting a historical month such as **August 2026** uses exactly Aug 1–31.
-- [ ] Selecting the current month shows **MONTH TO DATE** in the activity label.
-- [ ] Selecting a historical year uses exactly Jan 1–Dec 31.
-- [ ] Selecting the current year shows **YEAR TO DATE** in the activity label.
-- [ ] Contributions are correct for a dated month.
-- [ ] Active days are correct for a dated month.
-- [ ] Best day is correct for a dated month.
-- [ ] Longest streak is correct for a dated month.
-- [ ] Contributions are correct for a dated year.
-- [ ] Active days are correct for a dated year.
-- [ ] Best day is correct for a dated year.
-- [ ] Longest streak is correct for a dated year.
-- [ ] Main contribution calendar switches to the same exact selected month/year.
-- [ ] Returning to a rolling period restores the normal LAST YEAR main calendar.
-- [ ] Switching from DATE back to 24H/7D/1M/6M/1Y/ALL TIME clears the DATE active state.
-- [ ] Returning to DATE remembers/reflects the active dated selection while that profile remains loaded.
+- [ ] **Month** exposes compact Month + Year selectors and updates immediately.
+- [ ] A historical month such as August 2026 uses exactly August 1–31.
+- [ ] The current month is correctly labeled month-to-date.
+- [ ] **Year** exposes a Year selector and hides the Month selector.
+- [ ] A historical year uses January 1–December 31.
+- [ ] The current year is correctly labeled year-to-date.
+- [ ] **Rolling** exposes 24H, 7D, 30D, 60D, 6M, 1Y, and All Time.
+- [ ] Each rolling choice updates both stats and the contribution calendar to the same period.
+- [ ] Switching repeatedly between Month, Year, and Rolling does not leave stale highlighted buttons or stale calendar cells.
 
-### Share links
+## 4. Contribution calculations
 
-- [ ] Open **Share → Share link** while the main dashboard is on a dated month; the same dated month is selected.
-- [ ] Open **Share → Share link** while the main dashboard is on a dated year; the same dated year is selected.
-- [ ] Stats period dropdown stays short and offers **Specific month…** / **Specific year…** instead of listing every date.
-- [ ] Choosing a specific month/year reveals compact date controls.
-- [ ] Calendar range is hidden while a dated period is active because the calendar follows that exact period.
-- [ ] Previewing a dated share page shows the correct label, values, and matching contribution calendar.
-- [ ] Copying and reopening a dated share link preserves the exact period.
-- [ ] A v1 compact share token from pre-v0.9.7 still opens correctly.
-- [ ] A legacy v1 JSON `?share=` token still opens correctly.
-- [ ] Invalid/unsupported tokens fail safely and fall back to the full profile.
+For at least one profile with known activity, spot-check against GitHub/public contribution data:
 
-### PNG generator
+- [ ] Contributions total.
+- [ ] Active days.
+- [ ] Best day.
+- [ ] Longest streak.
+- [ ] Historical month totals do not include adjacent-month days used only for calendar-grid alignment.
+- [ ] 30D and 60D produce distinct expected date windows.
+- [ ] All Time still works.
 
-- [ ] Open **Generate image** while the main dashboard is on a dated month; the first rendered preview uses that dated month (not rolling 1M).
-- [ ] Open **Generate image** while the main dashboard is on a dated year; the first rendered preview uses that dated year.
-- [ ] PNG Stats period selector stays short and offers **Specific month…** / **Specific year…**.
-- [ ] Calendar range is hidden while a dated PNG period is active.
-- [ ] Changing between rolling and dated periods re-renders the preview.
-- [ ] PNG activity label and contribution calendar both match the selected calendar month/year.
-- [ ] Downloaded PNG matches the visible preview.
-- [ ] Downloaded image is exactly 1080 × 1080.
+## 5. Share links
 
-### Embed
+- [ ] Open **Share → Share link** from the default current-month profile.
+- [ ] Builder starts with the current calendar month selected.
+- [ ] Specific Month/Year controls are compact and usable on mobile.
+- [ ] There is no competing visible Calendar Range setting; stats and calendar use the same period.
+- [ ] Copy a current-month link, open it in a fresh/private tab, and verify the exact period survives.
+- [ ] Repeat with a historical month.
+- [ ] Repeat with a calendar year.
+- [ ] Repeat with 60D rolling.
+- [ ] Existing pre-v0.9.7 v1 share links still decode without breaking the page.
+- [ ] Malformed/unsupported tokens fall back safely to the full profile.
 
-- [ ] Open **Share → Embed** with a dated month selected.
-- [ ] Generated embed preserves the dated period after loading in a test host page.
-- [ ] Dated labels and values match the normal shared page.
-- [ ] Auto-height behavior still works.
+## 6. Shared-page visual output
 
----
+- [ ] A dated shared page displays the selected period once rather than repeating it beside both Activity Summary and Contribution Calendar.
+- [ ] Current month/year partial labels remain understandable.
+- [ ] Calendar cells fit at phone, tablet, and desktop widths.
+- [ ] Repositories, profile, and disabled-section combinations still lay out correctly.
 
-## 3. Website regression
+## 7. PNG generator
 
-### Profile loading and failures
+- [ ] Open **Share → Generate image** from the default current-month profile.
+- [ ] PNG builder starts on the current month.
+- [ ] Month/Year picker controls are usable on a phone-sized viewport.
+- [ ] Rolling 60D can be selected.
+- [ ] Calendar follows the same selected period as stats.
+- [ ] Dated PNG shows the month/year once; there is no duplicate period label above the calendar.
+- [ ] Preview matches the downloaded 1080 × 1080 PNG.
+- [ ] Download works with Profile/Stats/Calendar/Repositories individually disabled in representative combinations.
+- [ ] Avatar load failure still produces a usable fallback image.
 
-- [ ] Valid username.
-- [ ] Valid GitHub profile URL.
-- [ ] Nonexistent user.
-- [ ] Invalid input.
-- [ ] GitHub API rate-limit state.
-- [ ] GitHub/network failure state.
-- [ ] Contribution-service failure leaves profile/repository data visible.
-- [ ] Contribution-dependent values are marked unavailable instead of zero.
+## 8. Embeds
 
-### Rolling activity periods
+- [ ] Generate an embed for current month, a historical month, a year, and 60D rolling.
+- [ ] Period survives in the embed URL/config.
+- [ ] Embedded stats and contribution calendar use the same selected period.
+- [ ] Auto-height helper still resizes correctly.
+- [ ] Resize messages remain restricted to the expected iframe/origin.
 
-For **24H, 7D, 1M, 6M, 1Y, ALL TIME**:
+## 9. General profile regression
 
-- [ ] Contributions correct.
-- [ ] Active days correct.
-- [ ] Best day correct.
-- [ ] Longest streak correct.
-- [ ] Label correct.
+- [ ] Direct `#/username` route works.
+- [ ] New user/back navigation works.
+- [ ] Nonexistent users display the error state.
+- [ ] GitHub rate-limit state is understandable.
+- [ ] Contribution-service failure keeps profile/repository data visible and marks contribution-dependent data unavailable rather than showing zero.
+- [ ] Repository links, GitHub profile link, share menu, and dialogs all remain usable with keyboard navigation.
 
-### Profile/repository layout
+## 10. Browser/device pass
 
-- [ ] Public repo count correct.
-- [ ] Forks remain excluded from ranked repository results.
-- [ ] Loaded-repository star total behaves as documented.
-- [ ] Followers/following correct.
-- [ ] Account age correct.
-- [ ] Long username does not break layout.
-- [ ] Long display name does not break layout.
-- [ ] Long bio does not break layout.
-- [ ] Long repo name/description does not break layout.
+Test at minimum where available:
 
-### Navigation and responsive layout
+- [ ] Chromium desktop (Chrome or Brave).
+- [ ] Firefox desktop.
+- [ ] Safari/WebKit or an iPhone browser.
+- [ ] Android Chromium/Brave.
+- [ ] 320 px width.
+- [ ] ~390–430 px width.
+- [ ] Tablet width.
+- [ ] Desktop width.
 
-- [ ] Back button.
-- [ ] Browser Back/Forward.
-- [ ] Direct `#/username` route.
-- [ ] Refresh on a profile route.
-- [ ] Desktop layout.
-- [ ] Tablet layout.
-- [ ] Small mobile layout.
-- [ ] No unexpected horizontal scrolling.
+Pay particular attention to native `<select>` behavior, modal scrolling, horizontal overflow, and the Month/Year/Rolling controls.
 
----
+## 11. Chrome extension
 
-## 4. Share-link regression
+The extension remains intentionally separate from the website period redesign.
 
-- [ ] Toggle Profile / Stats / Calendar / Repositories independently.
-- [ ] 0, 1, 2, 3, and 4 selected repositories.
-- [ ] Calendar ranges: 1M, 3M, 6M, 1Y, 2Y, All available.
-- [ ] Text sizes: Compact, Balanced, Large, Huge.
-- [ ] Accents: Auto/Profile, Blue, White, Cyan, Purple, Green.
-- [ ] Card styles: Solid, Outline, Glass.
-- [ ] Preview works.
-- [ ] Copy link works.
-- [ ] Shared page works on desktop and mobile.
-- [ ] Zero-module configuration behaves intentionally.
-- [ ] Zero-repository configuration does not repopulate defaults unexpectedly.
+- [ ] Load unpacked successfully.
+- [ ] Public GitHub profile detection works.
+- [ ] Existing 7D / 1M / 6M / 1Y extension periods still work.
+- [ ] Popup enable/disable and cache clearing work.
+- [ ] Loading, timeout, rate-limit, partial-data, and retry states remain usable.
+- [ ] No new extension permissions were introduced by website-only changes.
 
----
+## 12. Final 1.0 release gate
 
-## 5. PNG regression
+Before tagging v1.0.0:
 
-- [ ] PNG remains an independent Canvas 2D renderer (not a DOM screenshot).
-- [ ] Preview is the exact canvas exported.
-- [ ] Rounded corners look correct.
-- [ ] Single top-right Gitbrag wordmark remains.
-- [ ] Footer profile URL remains.
-- [ ] Long names/repo names do not collide.
-- [ ] No clipping or unexplained dead space.
-- [ ] Module combinations: profile/stats/calendar/repos individually and together.
-- [ ] Repository counts 0–4.
-- [ ] Calendar ranges 1M / 3M / 6M / 1Y / 2Y / all.
-- [ ] Every text size, accent, and card style.
-- [ ] Avatar failure falls back to initials.
-- [ ] Controls remain locked during export.
-- [ ] Settings cannot supersede an in-progress export.
-
----
-
-## 6. Chrome extension live-browser gate
-
-These checks cannot be proven by static source inspection alone.
-
-- [ ] Load unpacked in Chrome/Chromium.
-- [ ] Card appears on a real public GitHub profile in the intended location.
-- [ ] GitHub dark mode.
-- [ ] GitHub light mode.
-- [ ] 7D / 1M / 6M / 1Y tabs.
-- [ ] SPA/Turbo navigation between profiles.
-- [ ] Re-injection after GitHub rebuilds the profile DOM.
-- [ ] No duplicate cards.
-- [ ] Popup enable/disable.
-- [ ] Default-period setting.
-- [ ] Cache clear.
-- [ ] Retry/force refresh.
-- [ ] Loading state.
-- [ ] Contribution-service failure.
-- [ ] GitHub API rate-limit/error state.
-- [ ] Malformed/partial response handling.
-- [ ] Background-service failure handling.
-- [ ] Errors remain visible instead of silently removing the card.
-
----
-
-## 7. Accessibility / browser behavior
-
-- [ ] Keyboard navigation through main app.
-- [ ] Share menu Arrow Up/Down and Home/End.
-- [ ] Enter/Space activation.
-- [ ] Escape closes transient UI.
-- [ ] Dialog focus placement and return.
-- [ ] Visible focus states.
-- [ ] DATE button exposes correct `aria-pressed` / `aria-expanded` state.
-- [ ] Month/Year mode buttons expose correct `aria-pressed` state.
-- [ ] Form controls have usable labels.
-- [ ] Live/status messages make sense.
-- [ ] Contrast acceptable.
-- [ ] Reduced-motion behavior acceptable.
-- [ ] Chrome/Chromium smoke test.
-- [ ] Firefox smoke test.
-- [ ] Safari smoke test if available.
-
----
-
-## 8. Final 1.0 release gate
-
-After every release-blocking item above passes:
-
-- [ ] Freeze feature development.
-- [ ] Change visible version to `v1.0.0`.
-- [ ] Change all main-site cache-busting references to `?v=1.0.0`.
-- [ ] Set extension manifest version to `1.0.0` if included in the release.
-- [ ] Rewrite/freeze README as final-product documentation.
-- [ ] Run all automated tests and syntax checks again.
-- [ ] Perform one final deployed GitHub Pages smoke test.
-- [ ] Confirm no console-breaking errors.
-- [ ] Confirm deployed assets actually serve v1.0.0.
-- [ ] Tag `v1.0.0`.
-- [ ] Create the GitHub release and release notes.
-
-When these pass, Gitbrag 1.0 is ready.
+- [ ] Run all Node tests and `node --check` commands documented in README.
+- [ ] Confirm no stale `0.9.x` cache refs or visible version labels remain after the 1.0 bump.
+- [ ] Confirm README matches actual behavior.
+- [ ] Confirm extension privacy documentation is accurate.
+- [ ] Confirm production GitHub Pages deploy succeeds.
+- [ ] Perform one final production smoke test of dashboard, share link, PNG, and embed.
+- [ ] Tag/release only after the above manual checks are complete.
