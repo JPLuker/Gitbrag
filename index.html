@@ -11,15 +11,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=0.9.7.1">
-  <link rel="stylesheet" href="share-page.css?v=0.9.7.1">
-  <link rel="stylesheet" href="png.css?v=0.9.7.1">
-  <link rel="stylesheet" href="landing.css?v=0.9.7.1">
-  <link rel="stylesheet" href="dated.css?v=0.9.7.1">
+  <link rel="stylesheet" href="style.css?v=0.9.7.2">
+  <link rel="stylesheet" href="share-page.css?v=0.9.7.2">
+  <link rel="stylesheet" href="png.css?v=0.9.7.2">
+  <link rel="stylesheet" href="landing.css?v=0.9.7.2">
+  <link rel="stylesheet" href="dated.css?v=0.9.7.2">
 </head>
 <body>
   <main class="app">
-    <div class="app-version" aria-label="Gitbrag version 0.9.7.1">v0.9.7.1</div>
+    <div class="app-version" aria-label="Gitbrag version 0.9.7.2">v0.9.7.2</div>
 
     <section id="searchView" class="landing-simple" aria-labelledby="searchTitle">
       <div class="landing-simple-shell">
@@ -51,7 +51,7 @@
                 <div class="landing-demo-brand">GIT<span>BRAG</span></div>
               </div>
 
-              <div class="landing-demo-label"><span>Activity summary</span><span>Example · last 30 days</span></div>
+              <div class="landing-demo-label"><span>Activity summary</span><span>Example · current month</span></div>
               <div class="landing-demo-stats">
                 <article class="landing-demo-stat"><span>Contributions</span><b>348</b><small>in this period</small></article>
                 <article class="landing-demo-stat"><span>Active days</span><b>15</b><small>with activity</small></article>
@@ -59,7 +59,7 @@
                 <article class="landing-demo-stat"><span>Longest streak</span><b>10</b><small>consecutive days</small></article>
               </div>
 
-              <div class="landing-demo-label"><span>Contribution calendar</span><span>Last month</span></div>
+              <div class="landing-demo-label"><span>Contribution calendar</span><span></span></div>
               <div class="landing-demo-calendar"><div class="landing-demo-heatmap" aria-hidden="true"></div></div>
 
               <div class="landing-demo-label"><span>Featured repositories</span><span>2 selected</span></div>
@@ -102,7 +102,7 @@
         </footer>
 
         <div class="landing-simple-footer-bottom">
-          <span>Gitbrag v0.9.7.1</span>
+          <span>Gitbrag v0.9.7.2</span>
           <span>Static GitHub Pages app · public GitHub data</span>
         </div>
       </div>
@@ -136,36 +136,38 @@
         </div>
       </div>
 
-      <div class="periods" role="group" aria-label="Activity period">
-        <button type="button" data-period="day" aria-pressed="false">24H</button>
-        <button type="button" data-period="week" aria-pressed="false">7D</button>
-        <button type="button" data-period="month" class="active" aria-pressed="true">1M</button>
-        <button type="button" data-period="sixmonths" aria-pressed="false">6M</button>
-        <button type="button" data-period="year" aria-pressed="false">1Y</button>
-        <button type="button" data-period="lifetime" aria-pressed="false">ALL TIME</button>
-        <button type="button" data-period-picker="dated" aria-pressed="false" aria-controls="datedPeriodPanel" aria-expanded="false">DATE</button>
+      <div class="periods period-modes" role="group" aria-label="Activity period mode">
+        <button id="periodModeMonth" class="active" type="button" aria-pressed="true">MONTH</button>
+        <button id="periodModeYear" type="button" aria-pressed="false">YEAR</button>
+        <button id="periodModeRolling" type="button" aria-pressed="false">ROLLING</button>
       </div>
 
-      <div id="datedPeriodPanel" class="dated-period-panel hidden">
-        <div class="dated-period-mode" role="group" aria-label="Specific date period type">
-          <button id="datedModeMonth" class="active" type="button" aria-pressed="true">Month</button>
-          <button id="datedModeYear" type="button" aria-pressed="false">Year</button>
-        </div>
+      <div id="datedPeriodPanel" class="dated-period-panel">
         <div class="dated-period-fields">
           <label id="datedMonthField" for="datedMonthSelect">
             <span>Month</span>
-            <select id="datedMonthSelect" aria-label="Specific calendar month"></select>
+            <select id="datedMonthSelect" aria-label="Calendar month"></select>
           </label>
           <label for="datedYearSelect">
             <span>Year</span>
-            <select id="datedYearSelect" aria-label="Specific calendar year"></select>
+            <select id="datedYearSelect" aria-label="Calendar year"></select>
           </label>
         </div>
+      </div>
+
+      <div id="rollingPeriodPanel" class="rolling-period-panel hidden" role="group" aria-label="Rolling activity period">
+        <button type="button" data-rolling-period="day">24H</button>
+        <button type="button" data-rolling-period="week">7D</button>
+        <button type="button" data-rolling-period="month">30D</button>
+        <button type="button" data-rolling-period="twomonths">60D</button>
+        <button type="button" data-rolling-period="sixmonths">6M</button>
+        <button type="button" data-rolling-period="year">1Y</button>
+        <button type="button" data-rolling-period="lifetime">ALL TIME</button>
       </div>
 
       <div class="section-title stats-title">
         <span>ACTIVITY SUMMARY</span>
-        <span id="periodLabel">LAST 30 DAYS</span>
+        <span id="periodLabel">CURRENT MONTH</span>
       </div>
       <div id="contributionNotice" class="notice hidden" role="status"></div>
       <div id="statsGrid" class="stats-grid"></div>
@@ -173,7 +175,7 @@
 
       <div class="section-title">
         <span>CONTRIBUTION CALENDAR</span>
-        <span id="calendarPeriodLabel">LAST YEAR</span>
+        <span id="calendarPeriodLabel"></span>
       </div>
       <div class="calendar-card">
         <div class="calendar-scroll">
@@ -238,7 +240,7 @@
 
         <fieldset class="share-fieldset">
           <legend>Page settings</legend>
-          <label><span>Stats period</span><select id="shareStatsPeriod"><option value="day">24 hours</option><option value="week">7 days</option><option value="month">1 month</option><option value="sixmonths">6 months</option><option value="year">1 year</option><option value="lifetime">All time</option></select></label>
+          <label><span>Stats period</span><select id="shareStatsPeriod"><option value="day">24 hours</option><option value="week">7 days</option><option value="month">30 days</option><option value="twomonths">60 days</option><option value="sixmonths">6 months</option><option value="year">1 year</option><option value="lifetime">All time</option></select></label>
           <label><span>Calendar range</span><select id="shareCalendarRange"><option value="1m">1 month</option><option value="3m">3 months</option><option value="6m">6 months</option><option value="1y">1 year</option><option value="2y">2 years</option><option value="all">All available</option></select></label>
           <label><span>Text size</span><select id="shareTextSize"><option value="compact">Compact</option><option value="balanced">Balanced</option><option value="large">Large</option><option value="huge">Huge</option></select></label>
           <label><span>Accent</span><select id="shareAccent"><option value="auto">Profile accent</option><option value="blue">Blue</option><option value="white">White</option><option value="cyan">Cyan</option><option value="purple">Purple</option><option value="green">Green</option></select></label>
@@ -282,7 +284,7 @@
 
           <fieldset class="png-fieldset">
             <legend>Image settings</legend>
-            <label><span>Stats period</span><select id="pngStatsPeriod"><option value="day">24 hours</option><option value="week">7 days</option><option value="month">1 month</option><option value="sixmonths">6 months</option><option value="year">1 year</option><option value="lifetime">All time</option></select></label>
+            <label><span>Stats period</span><select id="pngStatsPeriod"><option value="day">24 hours</option><option value="week">7 days</option><option value="month">30 days</option><option value="twomonths">60 days</option><option value="sixmonths">6 months</option><option value="year">1 year</option><option value="lifetime">All time</option></select></label>
             <label><span>Calendar range</span><select id="pngCalendarRange"><option value="1m">1 month</option><option value="3m">3 months</option><option value="6m">6 months</option><option value="1y">1 year</option><option value="2y">2 years</option><option value="all">All available</option></select></label>
             <label><span>Text size</span><select id="pngTextSize"><option value="compact">Compact</option><option value="balanced">Balanced</option><option value="large">Large</option><option value="huge">Huge</option></select></label>
             <label><span>Accent</span><select id="pngAccent"><option value="auto">Profile accent</option><option value="blue">Blue</option><option value="white">White</option><option value="cyan">Cyan</option><option value="purple">Purple</option><option value="green">Green</option></select></label>
@@ -310,13 +312,13 @@
     </div>
   </dialog>
 
-  <script src="stats-period.js?v=0.9.7.1"></script>
-  <script src="share-config.js?v=0.9.7.1"></script>
-  <script src="share-page.js?v=0.9.7.1"></script>
-  <script src="app.js?v=0.9.7.1"></script>
-  <script src="dated-period.js?v=0.9.7.1"></script>
-  <script src="landing.js?v=0.9.7.1"></script>
-  <script src="embed.js?v=0.9.7.1"></script>
-  <script src="png.js?v=0.9.7.1"></script>
+  <script src="stats-period.js?v=0.9.7.2"></script>
+  <script src="share-config.js?v=0.9.7.2"></script>
+  <script src="share-page.js?v=0.9.7.2"></script>
+  <script src="app.js?v=0.9.7.2"></script>
+  <script src="dated-period.js?v=0.9.7.2"></script>
+  <script src="landing.js?v=0.9.7.2"></script>
+  <script src="embed.js?v=0.9.7.2"></script>
+  <script src="png.js?v=0.9.7.2"></script>
 </body>
 </html>
