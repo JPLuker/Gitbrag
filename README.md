@@ -2,14 +2,14 @@
 
 Gitbrag is a lightweight GitHub Pages app that turns public GitHub activity into a focused stats dashboard with share links, social PNGs, website embeds, and an optional Chrome extension.
 
-**v0.9.7** adds calendar-based activity periods. In addition to rolling 24H/7D/1M/6M/1Y/all-time views, Gitbrag can now calculate a specific calendar month or year, including month-to-date and year-to-date labels for the current period. Dated periods flow through the dashboard, share links, embeds, and PNG generation.
+**v0.9.7.1** simplifies the calendar-period UI introduced in v0.9.7. Specific months and years now use compact Month/Year controls instead of one long native option list, and contribution calendars automatically follow the exact selected month/year across the dashboard, share pages, embeds, and PNGs.
 
 ## Current features
 
 - Search by GitHub username or paste a `github.com/username` profile URL.
 - Open a profile directly with a hash route such as `#/octocat`.
 - Browse rolling contribution activity for 24H, 7D, 1M, 6M, 1Y, and all available history.
-- Select a specific calendar month or calendar year from the **DATED** activity option.
+- Select a specific calendar month or calendar year from the **DATE** activity option.
 - View contributions, active days, best day, longest streak, public repositories, repository stars, followers, following, and account age.
 - View a contribution heatmap and ranked original public repositories.
 - Build configurable responsive share links with a compact versioned URL token.
@@ -47,14 +47,14 @@ Gitbrag supports two kinds of stats periods.
 
 ### Dated periods
 
-Use **DATED** to choose an exact calendar period:
+Use **DATE** to choose an exact calendar period with separate **Month** and **Year** controls:
 
 - A calendar month, such as **August 2026**
 - A calendar year, such as **2025**
 
 Historical calendar periods use their exact calendar boundaries. The current month/year is capped at today and labeled **Month to date** or **Year to date** so an incomplete period is not presented as final.
 
-Dated stats use the same four calculations as rolling periods: contributions, active days, best day, and longest streak.
+Dated stats use the same four calculations as rolling periods: contributions, active days, best day, and longest streak. When a dated period is selected, the contribution calendar follows that exact month/year automatically.
 
 ## Architecture
 
@@ -96,7 +96,7 @@ The configuration can control:
 - Contribution calendar
 - Repository section
 - Rolling or dated stats period
-- Calendar range
+- Calendar range for rolling periods; dated periods automatically use their exact month/year
 - Up to four featured repositories
 - Text size
 - Accent
@@ -114,7 +114,7 @@ PNG output is intentionally fixed to:
 PNG
 ```
 
-The visible preview is the same canvas that is exported. The layout adapts to enabled sections, stats period, calendar range, and repository count. Contribution days are packed into a dense square-cell matrix for the social image, while the normal responsive webpage keeps its conventional calendar renderer.
+The visible preview is the same canvas that is exported. The layout adapts to enabled sections, stats period, calendar range, and repository count. For a specific month/year, the PNG contribution calendar automatically uses that exact dated period. Contribution days are packed into a dense square-cell matrix for the social image, while the normal responsive webpage keeps its conventional calendar renderer.
 
 Generated PNGs use a single enlarged Gitbrag wordmark in the top-right and retain the GitHub profile URL in the footer.
 
@@ -216,4 +216,5 @@ Then open `http://localhost:8000`.
 - **0.9.5** — full marketing landing page
 - **0.9.6** — simplified launch landing page and creator/project footer
 - **0.9.7** — dated calendar-month/year stats across dashboard, shares, embeds, and PNGs
+- **0.9.7.1** — simplified date picker and automatic dated-calendar synchronization
 - **1.0** — final regression, documentation freeze, and stable release
