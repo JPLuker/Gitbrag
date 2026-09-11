@@ -304,7 +304,6 @@
 
     if (canDefault && autoDefaultedRoute !== routeKey && period === StatsPeriod.DEFAULT_PERIOD) {
       autoDefaultedRoute = routeKey;
-      syncMain(period);
       requestAnimationFrame(() => {
         if (app()?.getCurrentStatsPeriod?.() === period) app()?.setStatsPeriod?.(StatsPeriod.currentMonthValue());
       });
@@ -489,6 +488,4 @@
     () => app()?.getShareBuilderContext?.()?.defaultConfig || null,
     () => requestAnimationFrame(() => root.GitbragPng?.renderPreview?.()),
   );
-
-  syncMain(app()?.getCurrentStatsPeriod?.());
 })(window);
