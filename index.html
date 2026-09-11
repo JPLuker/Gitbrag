@@ -11,15 +11,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=0.9.7.2">
-  <link rel="stylesheet" href="share-page.css?v=0.9.7.2">
-  <link rel="stylesheet" href="png.css?v=0.9.7.2">
-  <link rel="stylesheet" href="landing.css?v=0.9.7.2">
-  <link rel="stylesheet" href="dated.css?v=0.9.7.2">
+  <link rel="stylesheet" href="style.css?v=0.9.7.3">
+  <link rel="stylesheet" href="share-page.css?v=0.9.7.3">
+  <link rel="stylesheet" href="png.css?v=0.9.7.3">
+  <link rel="stylesheet" href="landing.css?v=0.9.7.3">
+  <link rel="stylesheet" href="dated.css?v=0.9.7.3">
 </head>
 <body>
   <main class="app">
-    <div class="app-version" aria-label="Gitbrag version 0.9.7.2">v0.9.7.2</div>
+    <div class="app-version" aria-label="Gitbrag version 0.9.7.3">v0.9.7.3</div>
 
     <section id="searchView" class="landing-simple" aria-labelledby="searchTitle">
       <div class="landing-simple-shell">
@@ -102,7 +102,7 @@
         </footer>
 
         <div class="landing-simple-footer-bottom">
-          <span>Gitbrag v0.9.7.2</span>
+          <span>Gitbrag v0.9.7.3</span>
           <span>Static GitHub Pages app · public GitHub data</span>
         </div>
       </div>
@@ -136,33 +136,54 @@
         </div>
       </div>
 
-      <div class="periods period-modes" role="group" aria-label="Activity period mode">
-        <button id="periodModeMonth" class="active" type="button" aria-pressed="true">MONTH</button>
-        <button id="periodModeYear" type="button" aria-pressed="false">YEAR</button>
-        <button id="periodModeRolling" type="button" aria-pressed="false">ROLLING</button>
-      </div>
-
-      <div id="datedPeriodPanel" class="dated-period-panel">
-        <div class="dated-period-fields">
-          <label id="datedMonthField" for="datedMonthSelect">
-            <span>Month</span>
-            <select id="datedMonthSelect" aria-label="Calendar month"></select>
-          </label>
-          <label for="datedYearSelect">
-            <span>Year</span>
-            <select id="datedYearSelect" aria-label="Calendar year"></select>
-          </label>
+      <div class="period-picker-wrap">
+        <div class="period-stepper periods" role="group" aria-label="Activity period">
+          <button id="periodPrev" class="period-arrow" type="button" aria-label="Previous calendar month">‹</button>
+          <button id="periodPickerButton" class="period-picker-button" type="button" aria-haspopup="true" aria-controls="periodPickerPanel" aria-expanded="false">
+            <span id="periodPickerLabel">Current month</span>
+            <span class="period-picker-caret" aria-hidden="true">⌄</span>
+          </button>
+          <button id="periodNext" class="period-arrow" type="button" aria-label="Next calendar month">›</button>
         </div>
-      </div>
 
-      <div id="rollingPeriodPanel" class="rolling-period-panel hidden" role="group" aria-label="Rolling activity period">
-        <button type="button" data-rolling-period="day">24H</button>
-        <button type="button" data-rolling-period="week">7D</button>
-        <button type="button" data-rolling-period="month">30D</button>
-        <button type="button" data-rolling-period="twomonths">60D</button>
-        <button type="button" data-rolling-period="sixmonths">6M</button>
-        <button type="button" data-rolling-period="year">1Y</button>
-        <button type="button" data-rolling-period="lifetime">ALL TIME</button>
+        <div id="periodPickerPanel" class="period-picker-panel hidden" aria-label="Choose activity period">
+          <section class="period-picker-section" aria-labelledby="periodCalendarHeading">
+            <div id="periodCalendarHeading" class="period-picker-heading">Calendar</div>
+            <div class="period-picker-list">
+              <button type="button" data-period-shortcut="current-month"><span>This month</span><small id="periodThisMonthLabel"></small></button>
+              <button type="button" data-period-shortcut="previous-month"><span>Previous month</span><small id="periodPreviousMonthLabel"></small></button>
+              <button type="button" data-period-shortcut="current-year"><span>This year</span><small id="periodCurrentYearLabel"></small></button>
+            </div>
+            <div class="period-picker-custom-links">
+              <button id="chooseMonthToggle" type="button" aria-controls="customMonthPanel" aria-expanded="false">Choose month…</button>
+              <button id="chooseYearToggle" type="button" aria-controls="customYearPanel" aria-expanded="false">Choose year…</button>
+            </div>
+
+            <div id="customMonthPanel" class="period-custom-panel hidden">
+              <label><span>Month</span><select id="customMonthSelect" aria-label="Choose calendar month"></select></label>
+              <label><span>Year</span><select id="customMonthYearSelect" aria-label="Choose calendar month year"></select></label>
+              <button id="applyCustomMonth" class="period-custom-apply" type="button">View</button>
+            </div>
+
+            <div id="customYearPanel" class="period-custom-panel period-custom-year hidden">
+              <label><span>Year</span><select id="customYearSelect" aria-label="Choose calendar year"></select></label>
+              <button id="applyCustomYear" class="period-custom-apply" type="button">View</button>
+            </div>
+          </section>
+
+          <section class="period-picker-section" aria-labelledby="periodRollingHeading">
+            <div id="periodRollingHeading" class="period-picker-heading">Rolling</div>
+            <div class="period-picker-chips" role="group" aria-label="Rolling activity periods">
+              <button type="button" data-rolling-period="day">24H</button>
+              <button type="button" data-rolling-period="week">7D</button>
+              <button type="button" data-rolling-period="month">30D</button>
+              <button type="button" data-rolling-period="twomonths">60D</button>
+              <button type="button" data-rolling-period="sixmonths">6M</button>
+              <button type="button" data-rolling-period="year">1Y</button>
+              <button type="button" data-rolling-period="lifetime">ALL TIME</button>
+            </div>
+          </section>
+        </div>
       </div>
 
       <div class="section-title stats-title">
@@ -312,13 +333,14 @@
     </div>
   </dialog>
 
-  <script src="stats-period.js?v=0.9.7.2"></script>
-  <script src="share-config.js?v=0.9.7.2"></script>
-  <script src="share-page.js?v=0.9.7.2"></script>
-  <script src="app.js?v=0.9.7.2"></script>
-  <script src="dated-period.js?v=0.9.7.2"></script>
-  <script src="landing.js?v=0.9.7.2"></script>
-  <script src="embed.js?v=0.9.7.2"></script>
-  <script src="png.js?v=0.9.7.2"></script>
+  <script src="stats-period.js?v=0.9.7.3"></script>
+  <script src="share-config.js?v=0.9.7.3"></script>
+  <script src="share-page.js?v=0.9.7.3"></script>
+  <script src="app.js?v=0.9.7.3"></script>
+  <script src="dated-period.js?v=0.9.7.3"></script>
+  <script src="period-picker.js?v=0.9.7.3"></script>
+  <script src="landing.js?v=0.9.7.3"></script>
+  <script src="embed.js?v=0.9.7.3"></script>
+  <script src="png.js?v=0.9.7.3"></script>
 </body>
 </html>
