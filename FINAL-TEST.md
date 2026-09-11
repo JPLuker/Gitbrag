@@ -20,7 +20,7 @@ Automated/static checks should be run before this document is used. Do not mark 
 
 ---
 
-## 2. Unified activity-period picker (v0.9.7.3)
+## 2. Unified activity-period picker (v0.9.8 website / extension parity candidate)
 
 ### Main dashboard
 
@@ -172,26 +172,46 @@ For **24H, 7D, 30D, 60D, 6M, 1Y, ALL TIME**:
 
 ## 6. Chrome extension live-browser gate
 
-These checks cannot be proven by static source inspection alone.
+These checks cannot be proven by static source inspection alone. Load the repository `extension/` directory unpacked in Chrome/Chromium.
 
-- [ ] Load unpacked in Chrome/Chromium.
-- [ ] Card appears on a real public GitHub profile in the intended location.
-- [ ] GitHub dark mode.
-- [ ] GitHub light mode.
-- [ ] 7D / 1M / 6M / 1Y tabs.
-- [ ] SPA/Turbo navigation between profiles.
-- [ ] Re-injection after GitHub rebuilds the profile DOM.
-- [ ] No duplicate cards.
-- [ ] Popup enable/disable.
-- [ ] Default-period setting.
-- [ ] Cache clear.
-- [ ] Retry/force refresh.
-- [ ] Loading state.
-- [ ] Contribution-service failure.
-- [ ] GitHub API rate-limit/error state.
-- [ ] Malformed/partial response handling.
-- [ ] Background-service failure handling.
-- [ ] Errors remain visible instead of silently removing the card.
+### Placement and parity
+
+- [ ] Overlay appears on a real public GitHub profile in the intended profile layout.
+- [ ] Overlay does not appear on repositories, organizations, settings, search, or other reserved GitHub routes.
+- [ ] Current calendar month is the default for a fresh/default install.
+- [ ] The compact **‹ period ›** control matches the website interaction model closely enough to feel like the same product.
+- [ ] Previous/next arrows step calendar months correctly and stop at current/earliest available month.
+- [ ] Picker supports current month, previous month, current year, specific month/year, 24H, 7D, 30D, 60D, 6M, 1Y, and All Time.
+- [ ] Contributions, active days, best day, and longest streak match the website for representative periods.
+- [ ] Contribution heatmap follows the selected period and remains usable for month, year, rolling, and All Time selections.
+- [ ] Profile summary shows Public repos, Stars, Followers, Following, and Account age.
+- [ ] Stars match the website's loaded non-fork repository aggregation.
+- [ ] Top three repositories exclude forks and are ranked by stars consistently with the website.
+- [ ] **Open in Gitbrag** opens the correct full profile.
+
+### GitHub integration
+
+- [ ] GitHub dark mode looks intentional.
+- [ ] GitHub light mode looks intentional.
+- [ ] Narrow/sidebar layout remains readable with no horizontal page overflow.
+- [ ] Wide/fallback main-column placement remains readable.
+- [ ] Navigate between profiles using GitHub SPA/Turbo navigation; overlay updates to the new user.
+- [ ] Re-injection works after GitHub rebuilds the profile DOM.
+- [ ] No duplicate overlays appear after repeated navigation or DOM replacement.
+
+### Popup, cache, and failures
+
+- [ ] Popup enable/disable removes/restores the overlay.
+- [ ] Default-period setting supports Current month, 24H, 7D, 30D, 60D, 6M, 1Y, and All Time.
+- [ ] Changing default period refreshes the active overlay.
+- [ ] Cache clear works.
+- [ ] Retry/force refresh bypasses the current cached profile.
+- [ ] Cached badge appears only for cached profile responses.
+- [ ] Loading state is visible and stable.
+- [ ] Contribution-service failure leaves profile/repository data visible and contribution output unavailable.
+- [ ] GitHub API rate-limit/error state remains visible.
+- [ ] Malformed/partial response handling remains visible rather than silently removing the overlay.
+- [ ] Background-service communication failure remains visible and retryable.
 
 ---
 
