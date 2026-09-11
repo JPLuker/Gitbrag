@@ -13,7 +13,7 @@
   const LEGACY_VERSION = 1;
   const MAX_SELECTED_REPOS = 4;
   const MAX_TOKEN_LENGTH = 8192;
-  const BASE_STATS_PERIODS = Object.freeze(['day', 'week', 'month', 'sixmonths', 'year', 'lifetime']);
+  const BASE_STATS_PERIODS = Object.freeze(['day', 'week', 'month', 'sixmonths', 'year', 'lifetime', 'twomonths']);
   const CALENDAR_MONTH_PATTERN = /^calendar-month:(\d{4})-(0[1-9]|1[0-2])$/;
   const CALENDAR_YEAR_PATTERN = /^calendar-year:(\d{4})$/;
 
