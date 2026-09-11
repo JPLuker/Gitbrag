@@ -22,6 +22,146 @@
 
   let mainMode = 'month';
   let lastRollingPeriod = 'month';
+  let autoDefaultedRoute = null;
+
+  const baseApp = root.GitbragApp;
+  const baseSharePage = root.GitbragSharePage;
+
+  function dateKeyFromDate(date) {
+    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+  }
+
+  function dateFromKey(key) {
+    const [year, month, day] = String(key).split('-').map(Number);
+    return new Date(Date.UTC(year, month - 1, day));
+  }
+
+  function addDays(key, days) {
+    const date = dateFromKey(key);
+    date.setUTCDate(date.getUTCDate() + days);
+    return dateKeyFromDate(date);
+  }
+
+  function periodCalendar(model, period) {
+    if (!model?.calendar) return model?.calendar || null;
+    const selection = StatsPeriod.range(period);
+
+    if (selection.type === 'lifetime' || !selection.start || !selection.end) {
+      return { ...model.calendar, label: '' };
+    }
+
+    const source = new Map((model.calendar.days || []).map((day) => [day.date, day]));
+    const first = dateFromKey(selection.start);
+    first.setUTCDate(first.getUTCDate() - first.getUTCDay());
+
+    const days = [];
+    let total = 0;
+    for (let key = dateKeyFromDate(first); key <= selection.end; key = addDays(key, 1)) {
+      const item = source.get(key) || { date: key, count: 0, level: 0 };
+      const count = Number(item.count) || 0;
+      if (key >= selection.start) total += count;
+      days.push({
+        date: key,
+        count,
+        level: Math.min(4, Math.max(0, Number(item.level) || 0)),
+      });
+    }
+
+    return {
+      label: '',
+      days,
+      weeks: Math.max(1, Math.ceil(days.length / 7)),
+      total,
+    };
+  }
+
+  function modelForPeriod(period, config = null) {
+    if (!baseApp?.createRenderModel) return null;
+    const context = baseApp.getShareBuilderContext?.();
+    const baseConfig = config || context?.defaultConfig;
+    if (!baseConfig) return null;
+    const request = { ...baseConfig, statsPeriod: period, calendarRange: 'all' };
+    const model = baseApp.createRenderModel(request);
+    if (model) model.calendar = periodCalendar(model, period);
+    return model;
+  }
+
+  function redrawMainCalendar(period) {
+    const graph = $('#contributionGraph');
+    const total = $('#calendarTotal');
+    const scroll = $('.calendar-scroll');
+    const header = $('#calendarPeriodLabel');
+    if (!graph || !total) return;
+
+    const model = modelForPeriod(period);
+    if (!model) return;
+    const calendar = model.calendar;
+    const readableLabel = StatsPeriod.label(period);
+
+    graph.innerHTML = '';
+    graph.classList.remove('is-unavailable');
+    if (header) header.textContent = '';
+
+    if (model.contributionError || !calendar) {
+      graph.classList.add('is-unavailable');
+      graph.textContent = 'Contribution calendar unavailable.';
+      graph.removeAttribute('style');
+      graph.setAttribute('aria-label', 'Contribution calendar unavailable');
+      total.textContent = '';
+      return;
+    }
+
+    const width = calendar.weeks * 10 + Math.max(0, calendar.weeks - 1) * 4;
+    graph.style.gridTemplateColumns = `repeat(${calendar.weeks}, 10px)`;
+    graph.style.width = `${width}px`;
+    graph.style.minWidth = `${width}px`;
+    graph.setAttribute('aria-label', `GitHub contribution calendar for ${readableLabel}. ${Number(calendar.total || 0).toLocaleString()} contributions.`);
+
+    calendar.days.forEach((item) => {
+      const cell = document.createElement('span');
+      cell.className = `contrib-cell level-${item.level}`;
+      cell.title = `${item.count} contribution${item.count === 1 ? '' : 's'} · ${item.date}`;
+      graph.appendChild(cell);
+    });
+
+    total.textContent = `${Number(calendar.total || 0).toLocaleString()} contributions in this period`;
+    requestAnimationFrame(() => {
+      if (scroll) scroll.scrollLeft = scroll.scrollWidth;
+    });
+  }
+
+  function installAppWrapper() {
+    if (!baseApp) return;
+    root.GitbragApp = Object.freeze({
+      ...baseApp,
+      createRenderModel(config) {
+        const period = config?.statsPeriod || baseApp.getCurrentStatsPeriod?.() || 'month';
+        const model = baseApp.createRenderModel({ ...config, statsPeriod: period, calendarRange: 'all' });
+        if (model) model.calendar = periodCalendar(model, period);
+        return model;
+      },
+      setStatsPeriod(period) {
+        const changed = baseApp.setStatsPeriod(period);
+        if (changed) redrawMainCalendar(period);
+        return changed;
+      },
+    });
+  }
+
+  function installSharePageWrapper() {
+    if (!baseSharePage) return;
+    root.GitbragSharePage = Object.freeze({
+      ...baseSharePage,
+      render(model, config) {
+        const exactModel = root.GitbragApp?.createRenderModel?.(config);
+        if (exactModel?.calendar) model = { ...model, calendar: exactModel.calendar };
+        return baseSharePage.render(model, config);
+      },
+    });
+  }
+
+  installAppWrapper();
+  installSharePageWrapper();
 
   function app() { return root.GitbragApp || null; }
   function availableOptions() { return app()?.getStatsPeriodOptions?.() || { months: [], years: [] }; }
@@ -157,7 +297,22 @@
     });
   }
 
-  document.addEventListener('gitbrag:stats-period', (event) => syncMain(event.detail?.period));
+  document.addEventListener('gitbrag:stats-period', (event) => {
+    const period = event.detail?.period;
+    const routeKey = location.hash.split('?')[0] || location.pathname;
+    const canDefault = app()?.getShareBuilderContext?.();
+
+    if (canDefault && autoDefaultedRoute !== routeKey && period === StatsPeriod.DEFAULT_PERIOD) {
+      autoDefaultedRoute = routeKey;
+      syncMain(period);
+      requestAnimationFrame(() => {
+        if (app()?.getCurrentStatsPeriod?.() === period) app()?.setStatsPeriod?.(StatsPeriod.currentMonthValue());
+      });
+      return;
+    }
+
+    syncMain(period);
+  });
 
   function clearLegacyDatedOptions(select) {
     select?.querySelectorAll('optgroup[data-dated-options], option[data-dated-option], option[data-dated-current]').forEach((node) => node.remove());
@@ -205,7 +360,7 @@
     controls.innerHTML = `
       <label class="dated-builder-field" data-dated-builder-month-field><span>Month</span><select data-dated-builder-month aria-label="Specific calendar month"></select></label>
       <label class="dated-builder-field"><span>Year</span><select data-dated-builder-year aria-label="Specific calendar year"></select></label>
-      <small>Contribution calendar follows this exact period.</small>`;
+      <small>Stats and contribution calendar use this same period.</small>`;
     statsLabel.insertAdjacentElement('afterend', controls);
     return controls;
   }
@@ -214,8 +369,14 @@
     const controls = createBuilderControls(select);
     return { controls, monthField: controls?.querySelector('[data-dated-builder-month-field]'), monthSelect: controls?.querySelector('[data-dated-builder-month]'), yearSelect: controls?.querySelector('[data-dated-builder-year]') };
   }
-  function showCalendarRange(calendarRange, show) { calendarRange?.closest('label')?.classList.toggle('hidden', !show); }
-  function defaultDatedSelection(mode, options) { return (mode === 'year' ? options?.years?.[0] : options?.months?.[0])?.value || null; }
+
+  function hideCalendarRange(calendarRange) {
+    calendarRange?.closest('label')?.classList.add('hidden');
+  }
+
+  function defaultDatedSelection(mode, options) {
+    return (mode === 'year' ? options?.years?.[0] : options?.months?.[0])?.value || null;
+  }
 
   function populateBuilderControls(select, calendarRange, value, forcedMode = null) {
     const options = availableOptions();
@@ -231,35 +392,39 @@
     parts.controls?.classList.toggle('year-only', mode === 'year');
     parts.controls?.classList.remove('hidden');
     if (parts.controls) parts.controls.dataset.mode = mode;
-    showCalendarRange(calendarRange, false);
+    hideCalendarRange(calendarRange);
     return parts;
   }
 
   function builderDatedValue(parts) {
     const year = Number(parts.yearSelect?.value);
     if (!year) return null;
-    return parts.controls?.dataset.mode === 'year' ? StatsPeriod.valueForYear(year) : StatsPeriod.valueForMonth(year, Number(parts.monthSelect?.value));
+    return parts.controls?.dataset.mode === 'year'
+      ? StatsPeriod.valueForYear(year)
+      : StatsPeriod.valueForMonth(year, Number(parts.monthSelect?.value));
   }
 
   function commitBuilderDated(select, calendarRange, parts, dispatch = true) {
     const value = builderDatedValue(parts);
     if (!value) return;
     setCurrentDatedOption(select, value);
-    showCalendarRange(calendarRange, false);
+    hideCalendarRange(calendarRange);
     if (dispatch) select.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
   function hideBuilderControls(select, calendarRange) {
     builderParts(select).controls?.classList.add('hidden');
     select?.querySelectorAll('option[data-dated-current]').forEach((option) => option.remove());
-    showCalendarRange(calendarRange, true);
+    hideCalendarRange(calendarRange);
   }
 
   function setupBuilder(select, calendarRange) {
     if (!select || select.dataset.datedSetup === 'true') return;
     select.dataset.datedSetup = 'true';
     ensureSentinelOptions(select);
+    hideCalendarRange(calendarRange);
     const parts = builderParts(select);
+
     select.addEventListener('change', () => {
       if (select.value === SENTINEL_MONTH || select.value === SENTINEL_YEAR) {
         const mode = select.value === SENTINEL_YEAR ? 'year' : 'month';
@@ -273,8 +438,11 @@
         hideBuilderControls(select, calendarRange);
       }
     });
+
     parts.yearSelect?.addEventListener('change', () => {
-      if (parts.controls?.dataset.mode === 'month') replaceOptions(parts.monthSelect, monthItems(availableOptions(), parts.yearSelect.value), parts.monthSelect?.value);
+      if (parts.controls?.dataset.mode === 'month') {
+        replaceOptions(parts.monthSelect, monthItems(availableOptions(), parts.yearSelect.value), parts.monthSelect?.value);
+      }
       commitBuilderDated(select, calendarRange, parts);
     });
     parts.monthSelect?.addEventListener('change', () => commitBuilderDated(select, calendarRange, parts));
@@ -290,7 +458,9 @@
   $('#embedAction')?.addEventListener('click', () => primeBuilderPeriod($('#shareStatsPeriod'), app()?.getCurrentStatsPeriod?.()), true);
   $('#generateImageAction')?.addEventListener('click', () => primeBuilderPeriod($('#pngStatsPeriod'), app()?.getCurrentStatsPeriod?.()), true);
 
-  function preferredShareConfig() { return root.GitbragSharePage?.getActiveConfig?.() || app()?.getShareBuilderContext?.()?.defaultConfig || null; }
+  function preferredShareConfig() {
+    return root.GitbragSharePage?.getActiveConfig?.() || app()?.getShareBuilderContext?.()?.defaultConfig || null;
+  }
 
   function observeDialog(dialog, select, calendarRange, configGetter, afterPopulate = null) {
     if (!dialog || !select) return;
@@ -304,6 +474,7 @@
       } else {
         hideBuilderControls(select, calendarRange);
       }
+      hideCalendarRange(calendarRange);
       afterPopulate?.();
     };
     const observer = new MutationObserver(populate);
@@ -311,7 +482,13 @@
   }
 
   observeDialog(shareModal, $('#shareStatsPeriod'), $('#shareCalendarRange'), preferredShareConfig);
-  observeDialog(pngModal, $('#pngStatsPeriod'), $('#pngCalendarRange'), () => app()?.getShareBuilderContext?.()?.defaultConfig || null, () => requestAnimationFrame(() => root.GitbragPng?.renderPreview?.()));
+  observeDialog(
+    pngModal,
+    $('#pngStatsPeriod'),
+    $('#pngCalendarRange'),
+    () => app()?.getShareBuilderContext?.()?.defaultConfig || null,
+    () => requestAnimationFrame(() => root.GitbragPng?.renderPreview?.()),
+  );
 
   syncMain(app()?.getCurrentStatsPeriod?.());
 })(window);
