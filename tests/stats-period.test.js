@@ -6,6 +6,17 @@ const StatsPeriod = require('../stats-period.js');
 const now = new Date('2026-09-11T12:00:00Z');
 
 assert.equal(StatsPeriod.label('month', now), 'Last 30 days');
+assert.equal(StatsPeriod.currentMonthValue(now), 'calendar-month:2026-09');
+assert.equal(StatsPeriod.currentYearValue(now), 'calendar-year:2026');
+assert.deepEqual(StatsPeriod.range('twomonths', now), {
+  value: 'twomonths',
+  type: 'rolling',
+  start: '2026-07-14',
+  end: '2026-09-11',
+  label: 'Last 60 days',
+  partial: false,
+});
+
 assert.deepEqual(StatsPeriod.range('month', now), {
   value: 'month',
   type: 'rolling',
