@@ -62,8 +62,8 @@ body.landing-active .app-version { display: none; }
 .landing-simple h1 {
   margin: 0;
   font-size: clamp(54px, 5.8vw, 84px);
-  line-height: .92;
-  letter-spacing: -.065em;
+  line-height: 1.04;
+  letter-spacing: -.05em;
 }
 
 .landing-simple h1 span { color: var(--accent); }
