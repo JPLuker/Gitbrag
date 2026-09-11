@@ -1,5 +1,6 @@
 .dated-period-panel {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: end;
   gap: 10px;
   margin-top: 10px;
@@ -9,46 +10,97 @@
   border-radius: 12px;
 }
 
-.dated-period-panel label {
-  display: grid;
-  flex: 1;
-  gap: 6px;
-  min-width: 0;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-.dated-period-panel select {
-  width: 100%;
-  min-width: 0;
-  padding: 10px 12px;
-  color: var(--text);
+.dated-period-mode {
+  display: inline-flex;
+  padding: 3px;
   background: #0d0d11;
   border: 1px solid var(--line);
   border-radius: 10px;
 }
 
-.dated-period-panel button {
-  flex: none;
-  padding: 10px 16px;
-  color: #071018;
-  background: var(--accent);
-  border: 1px solid transparent;
-  border-radius: 10px;
+.dated-period-mode button {
+  padding: 8px 12px;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
   font-weight: 800;
   cursor: pointer;
 }
 
+.dated-period-mode button.active {
+  color: #071018;
+  background: var(--accent);
+}
+
+.dated-period-fields {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(100px, .6fr);
+  gap: 8px;
+}
+
+.dated-period-fields label,
+.dated-builder-field {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.dated-period-fields select,
+.dated-builder-field select {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  color: var(--text);
+  background: #0d0d11;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+
+.dated-builder-controls {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(90px, .7fr);
+  gap: 8px;
+  margin: 2px 0 8px;
+  padding: 10px;
+  background: #09090c;
+  border: 1px solid #222229;
+  border-radius: 10px;
+}
+
+.dated-period-fields.year-only,
+.dated-builder-controls.year-only {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.dated-builder-controls small {
+  grid-column: 1 / -1;
+  color: var(--subtle);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
 @media (max-width: 560px) {
   .dated-period-panel {
+    grid-template-columns: 1fr;
     align-items: stretch;
-    flex-direction: column;
   }
 
-  .dated-period-panel button {
+  .dated-period-mode {
     width: 100%;
+  }
+
+  .dated-period-mode button {
+    flex: 1;
+  }
+
+  .dated-period-fields,
+  .dated-builder-controls {
+    grid-template-columns: minmax(0, 1fr) minmax(90px, .7fr);
   }
 }
