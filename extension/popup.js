@@ -1,7 +1,8 @@
 'use strict';
 
 const SETTINGS_KEY = 'gitbragExtensionSettings';
-const DEFAULTS = Object.freeze({ enabled: true, period: 'week' });
+const DEFAULTS = Object.freeze({ enabled: true, period: 'current-month' });
+const PERIODS = Object.freeze(['current-month', 'day', 'week', 'month', 'twomonths', 'sixmonths', 'year', 'lifetime']);
 const enabled = document.querySelector('#enabled');
 const period = document.querySelector('#period');
 const clearCache = document.querySelector('#clearCache');
@@ -11,7 +12,7 @@ async function load() {
   const stored = await chrome.storage.sync.get(SETTINGS_KEY);
   const settings = { ...DEFAULTS, ...(stored[SETTINGS_KEY] || {}) };
   enabled.checked = settings.enabled !== false;
-  period.value = ['week', 'month', 'sixmonths', 'year'].includes(settings.period) ? settings.period : DEFAULTS.period;
+  period.value = PERIODS.includes(settings.period) ? settings.period : DEFAULTS.period;
 }
 
 async function save() {
