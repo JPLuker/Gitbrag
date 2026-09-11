@@ -20,13 +20,16 @@ Automated/static checks should be run before this document is used. Do not mark 
 
 ---
 
-## 2. Dated month/year activity periods (v0.9.7)
+## 2. Dated month/year activity periods (v0.9.7.1)
 
 ### Main dashboard
 
-- [ ] **DATED** opens the calendar-period picker.
-- [ ] The picker contains months from the GitHub account's creation month through the current month.
-- [ ] The picker contains years from the GitHub account's creation year through the current year.
+- [ ] **DATE** opens the calendar-period picker.
+- [ ] DATE opens a compact Month/Year panel instead of one long native selector.
+- [ ] Month mode shows only a month selector plus year selector.
+- [ ] Year mode shows only the year selector.
+- [ ] Available months run from the GitHub account's creation month through the current month.
+- [ ] Available years run from the GitHub account's creation year through the current year.
 - [ ] Future months/years are not offered.
 - [ ] Selecting a historical month such as **August 2026** uses exactly Aug 1–31.
 - [ ] Selecting the current month shows **MONTH TO DATE** in the activity label.
@@ -40,15 +43,19 @@ Automated/static checks should be run before this document is used. Do not mark 
 - [ ] Active days are correct for a dated year.
 - [ ] Best day is correct for a dated year.
 - [ ] Longest streak is correct for a dated year.
-- [ ] Switching from DATED back to 24H/7D/1M/6M/1Y/ALL TIME clears the DATED active state.
-- [ ] Returning to DATED remembers/reflects the active dated selection while that profile remains loaded.
+- [ ] Main contribution calendar switches to the same exact selected month/year.
+- [ ] Returning to a rolling period restores the normal LAST YEAR main calendar.
+- [ ] Switching from DATE back to 24H/7D/1M/6M/1Y/ALL TIME clears the DATE active state.
+- [ ] Returning to DATE remembers/reflects the active dated selection while that profile remains loaded.
 
 ### Share links
 
 - [ ] Open **Share → Share link** while the main dashboard is on a dated month; the same dated month is selected.
 - [ ] Open **Share → Share link** while the main dashboard is on a dated year; the same dated year is selected.
-- [ ] The Stats period dropdown includes calendar-month and calendar-year choices.
-- [ ] Previewing a dated share page shows the correct label and values.
+- [ ] Stats period dropdown stays short and offers **Specific month…** / **Specific year…** instead of listing every date.
+- [ ] Choosing a specific month/year reveals compact date controls.
+- [ ] Calendar range is hidden while a dated period is active because the calendar follows that exact period.
+- [ ] Previewing a dated share page shows the correct label, values, and matching contribution calendar.
 - [ ] Copying and reopening a dated share link preserves the exact period.
 - [ ] A v1 compact share token from pre-v0.9.7 still opens correctly.
 - [ ] A legacy v1 JSON `?share=` token still opens correctly.
@@ -58,9 +65,10 @@ Automated/static checks should be run before this document is used. Do not mark 
 
 - [ ] Open **Generate image** while the main dashboard is on a dated month; the first rendered preview uses that dated month (not rolling 1M).
 - [ ] Open **Generate image** while the main dashboard is on a dated year; the first rendered preview uses that dated year.
-- [ ] Dated periods appear in the PNG Stats period selector.
+- [ ] PNG Stats period selector stays short and offers **Specific month…** / **Specific year…**.
+- [ ] Calendar range is hidden while a dated PNG period is active.
 - [ ] Changing between rolling and dated periods re-renders the preview.
-- [ ] PNG activity label matches the selected calendar month/year.
+- [ ] PNG activity label and contribution calendar both match the selected calendar month/year.
 - [ ] Downloaded PNG matches the visible preview.
 - [ ] Downloaded image is exactly 1080 × 1080.
 
@@ -189,7 +197,8 @@ These checks cannot be proven by static source inspection alone.
 - [ ] Escape closes transient UI.
 - [ ] Dialog focus placement and return.
 - [ ] Visible focus states.
-- [ ] DATED button exposes correct `aria-pressed` / `aria-expanded` state.
+- [ ] DATE button exposes correct `aria-pressed` / `aria-expanded` state.
+- [ ] Month/Year mode buttons expose correct `aria-pressed` state.
 - [ ] Form controls have usable labels.
 - [ ] Live/status messages make sense.
 - [ ] Contrast acceptable.
