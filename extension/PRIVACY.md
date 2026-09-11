@@ -6,7 +6,7 @@ Gitbrag for GitHub is designed to work with public GitHub profile information on
 
 When a public GitHub profile is open, the extension may request:
 
-- Public GitHub profile metadata from `api.github.com`.
+- Public GitHub profile and repository metadata from `api.github.com`.
 - Public contribution history from `github-contributions-api.jogruber.de`.
 
 The extension does not request a GitHub access token and does not access private repositories, private account data, cookies, passwords, or browsing history.
@@ -15,7 +15,7 @@ The extension does not request a GitHub access token and does not access private
 
 Recently viewed public profile results are cached in Chrome local extension storage for up to 15 minutes to reduce repeated API requests. The cache is limited to 50 profiles and expired entries are pruned automatically. Users can clear this cache from the extension popup.
 
-Extension preferences such as whether the card is enabled and the default stats period are saved using Chrome sync storage when available.
+Extension preferences such as whether the overlay is enabled and the default activity period are saved using Chrome sync storage when available.
 
 ## Data sharing and tracking
 
@@ -30,6 +30,6 @@ Those services operate under their own policies.
 
 ## Removal
 
-Disabling or uninstalling the extension stops the extension from loading Gitbrag cards. Chrome removes extension-managed local data when the extension is uninstalled according to Chrome's storage behavior.
+Disabling or uninstalling the extension stops the extension from loading Gitbrag overlays. Chrome removes extension-managed local data when the extension is uninstalled according to Chrome's storage behavior.
 
 This document should be reviewed again before Chrome Web Store publication if analytics, accounts, new permissions, or additional external services are added.
