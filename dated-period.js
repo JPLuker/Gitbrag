@@ -21,6 +21,156 @@
 
   let mainMode = 'month';
 
+  const baseApp = root.GitbragApp;
+  const baseSharePage = root.GitbragSharePage;
+
+  function dateKeyFromDate(date) {
+    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+  }
+
+  function dateFromKey(key) {
+    const [year, month, day] = String(key).split('-').map(Number);
+    return new Date(Date.UTC(year, month - 1, day));
+  }
+
+  function addDays(key, days) {
+    const date = dateFromKey(key);
+    date.setUTCDate(date.getUTCDate() + days);
+    return dateKeyFromDate(date);
+  }
+
+  function exactCalendar(model, period) {
+    if (!model?.calendar || !StatsPeriod.isDated(period)) return model?.calendar || null;
+    const selection = StatsPeriod.range(period);
+    if (!selection.start || !selection.end) return model.calendar;
+
+    const source = new Map((model.calendar.days || []).map((day) => [day.date, day]));
+    const first = dateFromKey(selection.start);
+    first.setUTCDate(first.getUTCDate() - first.getUTCDay());
+
+    const days = [];
+    let total = 0;
+    for (let key = dateKeyFromDate(first); key <= selection.end; key = addDays(key, 1)) {
+      const item = source.get(key) || { date: key, count: 0, level: 0 };
+      const count = Number(item.count) || 0;
+      if (key >= selection.start && key <= selection.end) total += count;
+      days.push({
+        date: key,
+        count,
+        level: Math.min(4, Math.max(0, Number(item.level) || 0)),
+      });
+    }
+
+    return {
+      label: selection.label.toUpperCase(),
+      days,
+      weeks: Math.max(1, Math.ceil(days.length / 7)),
+      total,
+    };
+  }
+
+  function modelForPeriod(period, config = null) {
+    if (!baseApp?.createRenderModel) return null;
+    const context = baseApp.getShareBuilderContext?.();
+    const baseConfig = config || context?.defaultConfig;
+    if (!baseConfig) return null;
+
+    const dated = StatsPeriod.isDated(period);
+    const request = {
+      ...baseConfig,
+      statsPeriod: period,
+      calendarRange: dated ? 'all' : '1y',
+    };
+    const model = baseApp.createRenderModel(request);
+    if (model && dated) model.calendar = exactCalendar(model, period);
+    return model;
+  }
+
+  function redrawMainCalendar(period) {
+    const graph = $('#contributionGraph');
+    const total = $('#calendarTotal');
+    const scroll = $('.calendar-scroll');
+    const header = $('#calendarPeriodLabel')
+      || graph?.closest('.calendar-card')?.previousElementSibling?.querySelector('span:last-child');
+    if (!graph || !total) return;
+
+    const model = modelForPeriod(period);
+    if (!model) return;
+    const dated = StatsPeriod.isDated(period);
+    const calendar = model.calendar;
+    const readableLabel = dated ? StatsPeriod.label(period) : 'the last year';
+
+    graph.innerHTML = '';
+    graph.classList.remove('is-unavailable');
+    if (header) header.textContent = dated ? StatsPeriod.label(period).toUpperCase() : 'LAST YEAR';
+
+    if (model.contributionError || !calendar) {
+      graph.classList.add('is-unavailable');
+      graph.textContent = 'Contribution calendar unavailable.';
+      graph.removeAttribute('style');
+      graph.setAttribute('aria-label', 'Contribution calendar unavailable');
+      total.textContent = '';
+      return;
+    }
+
+    const width = calendar.weeks * 10 + Math.max(0, calendar.weeks - 1) * 4;
+    graph.style.gridTemplateColumns = `repeat(${calendar.weeks}, 10px)`;
+    graph.style.width = `${width}px`;
+    graph.style.minWidth = `${width}px`;
+    graph.setAttribute('aria-label', `GitHub contribution calendar for ${readableLabel}. ${Number(calendar.total || 0).toLocaleString()} contributions.`);
+
+    calendar.days.forEach((item) => {
+      const cell = document.createElement('span');
+      cell.className = `contrib-cell level-${item.level}`;
+      cell.title = `${item.count} contribution${item.count === 1 ? '' : 's'} · ${item.date}`;
+      graph.appendChild(cell);
+    });
+
+    total.textContent = `${Number(calendar.total || 0).toLocaleString()} contributions in ${readableLabel}`;
+    requestAnimationFrame(() => {
+      if (scroll) scroll.scrollLeft = scroll.scrollWidth;
+    });
+  }
+
+  function installAppWrapper() {
+    if (!baseApp) return;
+    root.GitbragApp = Object.freeze({
+      ...baseApp,
+      createRenderModel(config) {
+        const period = config?.statsPeriod;
+        if (!StatsPeriod.isDated(period)) return baseApp.createRenderModel(config);
+        const model = baseApp.createRenderModel({ ...config, calendarRange: 'all' });
+        if (model) model.calendar = exactCalendar(model, period);
+        return model;
+      },
+      setStatsPeriod(period) {
+        const changed = baseApp.setStatsPeriod(period);
+        if (changed) {
+          redrawMainCalendar(period);
+          document.dispatchEvent(new CustomEvent('gitbrag:stats-period', { detail: { period } }));
+        }
+        return changed;
+      },
+    });
+  }
+
+  function installSharePageWrapper() {
+    if (!baseSharePage) return;
+    root.GitbragSharePage = Object.freeze({
+      ...baseSharePage,
+      render(model, config) {
+        if (StatsPeriod.isDated(config?.statsPeriod)) {
+          const exactModel = root.GitbragApp?.createRenderModel?.(config);
+          if (exactModel?.calendar) model = { ...model, calendar: exactModel.calendar };
+        }
+        return baseSharePage.render(model, config);
+      },
+    });
+  }
+
+  installAppWrapper();
+  installSharePageWrapper();
+
   function currentContext() {
     return root.GitbragApp?.getShareBuilderContext?.() || null;
   }
@@ -144,6 +294,11 @@
     if (event.target.closest('button[data-period]')) {
       mainPanel?.classList.add('hidden');
       mainButton?.setAttribute('aria-expanded', 'false');
+      requestAnimationFrame(() => {
+        const period = root.GitbragApp?.getCurrentStatsPeriod?.();
+        syncMainState(period);
+        redrawMainCalendar(period);
+      });
     }
   });
 
