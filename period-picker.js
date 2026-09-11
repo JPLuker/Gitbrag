@@ -24,6 +24,8 @@
   const applyCustomMonth = $('#applyCustomMonth');
   const applyCustomYear = $('#applyCustomYear');
 
+  let defaultedRoute = null;
+
   function app() { return root.GitbragApp || null; }
   function options() { return app()?.getStatsPeriodOptions?.() || { months: [], years: [] }; }
 
@@ -237,9 +239,11 @@
   document.addEventListener('gitbrag:stats-period', (event) => {
     const period = event.detail?.period;
     const context = app()?.getShareBuilderContext?.();
+    const routeKey = location.hash.split('?')[0] || location.pathname;
     // dated-period.js converts the first rolling default to current month on a
-    // new profile. Present that intended state immediately instead of flashing 30D.
-    if (context && period === StatsPeriod.DEFAULT_PERIOD) {
+    // new profile. Mirror that once per profile, but do not mask a later 30D choice.
+    if (context && defaultedRoute !== routeKey && period === StatsPeriod.DEFAULT_PERIOD) {
+      defaultedRoute = routeKey;
       sync(StatsPeriod.currentMonthValue());
       return;
     }
