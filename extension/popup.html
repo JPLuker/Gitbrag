@@ -10,21 +10,25 @@
   <main>
     <header>
       <div class="brand">GIT<span>BRAG</span></div>
-      <small>v0.9.3</small>
+      <small>v0.9.8</small>
     </header>
 
     <label class="row toggle-row">
-      <span><b>Show profile stats</b><small>Automatically add Gitbrag to public GitHub profiles.</small></span>
+      <span><b>Show Gitbrag overlay</b><small>Add the Gitbrag snapshot to public GitHub profiles.</small></span>
       <input id="enabled" type="checkbox" checked>
     </label>
 
     <label class="field">
-      <span>Default contribution period</span>
+      <span>Default activity period</span>
       <select id="period">
-        <option value="week">7 days</option>
-        <option value="month">1 month</option>
-        <option value="sixmonths">6 months</option>
-        <option value="year">1 year</option>
+        <option value="current-month">Current month</option>
+        <option value="day">Last 24 hours</option>
+        <option value="week">Last 7 days</option>
+        <option value="month">Last 30 days</option>
+        <option value="twomonths">Last 60 days</option>
+        <option value="sixmonths">Last 6 months</option>
+        <option value="year">Last year</option>
+        <option value="lifetime">All time</option>
       </select>
     </label>
 
