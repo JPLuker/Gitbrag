@@ -2,7 +2,7 @@
 
 Gitbrag is a lightweight GitHub Pages app that turns public GitHub activity into a focused stats dashboard with share links, social PNGs, website embeds, and an optional Chrome extension.
 
-**v0.9.7.3** reduces period selection to one control. Profiles still open on the current calendar month, but month-to-month browsing is now one tap with previous/next arrows. Tapping the period label opens a compact picker for calendar months/years or optional rolling windows such as 30D, 60D, 6M, 1Y, and all time. The selected period remains shared by stats and the contribution calendar across the dashboard, share pages, embeds, and PNGs.
+**v0.9.8** brings the Chrome extension up to product parity with the website before 1.0. The GitHub overlay now defaults to the current calendar month, uses the same low-friction month/year/rolling period model, shows the same four activity metrics and synchronized contribution calendar, adds the five profile-summary metrics, and surfaces the top original public repositories while preserving GitHub-native light/dark styling.
 
 ## Current features
 
@@ -139,18 +139,21 @@ The generated iframe can work by itself or with the included auto-height helper.
 
 ## Chrome extension
 
-The optional extension lives in `extension/` and uses Manifest V3.
+The optional extension lives in `extension/` and uses Manifest V3. v0.9.8 is the website-parity pass.
 
-It currently supports:
+The GitHub overlay now includes:
 
-- Automatic public-profile detection on GitHub.
-- 7D, 1M, 6M, and 1Y contribution views.
-- Contributions, active days, best day, longest streak, public repos, followers, following, and account age.
+- Current calendar month by default with the same **‹ period ›** month navigation pattern.
+- Calendar month/year selection plus rolling 24H, 7D, 30D, 60D, 6M, 1Y, and All Time windows.
+- Contributions, active days, best day, and longest streak.
+- A contribution heatmap that follows the selected activity period.
+- Public repositories, loaded-repository stars, followers, following, and account age.
+- The top three original public repositories, ranked by stars using the same repository-loading rules as the website.
 - A toolbar popup for enable/disable, default period, and cache clearing.
-- Local short-lived caching to reduce public API traffic.
-- Explicit loading, timeout, rate-limit, partial-data, retry, and malformed-response handling.
+- Local short-lived caching, retry/error handling, and GitHub SPA/Turbo reinjection.
+- GitHub light/dark theme-aware styling plus **Open in Gitbrag** for the full share/PNG/embed workflow.
 
-The extension does not request a GitHub token, private-repository access, cookies, tabs, identity, or browsing-history permissions.
+The extension does not duplicate Share, PNG, or Embed controls inside GitHub. Those remain on the full Gitbrag site. It also does not request a GitHub token, private-repository access, cookies, tabs, identity, or browsing-history permissions.
 
 To test locally:
 
@@ -229,4 +232,5 @@ Then open `http://localhost:8000`.
 - **0.9.7.1** — simplified date picker and automatic dated-calendar synchronization
 - **0.9.7.2** — current-month default, simplified Month/Year/Rolling controls, and duplicate period-label cleanup
 - **0.9.7.3** — single period stepper/picker with one-tap month navigation and rolling periods moved behind the picker
+- **0.9.8** — Chrome extension parity pass: website-aligned periods, heatmap, profile summary, and top repositories
 - **1.0** — final regression, documentation freeze, and stable release
