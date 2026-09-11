@@ -2,22 +2,20 @@
 
 Gitbrag is a lightweight GitHub Pages app that turns public GitHub activity into a focused stats dashboard with share links, social PNGs, website embeds, and an optional Chrome extension.
 
-**v0.9.7.2** makes calendar time the primary experience. Profiles now open on the current calendar month, the activity summary and contribution calendar always use the same selected period, and rolling windows are available as a secondary option. The period UI is reduced to **Month / Year / Rolling**, with rolling choices for 24H, 7D, 30D, 60D, 6M, 1Y, and all time. Shared pages, embeds, and PNGs use the same unified period and no longer repeat the selected month/year beside both section headings.
+**v0.9.7.3** reduces period selection to one control. Profiles still open on the current calendar month, but month-to-month browsing is now one tap with previous/next arrows. Tapping the period label opens a compact picker for calendar months/years or optional rolling windows such as 30D, 60D, 6M, 1Y, and all time. The selected period remains shared by stats and the contribution calendar across the dashboard, share pages, embeds, and PNGs.
 
 ## Current features
 
 - Search by GitHub username or paste a `github.com/username` profile URL.
 - Open a profile directly with a hash route such as `#/octocat`.
-- Open profiles on the current calendar month by default.
-- Switch between a specific **Month**, a specific **Year**, or a **Rolling** activity window.
-- Use rolling windows for 24H, 7D, 30D, 60D, 6M, 1Y, and all available history.
-- Keep activity stats and the contribution calendar synchronized to the same selected period.
+- Open profiles on the current calendar month by default, with the contribution calendar following the same month.
+- Move between calendar months with previous/next arrows, or tap the current period to choose a month, year, or rolling window.
 - View contributions, active days, best day, longest streak, public repositories, repository stars, followers, following, and account age.
 - View a contribution heatmap and ranked original public repositories.
 - Build configurable responsive share links with a compact versioned URL token.
-- Preserve month/year and rolling-period selections in share links and website embeds.
+- Preserve dated month/year selections in share links and website embeds.
 - Generate a dedicated 1080 × 1080 social PNG from an isolated Canvas 2D renderer.
-- Customize PNG modules, period, up to four repositories, text size, accent, and card style.
+- Customize PNG modules, activity period, up to four repositories, text size, accent, and card style.
 - Generate responsive website embed code from **Share → Embed**.
 - Use the optional Manifest V3 Chrome extension to surface Gitbrag stats directly on public GitHub profile pages.
 - Run the main website entirely as a static GitHub Pages app with no Gitbrag account backend or database.
@@ -36,19 +34,25 @@ The actual dashboard remains the primary place where users interact with Gitbrag
 
 ## Activity periods
 
-The dashboard uses one period for both the activity summary and contribution calendar.
+Gitbrag uses one activity-period control for both statistics and the contribution calendar.
 
-### Month
+The default view is the **current calendar month**. The left/right arrows step directly through available calendar months, while tapping the period label opens the full picker.
 
-**Month** is the default mode. A newly opened profile starts on the current calendar month. Historical months use their exact first and last day. The current month ends at today and is labeled **Month to date**.
+### Calendar periods
 
-### Year
+The compact picker provides quick access to:
 
-**Year** uses exact calendar-year boundaries. The current year ends at today and is labeled **Year to date**.
+- This month
+- Previous month
+- This year
+- **Choose month…** for an older calendar month
+- **Choose year…** for an older calendar year
 
-### Rolling
+Historical months use their exact calendar boundaries. Current month/year calculations stop at today, so future days are never included.
 
-**Rolling** is the secondary mode for relative windows:
+### Rolling periods
+
+Rolling windows are secondary options in the same picker:
 
 - 24 hours
 - 7 days
@@ -58,19 +62,20 @@ The dashboard uses one period for both the activity summary and contribution cal
 - 1 year
 - All available contribution history
 
-All modes use the same four activity calculations: contributions, active days, best day, and longest streak.
+Whichever period is selected drives contributions, active days, best day, longest streak, and the contribution calendar. The dashboard does not expose a second competing calendar-range control.
 
 ## Architecture
 
 Gitbrag intentionally keeps its rendering paths separated:
 
-- `index.html` — application structure, simplified landing page, profile views, period controls, and modal shells.
+- `index.html` — application structure, simplified landing page, profile views, and modal shells.
 - `style.css` — core application/profile design system.
-- `landing.css` — landing-page presentation only.
-- `landing.js` — lightweight landing-page visibility state.
-- `dated.css` — Month/Year/Rolling period-control styling.
+- `landing.css` — simplified landing-page presentation only.
+- `landing.js` — lightweight landing-page visibility state used to hide the floating version badge while the landing page is active.
+- `dated.css` — unified activity-period picker styling.
 - `stats-period.js` — pure rolling/calendar-period parsing, labeling, date-window calculation, and record filtering.
-- `dated-period.js` — period-control integration and synchronization of stats/calendar output across dashboard, shared pages, embeds, and PNGs.
+- `dated-period.js` — period/calendar synchronization plus dated controls for share/PNG builders.
+- `period-picker.js` — low-friction dashboard period stepper and compact calendar/rolling picker.
 - `share-config.js` — versioned configuration schema, normalization, validation, compact encoding, and legacy decoding.
 - `share-page.js` — responsive shared-webpage renderer and builder UI.
 - `embed.js` — embed URL/code generation and iframe auto-height behavior.
@@ -99,13 +104,14 @@ The configuration can control:
 - Stats section
 - Contribution calendar
 - Repository section
-- Month, year, or rolling activity period
+- Rolling or calendar stats period
+- One period drives both stats and the contribution calendar; legacy calendar-range data remains decode-compatible
 - Up to four featured repositories
 - Text size
 - Accent
 - Card style
 
-The selected stats period also controls the contribution calendar. Share-config schema v2 supports dated month/year values and the added 60-day rolling period while continuing to decode existing v1 compact and JSON tokens. Malformed or unsupported tokens fall back safely instead of breaking the app.
+Share-config schema v2 adds dated stats-period values while continuing to decode v1 compact and JSON tokens. Malformed or unsupported compact tokens fall back safely instead of breaking the app.
 
 ## PNG generation
 
@@ -117,7 +123,7 @@ PNG output is intentionally fixed to:
 PNG
 ```
 
-The visible preview is the same canvas that is exported. The layout adapts to enabled sections, selected period, and repository count. The selected period is displayed once in the activity-summary heading; the contribution-calendar heading does not repeat the same month/year label.
+The visible preview is the same canvas that is exported. The layout adapts to enabled sections, activity period, and repository count. The PNG contribution calendar uses the same selected period as the activity summary, including specific months/years and rolling windows. Contribution days are packed into a dense square-cell matrix for the social image, while the normal responsive webpage keeps its conventional calendar renderer.
 
 Generated PNGs use a single enlarged Gitbrag wordmark in the top-right and retain the GitHub profile URL in the footer.
 
@@ -172,6 +178,7 @@ node extension/tests/stats.test.js
 
 node --check stats-period.js
 node --check dated-period.js
+node --check period-picker.js
 node --check app.js
 node --check share-page.js
 node --check share-config.js
@@ -219,6 +226,7 @@ Then open `http://localhost:8000`.
 - **0.9.5** — full marketing landing page
 - **0.9.6** — simplified launch landing page and creator/project footer
 - **0.9.7** — dated calendar-month/year stats across dashboard, shares, embeds, and PNGs
-- **0.9.7.1** — simplified dated selector and automatic calendar synchronization
-- **0.9.7.2** — current-month default, Month/Year/Rolling hierarchy, 60-day rolling view, and unified period display
+- **0.9.7.1** — simplified date picker and automatic dated-calendar synchronization
+- **0.9.7.2** — current-month default, simplified Month/Year/Rolling controls, and duplicate period-label cleanup
+- **0.9.7.3** — single period stepper/picker with one-tap month navigation and rolling periods moved behind the picker
 - **1.0** — final regression, documentation freeze, and stable release
