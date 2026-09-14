@@ -3,7 +3,7 @@
   "name": "Gitbrag for GitHub",
   "short_name": "Gitbrag",
   "description": "Show the Gitbrag activity snapshot directly on public GitHub profiles.",
-  "version": "0.9.8",
+  "version": "0.9.8.1",
   "homepage_url": "https://jpluker.github.io/Gitbrag/",
   "permissions": ["storage"],
   "host_permissions": [
