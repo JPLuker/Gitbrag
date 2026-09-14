@@ -309,6 +309,23 @@
   text-align: center;
 }
 
+/* Use the otherwise-empty profile gutter as a dedicated Gitbrag rail on wide screens. */
+@media (min-width: 1500px) {
+  .gitbrag-ext-card:not(.gitbrag-ext-card--wide) {
+    position: fixed;
+    top: 96px;
+    right: 14px;
+    z-index: 30;
+    width: clamp(236px, 16vw, 280px);
+    max-height: calc(100vh - 112px);
+    margin: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .18);
+  }
+}
+
 @media (max-width: 380px) {
   .gitbrag-ext-picker-quick { grid-template-columns: 1fr; }
   .gitbrag-ext-picker-row,
