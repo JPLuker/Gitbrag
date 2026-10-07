@@ -58,6 +58,77 @@
 .png-preview-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 9px; color: var(--muted); font-size: 10px; }
 .png-dialog-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 16px; }
 .png-dialog-actions button:disabled { opacity: .55; cursor: wait; }
+
+.png-period-legacy-control,
+[data-dated-builder-for="pngStatsPeriod"] { display: none !important; }
+.png-unified-period {
+  position: relative;
+  padding-bottom: 9px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid #1f1f25;
+}
+.png-unified-period-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 7px;
+  color: #c3c3c9;
+  font-size: 12px;
+}
+.png-unified-period-head small { color: var(--muted); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.png-unified-period-control { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px; gap: 6px; }
+.png-unified-period-control button,
+.png-unified-period-panel button,
+.png-unified-period-panel select {
+  min-width: 0;
+  padding: 7px 8px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font: inherit;
+}
+.png-unified-period-control button,
+.png-unified-period-panel button { cursor: pointer; }
+.png-unified-period-control button:hover,
+.png-unified-period-panel button:hover { border-color: var(--accent); }
+.png-unified-period-control button:focus-visible,
+.png-unified-period-panel button:focus-visible,
+.png-unified-period-panel select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.png-unified-period-control > button:first-child,
+.png-unified-period-control > button:last-child { padding: 0; font-size: 18px; line-height: 1; }
+.png-unified-period-control button:disabled { opacity: .35; cursor: default; border-color: var(--line); }
+.png-unified-period-current { overflow: hidden; font-size: 11px !important; font-weight: 800 !important; text-overflow: ellipsis; white-space: nowrap; }
+.png-unified-period-panel {
+  margin-top: 7px;
+  padding: 9px;
+  background: #101015;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.png-unified-period-panel.hidden { display: none; }
+.png-unified-period-quick,
+.png-unified-period-rolling { display: grid; gap: 5px; }
+.png-unified-period-quick { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.png-unified-period-quick button,
+.png-unified-period-rolling button,
+.png-unified-period-row button { padding: 6px 5px; font-size: 9px; font-weight: 800; }
+.png-unified-period-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) minmax(66px, .75fr) 42px;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+}
+.png-unified-period-row-year { grid-template-columns: 40px minmax(0, 1fr) 42px; }
+.png-unified-period-row > span,
+.png-unified-period-heading { color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.png-unified-period-row select { width: 100%; max-width: none; padding: 6px; font-size: 9px; }
+.png-unified-period-heading { margin: 9px 0 5px; }
+.png-unified-period-rolling { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.png-unified-period-rolling button.active { color: #071018; background: var(--accent); border-color: var(--accent); }
+
 @media (max-width: 860px) {
   .png-workspace { grid-template-columns: 1fr; }
   .png-settings { grid-template-columns: 1fr 1fr; }
@@ -72,4 +143,10 @@
   .png-fieldset select { width: 100%; max-width: none; }
   .png-dialog-actions { flex-direction: column; }
   .png-dialog-actions button { width: 100%; }
+  .png-unified-period-quick { grid-template-columns: 1fr; }
+  .png-unified-period-row,
+  .png-unified-period-row-year { grid-template-columns: 1fr 1fr; }
+  .png-unified-period-row > span { grid-column: 1 / -1; }
+  .png-unified-period-row button { grid-column: 1 / -1; }
+  .png-unified-period-rolling { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
