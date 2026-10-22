@@ -2,7 +2,7 @@
 
 Gitbrag is a lightweight GitHub Pages app that turns public GitHub activity into a focused stats dashboard with share links, social PNGs, website embeds, and an optional Chrome extension.
 
-**v0.9.9** prepares the existing website and Chrome extension for the final 1.0 test gate. It bundles the existing Inter font locally, adds support/security documentation and links, and adds automated verification and draft-release packaging. The visual identity and feature scope remain unchanged.
+**v0.9.10** licenses Gitbrag under MIT and completes the license notices. The preceding v0.9.9 update prepares the existing website and Chrome extension for the final 1.0 test gate. It bundles the existing Inter font locally, adds support/security documentation and links, and adds automated verification and draft-release packaging. The visual identity and feature scope remain unchanged.
 
 **1.0 is not published yet.** Follow [release issue #1](https://github.com/JPLuker/Gitbrag/issues/1), [the audit](MAINTENANCE-AUDIT.md), and [the browser checklist](FINAL-TEST.md).
 
@@ -202,7 +202,7 @@ Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md), nev
 
 ## License
 
-The project's software license awaits Joseph Luker's explicit confirmation before 1.0. No open-source license is implied by this public repository. The bundled Inter font has its own SIL Open Font License notice, preserved above.
+Gitbrag is open source under the [MIT License](LICENSE), copyright © 2026 Joseph Luker. The bundled Inter font remains under its own [SIL Open Font License 1.1](assets/fonts/OFL.txt); its notice is preserved separately.
 
 ## Verification and release preparation
 

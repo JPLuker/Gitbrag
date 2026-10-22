@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.9.10] — 2026-10-22
+
+### Added
+- Licensed Gitbrag as open source under MIT, with license notices on the website and in the extension.
+
 ## [0.9.9] — 2026-10-22
 
 ### Changed

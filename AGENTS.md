@@ -32,8 +32,9 @@ cleared; extension preferences can be removed by uninstalling. Website URLs
 and PNG downloads are the existing export formats. Do not add desktop-style
 export/data-folder controls merely to match a desktop checklist.
 
-The license is not yet confirmed. Do not invent a license or publish 1.0 before
-Joseph confirms it. Preserve the bundled font's SIL Open Font License notice.
+Joseph approved making Gitbrag open source on 2026-10-22 after MIT was proposed.
+The project is MIT licensed, copyright 2026 Joseph Luker. Preserve LICENSE in
+distributions and the bundled font's separate SIL Open Font License notice.
 
 ## Release scope
 

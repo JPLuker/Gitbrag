@@ -1,6 +1,6 @@
 # Gitbrag maintenance audit
 
-Audit date: 2026-10-22. Candidate: 0.9.9. Tracking: [release issue #1](https://github.com/JPLuker/Gitbrag/issues/1).
+Audit date: 2026-10-22. Candidate: 0.9.10. Tracking: [release issue #1](https://github.com/JPLuker/Gitbrag/issues/1).
 
 **Status: preparation complete; 1.0 acceptance is still pending.**
 No visual redesign is in scope. AGENTS.md records Joseph's project-specific
@@ -29,10 +29,11 @@ unverified, not automatically broken or automatically passed.
 
 ## Required before 1.0
 
-- [ ] Joseph confirms a project license. There was no LICENSE file and GitHub
-  reported no license at audit time. Add the confirmed license with Joseph Luker
-  and the correct year; add notices in README/footer/extension documentation.
-  Bundled Inter is SIL OFL 1.1 and requires its existing notice to remain.
+- [x] Joseph approved open-source licensing after MIT was proposed on 2026-10-22.
+  Added MIT LICENSE, copyright 2026 Joseph Luker, with notices in README, footer,
+  extension popup and documentation. No runtime code dependencies are used.
+  Bundled Inter remains SIL OFL 1.1 with its separate notice preserved; it is
+  distributed alongside the MIT software rather than relicensed as MIT.
 - [ ] Owner verifies/enables secret scanning, push protection, private vulnerability
   reporting, and automatic security fixes where supported. The GitHub connector
   does not expose these settings; a link in SECURITY.md does not enable them.

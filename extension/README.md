@@ -2,7 +2,7 @@
 
 A Manifest V3 Chrome extension that adds a compact Gitbrag overlay to public GitHub profile pages.
 
-**v0.9.9** is the nonvisual maintenance-preparation candidate following the website-parity pass. The overlay now mirrors the core Gitbrag experience while staying compact enough to live inside GitHub.
+**v0.9.10** adds MIT license notices to the nonvisual maintenance candidate. The preceding v0.9.9 update is the nonvisual maintenance-preparation candidate following the website-parity pass. The overlay now mirrors the core Gitbrag experience while staying compact enough to live inside GitHub.
 
 ## What it shows
 
@@ -97,4 +97,8 @@ See the repository-level `FINAL-TEST.md`. The release gate includes current GitH
 
 ## Support and release status
 
-[Report an issue](https://github.com/JPLuker/Gitbrag/issues/new/choose). Issues are monitored. Report vulnerabilities privately using the root SECURITY.md. Version 1.0 still requires the real-browser gate and license confirmation. Chrome Web Store publication is separate and has not been claimed complete.
+[Report an issue](https://github.com/JPLuker/Gitbrag/issues/new/choose). Issues are monitored. Report vulnerabilities privately using the root SECURITY.md. Version 1.0 still requires the real-browser and remaining maintenance gates. Chrome Web Store publication is separate and has not been claimed complete.
+
+## License
+
+Gitbrag is open source under the [MIT License](../LICENSE), copyright © 2026 Joseph Luker. Release extension ZIPs include the LICENSE notice.
