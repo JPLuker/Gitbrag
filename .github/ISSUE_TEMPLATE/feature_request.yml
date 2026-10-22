@@ -1,0 +1,9 @@
+name: Feature request
+description: Suggest an improvement (1.0 scope is frozen)
+labels: [enhancement]
+body:
+  - type: textarea
+    attributes:
+      label: What would you like?
+    validations:
+      required: true

@@ -3,9 +3,11 @@
   "name": "Gitbrag for GitHub",
   "short_name": "Gitbrag",
   "description": "Show the Gitbrag activity snapshot directly on public GitHub profiles.",
-  "version": "0.9.8.1",
+  "version": "0.9.9",
   "homepage_url": "https://jpluker.github.io/Gitbrag/",
-  "permissions": ["storage"],
+  "permissions": [
+    "storage"
+  ],
   "host_permissions": [
     "https://api.github.com/*",
     "https://github-contributions-api.jogruber.de/*"
@@ -19,9 +21,17 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://github.com/*"],
-      "js": ["core.js", "stats.js", "content.js"],
-      "css": ["content.css"],
+      "matches": [
+        "https://github.com/*"
+      ],
+      "js": [
+        "core.js",
+        "stats.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
       "run_at": "document_idle"
     }
   ]

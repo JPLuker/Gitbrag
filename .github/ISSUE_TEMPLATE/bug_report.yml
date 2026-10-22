@@ -1,0 +1,22 @@
+name: Bug report
+description: Something is not working
+labels: [bug]
+body:
+  - type: textarea
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to reproduce
+  - type: input
+    attributes:
+      label: Gitbrag version, browser, and OS
+      placeholder: Website or extension version, Chrome/Firefox version, OS
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Diagnostic details
+      description: Optional console errors or screenshots. Remove personal or sensitive information.

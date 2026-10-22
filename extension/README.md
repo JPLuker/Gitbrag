@@ -2,7 +2,7 @@
 
 A Manifest V3 Chrome extension that adds a compact Gitbrag overlay to public GitHub profile pages.
 
-**v0.9.8** is the pre-1.0 website-parity pass. The overlay now mirrors the core Gitbrag experience while staying compact enough to live inside GitHub.
+**v0.9.9** is the nonvisual maintenance-preparation candidate following the website-parity pass. The overlay now mirrors the core Gitbrag experience while staying compact enough to live inside GitHub.
 
 ## What it shows
 
@@ -94,3 +94,7 @@ The pure tests cover route validation, cache behavior, contribution normalizatio
 ## Still requires real-browser testing
 
 See the repository-level `FINAL-TEST.md`. The release gate includes current GitHub placement, light/dark themes, period-picker interaction, heatmap sizing, repository parity, SPA navigation/reinjection, popup behavior, and visible failure states.
+
+## Support and release status
+
+[Report an issue](https://github.com/JPLuker/Gitbrag/issues/new/choose). Issues are monitored. Report vulnerabilities privately using the root SECURITY.md. Version 1.0 still requires the real-browser gate and license confirmation. Chrome Web Store publication is separate and has not been claimed complete.

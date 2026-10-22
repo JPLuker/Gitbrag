@@ -2,7 +2,9 @@
 
 Gitbrag is a lightweight GitHub Pages app that turns public GitHub activity into a focused stats dashboard with share links, social PNGs, website embeds, and an optional Chrome extension.
 
-**v0.9.8** brings the Chrome extension up to product parity with the website before 1.0. The GitHub overlay now defaults to the current calendar month, uses the same low-friction month/year/rolling period model, shows the same four activity metrics and synchronized contribution calendar, adds the five profile-summary metrics, and surfaces the top original public repositories while preserving GitHub-native light/dark styling.
+**v0.9.9** prepares the existing website and Chrome extension for the final 1.0 test gate. It bundles the existing Inter font locally, adds support/security documentation and links, and adds automated verification and draft-release packaging. The visual identity and feature scope remain unchanged.
+
+**1.0 is not published yet.** Follow [release issue #1](https://github.com/JPLuker/Gitbrag/issues/1), [the audit](MAINTENANCE-AUDIT.md), and [the browser checklist](FINAL-TEST.md).
 
 ## Current features
 
@@ -171,6 +173,47 @@ Contribution history comes from `github-contributions-api.jogruber.de` and follo
 
 Because Gitbrag does not request a GitHub token, GitHub's unauthenticated API limits apply.
 
+## Privacy
+
+No telemetry, analytics, advertisements, or Gitbrag accounts. Gitbrag does not sell data. Looking up a public profile sends that username to the services below; those providers receive the request and normal connection information such as IP address. Do not interpret “public data only” as “no network requests.”
+
+The website holds loaded profile data in page memory and does not use localStorage, cookies, or a profile database. Profile/share URLs can remain in browser history or be seen by anyone you send them to. PNGs go to your browser's chosen download location. Browser history, downloads, and HTTP caches are controlled by the browser.
+
+The extension caches up to 50 public profiles in Chrome local extension storage. Entries expire after 15 minutes and are pruned when the cache is accessed; expiry is not a promise of a background deletion timer. Clear them with **Clear cached profiles**. Enable/default-period preferences use Chrome sync storage; Chrome may synchronize these through the user's browser account. Disabling the overlay stops further automatic lookups. Uninstalling removes extension-managed data according to Chrome's behavior. There are no credentials or private-repository tokens to export.
+
+### Network connections
+
+| Host | When | What's sent |
+|---|---|---|
+| `jpluker.github.io` | Opening the website or **Open in Gitbrag** | Static page/asset requests and normal connection metadata. Route/share data lives in the URL fragment, which is not sent in the HTTP request. |
+| `api.github.com` | Website profile lookup; enabled extension on public profiles | Requested public username and repository pagination parameters. No Gitbrag access token. |
+| `github-contributions-api.jogruber.de` | The same profile lookup | Requested public username and history selector. |
+| `avatars.githubusercontent.com` | Website profile/share rendering and PNG/avatar-color loading | Public avatar URL returned by GitHub and normal image request metadata. |
+
+Google Fonts is not contacted: Inter is bundled locally under its [SIL Open Font License](assets/fonts/OFL.txt). No remote scripts or decorative CDN assets are loaded. Chrome's own preference synchronization and extension distribution are browser-managed services, not Gitbrag's own API calls. External footer links are ordinary user-opened links, not background connections.
+
+See [extension privacy](extension/PRIVACY.md) for the extension-specific disclosure.
+
+## Support
+
+Issues are monitored. [Report bugs or request features](https://github.com/JPLuker/Gitbrag/issues/new/choose). The 1.0 feature scope is frozen. After stable release, maintenance covers bugs, security and compatibility; new feature requests do not imply planned development. New reports should be acknowledged within 7 days.
+
+Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md), never in public issues.
+
+## License
+
+The project's software license awaits Joseph Luker's explicit confirmation before 1.0. No open-source license is implied by this public repository. The bundled Inter font has its own SIL Open Font License notice, preserved above.
+
+## Verification and release preparation
+
+```bash
+python3 scripts/verify.py
+```
+
+This runs the four existing suites, JS syntax checks, version consistency checks and local HTML asset checks. It does not prove real-browser behavior. Change `VERSION`, then run `python3 scripts/sync-version.py` to update the static website/cache/popup/manifest references together.
+
+Tagged CI verifies the version and LICENSE, runs the checks, and prepares website/Chrome ZIPs plus `SHA256SUMS.txt` in a **draft** GitHub release. It never automatically publishes a stable release. Complete the manual gate before publishing. Local package runs are for inspection only; published assets come from tagged CI.
+
 ## Tests
 
 ```bash
@@ -233,4 +276,5 @@ Then open `http://localhost:8000`.
 - **0.9.7.2** — current-month default, simplified Month/Year/Rolling controls, and duplicate period-label cleanup
 - **0.9.7.3** — single period stepper/picker with one-tap month navigation and rolling periods moved behind the picker
 - **0.9.8** — Chrome extension parity pass: website-aligned periods, heatmap, profile summary, and top repositories
+- **0.9.9** — nonvisual maintenance documentation, bundled font, verification and draft-release preparation
 - **1.0** — final regression, documentation freeze, and stable release

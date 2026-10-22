@@ -2,7 +2,7 @@
 
 This file contains the checks that still require a real browser, live GitHub behavior, visual inspection, or failure-state simulation before Gitbrag can be tagged **v1.0.0**.
 
-Automated/static checks should be run before this document is used. Do not mark an item complete unless it was actually tested.
+Run `python3 scripts/verify.py` before this document is used. Also complete [MAINTENANCE-AUDIT.md](MAINTENANCE-AUDIT.md) and release issue #1; this browser checklist alone does not establish standards compliance. Do not mark an item complete unless it was actually tested.
 
 ---
 
@@ -247,7 +247,10 @@ After every release-blocking item above passes:
 - [ ] Rewrite/freeze README as final-product documentation.
 - [ ] Run all automated tests and syntax checks again.
 - [ ] Perform one final deployed GitHub Pages smoke test.
-- [ ] Confirm no console-breaking errors.
+- [ ] Confirm no console-breaking errors or CSP-blocked required assets.
+- [ ] Confirm the bundled font, avatar, accent sampling, PNG export and cross-origin embeds still work.
+- [ ] Test extension upgrade with existing settings/cache, not just fresh install.
+- [ ] Confirm license, security settings and the nonvisual maintenance audit are complete.
 - [ ] Confirm deployed assets actually serve v1.0.0.
 - [ ] Tag `v1.0.0`.
 - [ ] Create the GitHub release and release notes.
