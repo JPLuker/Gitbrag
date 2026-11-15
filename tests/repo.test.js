@@ -14,7 +14,7 @@ const elements = new Proxy({}, {
 const window = {};
 const context = {
   window,
-  document: { querySelector(selector) { return elements[selector]; } },
+  document: { querySelector(selector) { return elements[selector]; }, querySelectorAll() { return []; } },
   URL,
   URLSearchParams,
   Object,
