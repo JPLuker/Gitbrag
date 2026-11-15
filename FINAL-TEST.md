@@ -25,13 +25,9 @@ Run `python3 scripts/verify.py` before this document is used. Also complete [MAI
 ### Main dashboard
 
 - [ ] A newly loaded profile opens on the **current calendar month**.
-- [ ] The activity period is presented as one compact control: **‹ [period] ›**.
+- [ ] The activity period is presented as one compact **dropdown button**, without month navigation arrows.
 - [ ] The period label shows a concise value such as **September 2026**, not a second mode name.
 - [ ] The dashboard does not repeat the selected period beside both Activity Summary and Contribution Calendar.
-- [ ] Previous-month arrow moves back exactly one available calendar month.
-- [ ] Next-month arrow moves forward exactly one available calendar month.
-- [ ] Next-month arrow is disabled on the current month.
-- [ ] Previous-month arrow is disabled at the account's earliest available month.
 - [ ] Arrows are disabled for yearly and rolling selections.
 - [ ] Tapping the center period label opens a compact custom picker rather than a long native list.
 - [ ] Picker quick actions show **This month**, **Previous month**, and **This year** with correct labels.
@@ -179,8 +175,8 @@ These checks cannot be proven by static source inspection alone. Load the reposi
 - [ ] Overlay appears on a real public GitHub profile in the intended profile layout.
 - [ ] Overlay does not appear on repositories, organizations, settings, search, or other reserved GitHub routes.
 - [ ] Current calendar month is the default for a fresh/default install.
-- [ ] The compact **‹ period ›** control matches the website interaction model closely enough to feel like the same product.
-- [ ] Previous/next arrows step calendar months correctly and stop at current/earliest available month.
+- [ ] The compact **period dropdown** control matches the website interaction model closely enough to feel like the same product.
+- [ ] The extension activity period uses a single dropdown button without month navigation arrows.
 - [ ] Picker supports current month, previous month, current year, specific month/year, 24H, 7D, 30D, 60D, 6M, 1Y, and All Time.
 - [ ] Contributions, active days, best day, and longest streak match the website for representative periods.
 - [ ] Contribution heatmap follows the selected period and remains usable for month, year, rolling, and All Time selections.
@@ -224,7 +220,7 @@ These checks cannot be proven by static source inspection alone. Load the reposi
 - [ ] Dialog focus placement and return.
 - [ ] Visible focus states.
 - [ ] Period picker button exposes correct `aria-expanded` state.
-- [ ] Previous/next month buttons expose disabled state correctly.
+- [ ] Period selection works without arrow buttons; dropdown focus and expanded states are correct.
 - [ ] Custom month/year controls have usable labels and focus behavior.
 - [ ] Form controls have usable labels.
 - [ ] Live/status messages make sense.
@@ -236,7 +232,15 @@ These checks cannot be proven by static source inspection alone. Load the reposi
 
 ---
 
-## 8. Final 1.0 release gate
+## 8. Repository experience (issue #3)
+
+- [ ] Public repository URLs / `owner/repo` inputs open a repository dashboard without breaking user profile routing.
+- [ ] Repository metadata and available activity values match public GitHub data, with unsupported statistics clearly identified.
+- [ ] Repository share links, PNG and embeds work, while existing profile links remain compatible.
+- [ ] The Chrome extension displays a repo summary on repository routes, not on unrelated routes.
+- [ ] Repository views work on mobile, keyboard navigation, and browser zoom.
+
+## 9. Final 1.0 release gate
 
 After every release-blocking item above passes:
 
