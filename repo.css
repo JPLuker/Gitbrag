@@ -28,3 +28,10 @@
 .repo-view button:focus-visible,.repo-view a:focus-visible,.repo-view select:focus-visible {outline:2px solid var(--accent);outline-offset:3px}
 @media(max-width:680px){.repo-stats,.repo-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.repo-commit{flex-direction:column;gap:5px}.repo-view{width:calc(100% - 24px)}}
 @media(max-width:380px){.repo-stats,.repo-meta{grid-template-columns:1fr}}
+
+.repo-view .sr-only {position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.repo-calendar {display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;margin:16px 0 26px}
+.repo-day {height:29px;border-radius:5px;border:1px solid var(--line);background:#22252b}
+.repo-day-1{background:#254a6a}.repo-day-2{background:#2778b4}.repo-day-3{background:#35a1ed}.repo-day-4{background:#3da9ff}
+.repo-recent + .repo-recent{margin-top:15px}
+@media(max-width:420px){.repo-day{height:20px}.repo-calendar{gap:4px}}
