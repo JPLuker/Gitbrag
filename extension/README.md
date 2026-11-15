@@ -20,7 +20,7 @@ The extension uses public data only. It does not request a GitHub login or token
 
 ## Repository mode (v0.9.11 candidate)
 
-On a public `github.com/owner/repo` route, Gitbrag shows stars, forks, subscribers, combined open issue/PR count, primary language, capped contributor count, and sampled recent commits. The period selector filters the fetched 100-commit sample; it does not represent a complete repository contribution history. The Open in Gitbrag link opens the repository dashboard with sharing, image export, and embed options. Repository extension rendering and over-install preservation require browser testing before v1.0.
+On a public `github.com/owner/repo` route, Gitbrag shows stars, forks, subscribers, combined open issue/PR count, primary language, capped contributor count, and sampled recent commits. The period selector filters the fetched 100-commit sample; it does not represent a complete repository contribution history. The Open in Gitbrag link opens the repository dashboard with sharing, selected module/accent customization, image export, and embed options. Repository extension rendering and over-install preservation require browser testing before v1.0.
 
 ## Install locally
 
