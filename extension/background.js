@@ -162,7 +162,50 @@ async function loadProfile(username, { force = false } = {}) {
   }
 }
 
+async function loadRepository(owner, name, { force = false } = {}) {
+  const parsed = Core.repositoryFromPath('/' + owner + '/' + name);
+  if (!parsed) return { ok: false, error: 'Invalid public repository path.' };
+  const key = 'repo:' + owner.toLowerCase() + '/' + name.toLowerCase();
+  if (!force) {
+    const cached = await cachedProfile(key);
+    if (cached) return { ok: true, cached: true, ...cached };
+  }
+  try {
+    const prefix = GITHUB_API + '/repos/' + encodeURIComponent(owner) + '/' + encodeURIComponent(name);
+    const repository = await githubJson(prefix, 'Public repository not found.');
+    const [commits, contributors] = await Promise.allSettled([
+      githubJson(prefix + '/commits?per_page=100'),
+      githubJson(prefix + '/contributors?per_page=100'),
+    ]);
+    const data = {
+      repository: {
+        owner: repository.owner?.login || owner, name: repository.name || name,
+        fullName: repository.full_name || owner + '/' + name,
+        description: repository.description || '',
+        url: repository.html_url, stars: repository.stargazers_count,
+        forks: repository.forks_count, subscribers: repository.subscribers_count,
+        openIssuesAndPRs: repository.open_issues_count, language: repository.language,
+        updatedAt: repository.pushed_at, archived: Boolean(repository.archived),
+        license: repository.license?.spdx_id || null,
+      },
+      commits: commits.status === 'fulfilled' && Array.isArray(commits.value) ? commits.value.map(c => ({
+        message: (c.commit?.message || '').split('\n')[0],
+        date: c.commit?.author?.date || c.commit?.committer?.date,
+        url: c.html_url,
+      })) : [],
+      contributors: contributors.status === 'fulfilled' && Array.isArray(contributors.value) ? contributors.value.length : null,
+      activityAvailable: commits.status === 'fulfilled',
+    };
+    await saveProfile(key, data);
+    return { ok: true, cached: false, ...data };
+  } catch (error) { return { ok: false, error: error?.message || 'Could not load repository.' }; }
+}
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === 'gitbrag:load-repository') {
+    loadRepository(message.owner, message.name, { force: message.force === true }).then(sendResponse);
+    return true;
+  }
   if (message?.type === 'gitbrag:load-profile') {
     loadProfile(message.username, { force: message.force === true }).then(sendResponse);
     return true;
