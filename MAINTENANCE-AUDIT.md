@@ -1,6 +1,6 @@
 # Gitbrag maintenance audit
 
-Audit date: 2026-10-22. Candidate: 0.9.10. Tracking: [release issue #1](https://github.com/JPLuker/Gitbrag/issues/1).
+Audit date: 2026-10-22. Original audit candidate: 0.9.10; current repository-mode candidate: 0.9.11. Tracking: [release issue #1](https://github.com/JPLuker/Gitbrag/issues/1).
 
 **Status: preparation complete; 1.0 acceptance is still pending.**
 No visual redesign is in scope. AGENTS.md records Joseph's project-specific
@@ -30,6 +30,12 @@ unverified, not automatically broken or automatically passed.
 ## Owner's final test results (2026-11-15)
 
 10 of 12 simplified real-user tests passed (website, profile data, period dropdown, share links, PNG, mobile layout, bad user, extension overlay/navigation/controls). Extension upgrade was skipped and remains unverified. Keyboard/zoom failed at an unspecified higher zoom threshold. The owner requested removal of activity arrows in favor of the dropdown, and a repository-level counterpart to the profile experience (issue #3). These changes and their post-change regression testing are required before 1.0 acceptance. Do not treat the simplified test as equivalent to every detailed check in FINAL-TEST.md.
+
+## Repository-mode source delivery (2026-11-15)
+
+The 0.9.11 candidate adds public repository URL/slug lookup, a standalone repository dashboard, API-sampled recent commit history and calendar, share links preserving modules/period/accent, a configurable 1080×1080 PNG, embed code, and Chrome extension repository overlays. All profile routes and legacy share-link parsing remain in source. The obsolete calendar-month arrows and their three-column layouts are removed. New route and arrow-regression tests are in automated verification.
+
+**This is code-complete for the requested features, not 1.0-accepted.** GitHub Actions verification passing only covers source/static tests. Browser/device verification on the exact deployed candidate, actual extension over-install with existing settings, zoom/keyboard recheck, and owner-controlled security settings remain separate required gates. Repository activity comes from bounded public API samples; exact historical repo contribution totals are not available without other data sources, and no such claim is made.
 
 ## Required before 1.0
 
