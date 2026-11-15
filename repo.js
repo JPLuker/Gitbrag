@@ -2,7 +2,7 @@
   'use strict';
   const $ = (s) => document.querySelector(s);
   const periods = { '7d': 7, '30d': 30, '90d': 90, '1y': 365, 'recent': null };
-  const state = { repository: null, commits: [], contributors: [], commitsAvailable: false, contributorsAvailable: false, period: '30d', controller: null, sequence: 0 };
+  const state = { repository: null, commits: [], contributors: [], commitsAvailable: false, contributorsAvailable: false, period: '30d', modules: ['metrics','metadata','calendar','commits'], accent: 'blue', controller: null, sequence: 0 };
   const view = $('#repoView');
   const section = $('#repoDetails');
   const note = $('#repoStatus');
@@ -56,9 +56,24 @@
     if (!response.ok) throw new Error('GitHub returned HTTP ' + response.status + '.');
     return response.json();
   }
-  function updateUrl() {
+  const accents = Object.freeze({ blue: '#3da9ff', purple: '#bb88ff', green: '#43c998', red: '#f47b82' });
+  const moduleKeys = ['metrics','metadata','calendar','commits'];
+  function applySettings() {
+    document.querySelectorAll('[data-repo-module]').forEach(control => {
+      control.checked = state.modules.includes(control.dataset.repoModule);
+    });
+    $('#repoAccent').value = state.accent;
+    view.style.setProperty('--repo-accent', accents[state.accent]);
+  }
+  function shareHash() {
     const repo = state.repository;
-    if (repo) history.replaceState(null, '', route({ owner: repo.owner.login, name: repo.name }, state.period));
+    if (!repo) return '';
+    return route({owner:repo.owner.login,name:repo.name},state.period)
+      + '&m=' + encodeURIComponent(state.modules.join(','))
+      + '&a=' + encodeURIComponent(state.accent);
+  }
+  function updateUrl() {
+    if (state.repository) history.replaceState(null,'',shareHash());
   }
   function selectedCommits() {
     if (state.period === 'recent') return state.commits;
@@ -103,6 +118,7 @@
     const owner = add(links, 'a', '', 'Owner profile ↗');
     owner.href = '#/' + encodeURIComponent(repo.owner.login);
     if (repo.archived) add(heading, 'p', 'repo-alert', 'Archived repository — read-only on GitHub.');
+    if (state.modules.includes('metrics')) {
     const grid = add(section, 'div', 'repo-stats');
     stat(grid, 'Stars', fmt(repo.stargazers_count), 'GitHub stargazers');
     stat(grid, 'Forks', fmt(repo.forks_count), 'Public forks');
@@ -110,6 +126,8 @@
     stat(grid, 'Open issues + PRs', fmt(repo.open_issues_count), 'GitHub API combined count');
     stat(grid, 'Recent commits', state.commitsAvailable ? fmt(selectedCommits().length) : '—', 'Up to 100 most recent, filtered by period');
     stat(grid, 'Contributors', state.contributorsAvailable ? fmt(state.contributors.length) : '—', 'Up to 100 returned by GitHub');
+    }
+    if (state.modules.includes('metadata')) {
     const meta = add(section, 'div', 'repo-meta');
     [['Primary language', repo.language || 'Not specified'], ['License', repo.license?.spdx_id || 'Not specified'],
      ['Default branch', repo.default_branch || '—'], ['Created', date(repo.created_at)],
@@ -117,7 +135,9 @@
       const p = add(meta, 'div', 'repo-meta-item'); add(p, 'span', '', label); add(p, 'strong', '', value);
     });
     if (Array.isArray(repo.topics) && repo.topics.length) add(section, 'p', 'repo-topics', 'Topics: ' + repo.topics.join(' · '));
-    renderActivityCalendar(section);
+    }
+    if (state.modules.includes('calendar')) renderActivityCalendar(section);
+    if (state.modules.includes('commits')) {
     const commits = add(section, 'section', 'repo-recent');
     add(commits, 'h2', '', 'Recent repository activity');
     add(commits, 'p', 'repo-muted', 'GitHub public commits, capped at 100 returned records. Counts are not full-history totals and may be incomplete for busy repositories.');
@@ -129,6 +149,7 @@
       link.href = safeUrl(c.html_url); link.target = '_blank'; link.rel = 'noopener noreferrer';
       add(row, 'small', '', (c.author?.login || c.commit?.author?.name || 'Unknown') + ' · ' + date(c.commit?.author?.date));
     });
+    }
     note.textContent = 'Public GitHub data · commit and contributor lists are API-limited samples, not lifetime totals.';
   }
   async function load(input, requestedPeriod) {
@@ -139,6 +160,12 @@
     state.controller = controller;
     const sequence = ++state.sequence;
     state.period = Object.hasOwn(periods, requestedPeriod) ? requestedPeriod : '30d';
+    const params = new URLSearchParams(location.hash.split('?')[1] || '');
+    const requestedModules = params.get('m');
+    state.modules = requestedModules === null ? [...moduleKeys] : requestedModules.split(',').filter(value => moduleKeys.includes(value));
+    const requestedAccent = params.get('a');
+    state.accent = Object.hasOwn(accents,requestedAccent) ? requestedAccent : 'blue';
+    applySettings();
     document.querySelectorAll('#searchView, #profileView, #sharedView, #loadingView, #errorView').forEach(el => el.classList.add('hidden'));
     view.classList.remove('hidden');
     section.replaceChildren();
@@ -174,7 +201,7 @@
   function back() { state.controller?.abort(); state.repository = null; location.hash = ''; }
   function shareUrl() {
     const r = state.repository;
-    return new URL(route({owner:r.owner.login, name:r.name}, state.period), location.href.split('#')[0]).href;
+    return new URL(shareHash(), location.href.split('#')[0]).href;
   }
   async function copy(value, label) {
     try { await navigator.clipboard.writeText(value); note.textContent = label + ' copied.'; }
@@ -220,6 +247,15 @@
     },'image/png');
   }
   picker.addEventListener('change', () => { state.period = picker.value; updateUrl(); render(); });
+  document.querySelectorAll('[data-repo-module]').forEach(control => control.addEventListener('change', () => {
+    state.modules = moduleKeys.filter(key => document.querySelector('[data-repo-module="' + key + '"]').checked);
+    updateUrl();
+    if (state.repository) render();
+  }));
+  $('#repoAccent').addEventListener('change', (event) => {
+    state.accent = Object.hasOwn(accents,event.target.value) ? event.target.value : 'blue';
+    applySettings(); updateUrl();
+  });
   $('#repoBack').addEventListener('click', back);
   $('#repoShare').addEventListener('click', () => state.repository && copy(shareUrl(),'Share link'));
   $('#repoEmbed').addEventListener('click', () => state.repository && embed());
