@@ -9,8 +9,6 @@
   const button = $('#periodPickerButton');
   const label = $('#periodPickerLabel');
   const panel = $('#periodPickerPanel');
-  const previousButton = $('#periodPrev');
-  const nextButton = $('#periodNext');
   const thisMonthLabel = $('#periodThisMonthLabel');
   const previousMonthLabel = $('#periodPreviousMonthLabel');
   const currentYearLabel = $('#periodCurrentYearLabel');
@@ -114,20 +112,11 @@
     }
   }
 
-  function syncArrowState(period) {
-    const values = monthValues();
-    const parsed = StatsPeriod.parse(period);
-    const index = parsed?.type === 'calendar-month' ? values.indexOf(period) : -1;
-    if (previousButton) previousButton.disabled = index < 0 || index >= values.length - 1;
-    if (nextButton) nextButton.disabled = index <= 0;
-  }
-
   function sync(period) {
     if (!period || !StatsPeriod.isValid(period)) return;
     const display = conciseLabel(period);
     if (label) label.textContent = display;
     if (button) button.setAttribute('aria-label', `Activity period: ${display}. Open period picker.`);
-    syncArrowState(period);
     syncShortcutLabels();
 
     // The picker is the dashboard's single period label. Shared/PNG output still
@@ -160,21 +149,10 @@
     closePicker();
   }
 
-  function shiftCalendarMonth(direction) {
-    const period = app()?.getCurrentStatsPeriod?.();
-    const values = monthValues();
-    const index = values.indexOf(period);
-    if (index < 0) return;
-    const target = values[index + direction];
-    if (target) app()?.setStatsPeriod?.(target);
-  }
-
   button?.addEventListener('click', () => {
     if (panel?.classList.contains('hidden')) openPicker();
     else closePicker();
   });
-  previousButton?.addEventListener('click', () => shiftCalendarMonth(1));
-  nextButton?.addEventListener('click', () => shiftCalendarMonth(-1));
 
   panel?.addEventListener('click', (event) => {
     const shortcut = event.target.closest('[data-period-shortcut]');
@@ -346,9 +324,7 @@
       <small>Stats + calendar</small>
     </div>
     <div class="png-unified-period-control" role="group" aria-label="Image activity period">
-      <button type="button" data-png-period-prev aria-label="Previous calendar month">‹</button>
       <button type="button" class="png-unified-period-current" data-png-period-current aria-haspopup="true" aria-expanded="false">Current month</button>
-      <button type="button" data-png-period-next aria-label="Next calendar month">›</button>
     </div>
     <div class="png-unified-period-panel hidden" data-png-period-panel>
       <div class="png-unified-period-quick">
@@ -381,8 +357,6 @@
   statsLabel.insertAdjacentElement('beforebegin', periodUi);
 
   const currentButton = $('[data-png-period-current]', periodUi);
-  const previousButton = $('[data-png-period-prev]', periodUi);
-  const nextButton = $('[data-png-period-next]', periodUi);
   const panel = $('[data-png-period-panel]', periodUi);
   const monthSelect = $('[data-png-month]', periodUi);
   const monthYearSelect = $('[data-png-month-year]', periodUi);
@@ -466,8 +440,6 @@
     const values = monthValues();
     const parsed = StatsPeriod.parse(period);
     const index = parsed?.type === 'calendar-month' ? values.indexOf(period) : -1;
-    previousButton.disabled = index < 0 || index >= values.length - 1;
-    nextButton.disabled = index <= 0;
 
     $$('[data-png-rolling]', periodUi).forEach((button) => {
       button.classList.toggle('active', parsed?.type === 'rolling' && button.dataset.pngRolling === period);
@@ -488,16 +460,6 @@
     currentButton.setAttribute('aria-expanded', 'false');
   }
 
-  function shiftMonth(direction) {
-    const values = monthValues();
-    const index = values.indexOf(selectedPeriod());
-    if (index < 0) return;
-    const target = values[index + direction];
-    if (target) setPeriod(target);
-  }
-
-  previousButton.addEventListener('click', () => shiftMonth(1));
-  nextButton.addEventListener('click', () => shiftMonth(-1));
   currentButton.addEventListener('click', () => {
     const opening = panel.classList.contains('hidden');
     panel.classList.toggle('hidden', !opening);
