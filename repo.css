@@ -2,14 +2,14 @@
 .repo-toolbar { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; padding:14px 0 22px; }
 .repo-actions { display:flex; flex-wrap:wrap; gap:8px; }
 .repo-toolbar button, .repo-period select { border:1px solid var(--line);border-radius:9px;background:var(--panel-strong);color:var(--text);padding:10px 13px;font:inherit;cursor:pointer; }
-.repo-toolbar button:hover,.repo-links a:hover { border-color:var(--accent); }
+.repo-toolbar button:hover,.repo-links a:hover { border-color:var(--repo-accent, var(--accent)); }
 .repo-period { display:flex;gap:10px;align-items:center;flex-wrap:wrap;color:var(--muted); }
 .repo-intro {background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;margin:12px 0 18px;overflow-wrap:anywhere}
 .repo-intro h1 {font-size:clamp(24px,4vw,42px);margin:8px 0;line-height:1.25}
 .repo-intro p {color:var(--muted);line-height:1.55}
-.repo-eyebrow {letter-spacing:.12em;text-transform:uppercase;color:var(--accent)!important;font-size:12px}
+.repo-eyebrow {letter-spacing:.12em;text-transform:uppercase;color:var(--repo-accent, var(--accent))!important;font-size:12px}
 .repo-links{display:flex;gap:18px;flex-wrap:wrap;margin-top:20px}
-.repo-links a,.repo-commit a{color:var(--accent);text-decoration:none;overflow-wrap:anywhere}
+.repo-links a,.repo-commit a{color:var(--repo-accent, var(--accent));text-decoration:none;overflow-wrap:anywhere}
 .repo-alert{color:#eec28c!important}
 .repo-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .repo-stat{display:flex;flex-direction:column;gap:10px;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:20px;min-width:0}
@@ -25,7 +25,7 @@
 .repo-commit{display:flex;justify-content:space-between;align-items:start;gap:15px;padding:13px 0;border-top:1px solid var(--line)}
 .repo-commit small{color:var(--muted);white-space:nowrap}
 .repo-topics{color:var(--muted);overflow-wrap:anywhere}
-.repo-view button:focus-visible,.repo-view a:focus-visible,.repo-view select:focus-visible {outline:2px solid var(--accent);outline-offset:3px}
+.repo-view button:focus-visible,.repo-view a:focus-visible,.repo-view select:focus-visible {outline:2px solid var(--repo-accent, var(--accent));outline-offset:3px}
 @media(max-width:680px){.repo-stats,.repo-view .repo-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.repo-commit{flex-direction:column;gap:5px}.repo-view{width:calc(100% - 24px)}}
 @media(max-width:380px){.repo-stats,.repo-view .repo-meta{grid-template-columns:1fr}}
 
@@ -35,3 +35,12 @@
 .repo-day-1{background:#254a6a}.repo-day-2{background:#2778b4}.repo-day-3{background:#35a1ed}.repo-day-4{background:#3da9ff}
 .repo-recent + .repo-recent{margin-top:15px}
 @media(max-width:420px){.repo-day{height:20px}.repo-calendar{gap:4px}}
+
+.repo-custom { border:1px solid var(--line);border-radius:11px;background:var(--panel);padding:12px 15px;margin:0 0 18px; }
+.repo-custom summary { cursor:pointer;font-weight:600; }
+.repo-custom summary:focus-visible {outline:2px solid var(--repo-accent, var(--accent));outline-offset:3px}
+.repo-custom-controls {display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-top:14px}
+.repo-custom-controls label {display:flex;align-items:center;gap:7px;color:var(--text);font-size:13px}
+.repo-custom-controls input {accent-color:var(--repo-accent,var(--accent));width:18px;height:18px}
+.repo-custom-controls select {background:var(--panel-strong);color:var(--text);border:1px solid var(--line);padding:6px;border-radius:7px;font:inherit}
+.repo-view .repo-eyebrow,.repo-view .repo-links a,.repo-view .repo-commit a{color:var(--repo-accent,var(--accent))!important}
