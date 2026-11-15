@@ -1,13 +1,13 @@
 # Gitbrag for GitHub
 
-A Manifest V3 Chrome extension that adds a compact Gitbrag overlay to public GitHub profile pages.
+A Manifest V3 Chrome extension that adds a compact Gitbrag overlay to public GitHub profile and repository pages.
 
 **v0.9.10** adds MIT license notices to the nonvisual maintenance candidate. The preceding v0.9.9 update is the nonvisual maintenance-preparation candidate following the website-parity pass. The overlay now mirrors the core Gitbrag experience while staying compact enough to live inside GitHub.
 
 ## What it shows
 
 - Current calendar month by default.
-- Previous/next calendar-month navigation.
+- Period selection through the dropdown only; month-step arrows are removed.
 - Calendar month/year selection.
 - Rolling 24H, 7D, 30D, 60D, 6M, 1Y, and All Time periods.
 - Contributions, active days, best day, and longest streak.
@@ -17,6 +17,10 @@ A Manifest V3 Chrome extension that adds a compact Gitbrag overlay to public Git
 - A direct **Open in Gitbrag** link for the full dashboard/share/PNG/embed experience.
 
 The extension uses public data only. It does not request a GitHub login or token.
+
+## Repository mode (v0.9.11 candidate)
+
+On a public `github.com/owner/repo` route, Gitbrag shows stars, forks, subscribers, combined open issue/PR count, primary language, capped contributor count, and sampled recent commits. The period selector filters the fetched 100-commit sample; it does not represent a complete repository contribution history. The Open in Gitbrag link opens the repository dashboard with sharing, image export, and embed options. Repository extension rendering and over-install preservation require browser testing before v1.0.
 
 ## Install locally
 
