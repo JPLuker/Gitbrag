@@ -24,6 +24,10 @@
   function profileUsername() {
     return Core.profileUsernameFromPath(location.pathname);
   }
+  function currentIdentifier() {
+    const r = Core.repositoryFromPath(location.pathname);
+    return r ? r.owner + '/' + r.name : profileUsername();
+  }
 
   async function readSettings() {
     try {
@@ -82,7 +86,9 @@
     brandWrap.append(brand);
 
     const open = create('a', 'gitbrag-ext-open', 'Open in Gitbrag ↗');
-    open.href = `${SITE_URL}#/${encodeURIComponent(username)}`;
+    open.href = username.includes('/')
+      ? SITE_URL + '#/repo/' + username.split('/').map(encodeURIComponent).join('/')
+      : `${SITE_URL}#/${encodeURIComponent(username)}`;
     open.target = '_blank';
     open.rel = 'noopener noreferrer';
     header.append(brandWrap, open);
@@ -447,10 +453,77 @@
     setPeriod(card, data, Stats.resolvePreference(preference));
   }
 
+  function renderRepositoryLoaded(card, data, preference) {
+    card.querySelector('.gitbrag-ext-loading')?.remove();
+    const repo = data.repository;
+    const brand = card.querySelector('.gitbrag-ext-brand-wrap');
+    if (data.cached && brand) brand.append(create('span', 'gitbrag-ext-cache-badge', 'cached'));
+    card.append(sectionTitle('Repository summary'));
+    card.append(create('b', 'gitbrag-ext-repo-name', repo.fullName));
+    if (repo.description) card.append(create('p', 'gitbrag-ext-notice', repo.description));
+    if (repo.archived) card.append(create('p', 'gitbrag-ext-notice', 'Archived repository'));
+    const stats = create('div', 'gitbrag-ext-stats');
+    stats.append(
+      statTile('Stars', formatNumber(repo.stars)),
+      statTile('Forks', formatNumber(repo.forks)),
+      statTile('Subscribers', repo.subscribers == null ? '—' : formatNumber(repo.subscribers)),
+      statTile('Issues + PRs', formatNumber(repo.openIssuesAndPRs)),
+      statTile('Contributors', repo.contributors == null ? (data.contributors == null ? '—' : formatNumber(data.contributors)) : formatNumber(repo.contributors)),
+      statTile('Language', repo.language || '—')
+    );
+    card.append(stats);
+    card.append(sectionTitle('Recent commits'));
+    const select = create('select', 'gitbrag-ext-repo-period');
+    select.setAttribute('aria-label', 'Repository activity period');
+    [['7d','Last 7 days'],['30d','Last 30 days'],['90d','Last 90 days'],['1y','Last year'],['recent','Most recent 100']].forEach(([value,label]) => {
+      const item=create('option','',label); item.value=value; select.append(item);
+    });
+    select.value = ['7d','30d','90d','1y','recent'].includes(preference) ? preference : '30d';
+    const activity = create('div', 'gitbrag-ext-repo-commits');
+    function update() {
+      activity.replaceChildren();
+      const days = { '7d':7, '30d':30, '90d':90, '1y':365, recent:null }[select.value];
+      const min = days === null ? -Infinity : Date.now() - days * 86400000;
+      const records = data.commits.filter(item => Date.parse(item.date) >= min);
+      activity.append(statTile('Recent commits', data.activityAvailable ? formatNumber(records.length) : '—', 'Up to 100 fetched, not full history'));
+      records.slice(0, 3).forEach(item => {
+        const link = create('a','gitbrag-ext-repo-name',item.message || 'Commit');
+        link.href=safeGitHubUrl(item.url);link.target='_blank';link.rel='noopener noreferrer';
+        activity.append(link);
+      });
+      if (!records.length) activity.append(create('small','gitbrag-ext-stat-note','No commits in the fetched sample for this period.'));
+      const open = card.querySelector('.gitbrag-ext-open');
+      if (open) open.href = SITE_URL + '#/repo/' + repo.fullName.split('/').map(encodeURIComponent).join('/') + '?p=' + select.value;
+    }
+    select.addEventListener('change',update);
+    card.append(select,activity);
+    card.append(create('div','gitbrag-ext-footer','Public GitHub API · recent commits and contributors are capped samples'));
+    update();
+  }
+
+  async function loadRepoForCurrentPage(target, { force = false } = {}) {
+    const identifier = target.owner + '/' + target.name;
+    if (!force && activeUsername?.toLowerCase() === identifier.toLowerCase() && document.getElementById(CARD_ID)) return;
+    activeUsername=identifier;activeData=null;activePeriod=null;
+    const sequence = ++requestSequence;
+    const card=mountCard(identifier);
+    if (!card) { retryTimer=root.setTimeout(()=>loadForCurrentPage({force}),350); return; }
+    let response;
+    try {
+      response=await chrome.runtime.sendMessage({type:'gitbrag:load-repository',owner:target.owner,name:target.name,force});
+    } catch { response={ok:false,error:'Gitbrag could not reach its background service.'}; }
+    if (sequence!==requestSequence || currentIdentifier()?.toLowerCase()!==identifier.toLowerCase()) return;
+    if (!response?.ok) { renderError(card,identifier,response?.error || 'Could not load repository.');return; }
+    activeData=response;
+    renderRepositoryLoaded(card,response,'30d');
+  }
+
   async function loadForCurrentPage({ force = false } = {}) {
     clearTimeout(retryTimer);
     const username = profileUsername();
+    const repository = Core.repositoryFromPath(location.pathname);
     const settings = await readSettings();
+    if (repository && settings.enabled) { await loadRepoForCurrentPage(repository,{force});return; }
     if (!username || !settings.enabled) {
       activeUsername = null;
       activeData = null;
@@ -498,7 +571,7 @@
     domObserver?.disconnect();
     if (!document.body || !('MutationObserver' in root)) return;
     domObserver = new MutationObserver(() => {
-      const username = profileUsername();
+      const username = currentIdentifier();
       if (!username) return;
       if (activeUsername?.toLowerCase() === username.toLowerCase() && !document.getElementById(CARD_ID)) scheduleLoad();
     });
