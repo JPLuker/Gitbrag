@@ -571,3 +571,13 @@ footer { margin-top: 38px; padding-top: 18px; border-top: 1px solid var(--line);
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Narrow viewport and high-zoom fallback: avoid multi-column overflow. */
+@media (max-width: 400px) {
+  .profile-header { grid-template-columns: minmax(0,1fr) auto; }
+  .profile-header > .share-control { grid-column: 2; }
+  .profile-header > .back { min-width:0;white-space:normal;overflow-wrap:anywhere; }
+  .stats-grid,.extra-grid,.shared-stats-grid { grid-template-columns: minmax(0,1fr); }
+  .profile-intro { flex-wrap:wrap; }
+  .share-menu { max-width:calc(100vw - 24px); }
+}
