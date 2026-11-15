@@ -219,26 +219,58 @@
     const ctx = canvas.getContext('2d');
     if (!ctx) { note.textContent = 'Canvas export unavailable.'; return; }
     ctx.fillStyle = '#09090b'; ctx.fillRect(0,0,1080,1080);
-    ctx.fillStyle = '#3da9ff'; ctx.font = 'bold 44px Inter, sans-serif'; ctx.fillText('GITBRAG', 72, 96);
-    ctx.fillStyle = '#f5f5f7'; ctx.font = 'bold 50px Inter, sans-serif';
-    let title = repo.full_name; while (ctx.measureText(title).width > 920 && title.length > 6) title = title.slice(0,-2) + '…';
-    ctx.fillText(title,72,190);
-    ctx.fillStyle = '#92929b'; ctx.font = '24px Inter, sans-serif';
-    const desc = repo.description || 'Public GitHub repository';
-    let text = desc; while(ctx.measureText(text).width > 920 && text.length > 6) text = text.slice(0,-2) + '…';
-    ctx.fillText(text,72,246);
-    const metrics = [['STARS', fmt(repo.stargazers_count)], ['FORKS', fmt(repo.forks_count)], ['SUBSCRIBERS', fmt(repo.subscribers_count)],
-      ['OPEN ISSUES + PRS', fmt(repo.open_issues_count)], ['RECENT COMMITS', state.commitsAvailable ? fmt(selectedCommits().length) : '—'], ['CONTRIBUTORS', state.contributorsAvailable ? fmt(state.contributors.length) : '—']];
-    metrics.forEach(([label, value], i) => {
-      const x = 72+(i%2)*477, y=310+Math.floor(i/2)*170;
-      ctx.fillStyle='#18181d';ctx.fillRect(x,y,448,148);
-      ctx.fillStyle='#92929b';ctx.font='20px Inter, sans-serif';ctx.fillText(label,x+26,y+43);
-      ctx.fillStyle='#f5f5f7';ctx.font='bold 50px Inter, sans-serif';ctx.fillText(value,x+26,y+105);
-    });
-    ctx.fillStyle='#92929b';ctx.font='21px Inter, sans-serif';
-    ctx.fillText('Period: '+picker.options[picker.selectedIndex].text,72,890);
-    ctx.fillText('Recent commits: up to 100 sampled · contributors: up to 100',72,928);
-    ctx.fillStyle='#f5f5f7';ctx.font='22px Inter, sans-serif';ctx.fillText('github.com/'+repo.full_name,72,998);
+    const accent = accents[state.accent];
+    ctx.fillStyle = accent;ctx.font = 'bold 44px Inter, sans-serif';ctx.fillText('GITBRAG',72,96);
+    function fit(input,max) {
+      let text=String(input||'');
+      while(ctx.measureText(text).width>max && text.length>5) text=text.slice(0,-2)+'…';
+      return text;
+    }
+    ctx.fillStyle='#f5f5f7';ctx.font='bold 50px Inter, sans-serif';
+    ctx.fillText(fit(repo.full_name,920),72,190);
+    ctx.fillStyle='#92929b';ctx.font='24px Inter, sans-serif';
+    ctx.fillText(fit(repo.description||'Public GitHub repository',920),72,246);
+
+    if (state.modules.includes('metrics')) {
+      const metrics = [
+        ['STARS',fmt(repo.stargazers_count)],['FORKS',fmt(repo.forks_count)],['SUBSCRIBERS',fmt(repo.subscribers_count)],
+        ['ISSUES + PRS',fmt(repo.open_issues_count)],['RECENT COMMITS',state.commitsAvailable?fmt(selectedCommits().length):'—'],
+        ['CONTRIBUTORS',state.contributorsAvailable?fmt(state.contributors.length):'—'],
+      ];
+      metrics.forEach(([label,value],i)=>{
+        const x=72+(i%3)*317,y=298+Math.floor(i/3)*148;
+        ctx.fillStyle='#18181d';ctx.fillRect(x,y,298,132);
+        ctx.fillStyle='#92929b';ctx.font='17px Inter, sans-serif';ctx.fillText(label,x+18,y+39);
+        ctx.fillStyle='#f5f5f7';ctx.font='bold 40px Inter, sans-serif';ctx.fillText(fit(value,265),x+18,y+98);
+      });
+    }
+    if(state.modules.includes('metadata')){
+      ctx.fillStyle=accent;ctx.font='bold 23px Inter, sans-serif';ctx.fillText('REPOSITORY DETAILS',72,657);
+      ctx.fillStyle='#d1d1d8';ctx.font='21px Inter, sans-serif';
+      ctx.fillText(fit('Language: '+(repo.language||'—')+'   ·   License: '+(repo.license?.spdx_id||'—')+'   ·   Branch: '+(repo.default_branch||'—'),920),72,695);
+    }
+    if(state.modules.includes('calendar')){
+      ctx.fillStyle=accent;ctx.font='bold 22px Inter, sans-serif';ctx.fillText('RECENT COMMIT CALENDAR (SAMPLED)',72,745);
+      const counts=new Map();
+      selectedCommits().forEach(c=>{const key=String(c.commit?.author?.date||c.commit?.committer?.date||'').slice(0,10);if(key)counts.set(key,(counts.get(key)||0)+1)});
+      for(let n=27;n>=0;n--){
+        const day=new Date();day.setHours(12,0,0,0);day.setDate(day.getDate()-n);
+        const key=[day.getFullYear(),String(day.getMonth()+1).padStart(2,'0'),String(day.getDate()).padStart(2,'0')].join('-');
+        const count=counts.get(key)||0,index=27-n;
+        ctx.fillStyle=count>=4?accent:count>=2?'#2778b4':count===1?'#254a6a':'#22252b';
+        ctx.fillRect(72+(index%14)*69,760+Math.floor(index/14)*39,58,28);
+      }
+    }
+    if(state.modules.includes('commits')){
+      ctx.fillStyle=accent;ctx.font='bold 22px Inter, sans-serif';ctx.fillText('LATEST COMMITS IN PERIOD',72,868);
+      ctx.fillStyle='#d1d1d8';ctx.font='20px Inter, sans-serif';
+      const messages=selectedCommits().slice(0,2).map(c=>(c.commit?.message||'Commit').split('\n')[0]);
+      if(!messages.length)messages.push(state.commitsAvailable?'No sampled commits for this period':'Commit data unavailable');
+      messages.forEach((message,i)=>ctx.fillText(fit('• '+message,920),72,902+i*34));
+    }
+    ctx.fillStyle='#92929b';ctx.font='19px Inter, sans-serif';
+    ctx.fillText('Period: '+picker.options[picker.selectedIndex].text+'   ·   Activity sampled from last 100 commits',72,982);
+    ctx.fillStyle='#f5f5f7';ctx.font='21px Inter, sans-serif';ctx.fillText(fit('github.com/'+repo.full_name,920),72,1020);
     canvas.toBlob(blob => {
       if (!blob) { note.textContent = 'PNG export failed.'; return; }
       const url=URL.createObjectURL(blob), a=document.createElement('a');
