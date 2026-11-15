@@ -2,7 +2,7 @@
   'use strict';
   const $ = (s) => document.querySelector(s);
   const periods = { '7d': 7, '30d': 30, '90d': 90, '1y': 365, 'recent': null };
-  const state = { repository: null, commits: [], contributors: [], period: '30d', controller: null, sequence: 0 };
+  const state = { repository: null, commits: [], contributors: [], commitsAvailable: false, contributorsAvailable: false, period: '30d', controller: null, sequence: 0 };
   const view = $('#repoView');
   const section = $('#repoDetails');
   const note = $('#repoStatus');
@@ -108,8 +108,8 @@
     stat(grid, 'Forks', fmt(repo.forks_count), 'Public forks');
     stat(grid, 'Subscribers', fmt(repo.subscribers_count), 'GitHub subscribers');
     stat(grid, 'Open issues + PRs', fmt(repo.open_issues_count), 'GitHub API combined count');
-    stat(grid, 'Recent commits', fmt(selectedCommits().length), 'Up to 100 most recent, filtered by period');
-    stat(grid, 'Contributors', fmt(state.contributors.length), 'Up to 100 returned by GitHub');
+    stat(grid, 'Recent commits', state.commitsAvailable ? fmt(selectedCommits().length) : '—', 'Up to 100 most recent, filtered by period');
+    stat(grid, 'Contributors', state.contributorsAvailable ? fmt(state.contributors.length) : '—', 'Up to 100 returned by GitHub');
     const meta = add(section, 'div', 'repo-meta');
     [['Primary language', repo.language || 'Not specified'], ['License', repo.license?.spdx_id || 'Not specified'],
      ['Default branch', repo.default_branch || '—'], ['Created', date(repo.created_at)],
@@ -122,7 +122,7 @@
     add(commits, 'h2', '', 'Recent repository activity');
     add(commits, 'p', 'repo-muted', 'GitHub public commits, capped at 100 returned records. Counts are not full-history totals and may be incomplete for busy repositories.');
     const selected = selectedCommits().slice(0, 8);
-    if (!selected.length) add(commits, 'p', 'repo-muted', 'No commits in the fetched sample for this period.');
+    if (!selected.length) add(commits, 'p', 'repo-muted', state.commitsAvailable ? 'No commits in the fetched sample for this period.' : 'Commit data is temporarily unavailable.');
     selected.forEach(c => {
       const row = add(commits, 'div', 'repo-commit');
       const link = add(row, 'a', '', (c.commit?.message || 'Commit').split('\n')[0]);
@@ -153,8 +153,10 @@
       ]);
       if (sequence !== state.sequence) return;
       state.repository = repo;
-      state.commits = commits.status === 'fulfilled' && Array.isArray(commits.value) ? commits.value : [];
-      state.contributors = contributors.status === 'fulfilled' && Array.isArray(contributors.value) ? contributors.value : [];
+      state.commitsAvailable = commits.status === 'fulfilled' && Array.isArray(commits.value);
+      state.commits = state.commitsAvailable ? commits.value : [];
+      state.contributorsAvailable = contributors.status === 'fulfilled' && Array.isArray(contributors.value);
+      state.contributors = state.contributorsAvailable ? contributors.value : [];
       updateUrl();
       render();
       if (commits.status === 'rejected' || contributors.status === 'rejected') note.textContent += ' Some optional activity data could not be loaded.';
@@ -199,7 +201,7 @@
     let text = desc; while(ctx.measureText(text).width > 920 && text.length > 6) text = text.slice(0,-2) + '…';
     ctx.fillText(text,72,246);
     const metrics = [['STARS', fmt(repo.stargazers_count)], ['FORKS', fmt(repo.forks_count)], ['SUBSCRIBERS', fmt(repo.subscribers_count)],
-      ['OPEN ISSUES + PRS', fmt(repo.open_issues_count)], ['RECENT COMMITS', fmt(selectedCommits().length)], ['CONTRIBUTORS', fmt(state.contributors.length)]];
+      ['OPEN ISSUES + PRS', fmt(repo.open_issues_count)], ['RECENT COMMITS', state.commitsAvailable ? fmt(selectedCommits().length) : '—'], ['CONTRIBUTORS', state.contributorsAvailable ? fmt(state.contributors.length) : '—']];
     metrics.forEach(([label, value], i) => {
       const x = 72+(i%2)*477, y=310+Math.floor(i/2)*170;
       ctx.fillStyle='#18181d';ctx.fillRect(x,y,448,148);
