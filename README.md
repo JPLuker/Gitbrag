@@ -4,14 +4,16 @@ Gitbrag is a lightweight GitHub Pages app that turns public GitHub activity into
 
 **v0.9.10** licenses Gitbrag under MIT and completes the license notices. The preceding v0.9.9 update prepares the existing website and Chrome extension for the final 1.0 test gate. It bundles the existing Inter font locally, adds support/security documentation and links, and adds automated verification and draft-release packaging. The visual identity and feature scope remain unchanged.
 
+**v0.9.11 candidate:** adds repository-level public stats at `#/repo/owner/name`, a sampled recent-commit calendar, share links, a 1080×1080 repo PNG, embed code, and a summary overlay on GitHub repository pages. Profile period arrows were removed in favor of the dropdown. Public commit samples are limited to the most recent 100 fetched records and must not be interpreted as full-history contribution data. Repository exports are simpler than the profile customization builder, and are not yet feature-for-feature identical.
+
 **1.0 is not published yet.** Follow [release issue #1](https://github.com/JPLuker/Gitbrag/issues/1), [the audit](MAINTENANCE-AUDIT.md), and [the browser checklist](FINAL-TEST.md).
 
 ## Current features
 
-- Search by GitHub username or paste a `github.com/username` profile URL.
+- Search by GitHub username, `owner/repository`, or paste a matching GitHub profile/repository URL.
 - Open a profile directly with a hash route such as `#/octocat`.
 - Open profiles on the current calendar month by default, with the contribution calendar following the same month.
-- Move between calendar months with previous/next arrows, or tap the current period to choose a month, year, or rolling window.
+- Select calendar months, years, and rolling windows using the period dropdown (no step arrows).
 - View contributions, active days, best day, longest streak, public repositories, repository stars, followers, following, and account age.
 - View a contribution heatmap and ranked original public repositories.
 - Build configurable responsive share links with a compact versioned URL token.
@@ -19,7 +21,7 @@ Gitbrag is a lightweight GitHub Pages app that turns public GitHub activity into
 - Generate a dedicated 1080 × 1080 social PNG from an isolated Canvas 2D renderer.
 - Customize PNG modules, activity period, up to four repositories, text size, accent, and card style.
 - Generate responsive website embed code from **Share → Embed**.
-- Use the optional Manifest V3 Chrome extension to surface Gitbrag stats directly on public GitHub profile pages.
+- Use the optional Manifest V3 Chrome extension to surface Gitbrag stats on public GitHub profile and repository pages.
 - Run the main website entirely as a static GitHub Pages app with no Gitbrag account backend or database.
 
 ## Landing page
