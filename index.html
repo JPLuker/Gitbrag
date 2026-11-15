@@ -128,6 +128,16 @@
           <option value="recent">Most recent 100 commits</option>
         </select>
       </div>
+      <details class="repo-custom" id="repoCustomize">
+        <summary>Customize repository view and sharing</summary>
+        <div class="repo-custom-controls">
+          <label><input type="checkbox" data-repo-module="metrics" checked> Statistics</label>
+          <label><input type="checkbox" data-repo-module="metadata" checked> Repository details</label>
+          <label><input type="checkbox" data-repo-module="calendar" checked> Commit calendar</label>
+          <label><input type="checkbox" data-repo-module="commits" checked> Recent commits</label>
+          <label for="repoAccent">Accent <select id="repoAccent"><option value="blue">Blue</option><option value="purple">Purple</option><option value="green">Green</option><option value="red">Red</option></select></label>
+        </div>
+      </details>
       <h2 id="repoTitle" tabindex="-1" class="sr-only">Repository statistics</h2>
       <p id="repoStatus" role="status" aria-live="polite"></p>
       <div id="repoDetails"></div>
