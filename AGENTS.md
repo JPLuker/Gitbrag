@@ -1,7 +1,7 @@
 # Gitbrag
 
 Read open GitHub issues first. Issue #1 tracks the 1.0 release gate.
-Work on `main`; do not touch other projects. Keep features frozen for 1.0.
+Work on `main`; do not touch other projects. Feature scope for 1.0 is frozen except owner-requested repository dashboards (issue #3), which must be finished and tested before release. Activity period UI uses the dropdown without month-step arrows.
 Run `python3 scripts/verify.py` before committing. `VERSION` is the source
 of truth; run `python3 scripts/sync-version.py` after changing it.
 Never mark a browser test complete based on source inspection or CI.
