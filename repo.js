@@ -65,6 +65,29 @@
     const cutoff = Date.now() - periods[state.period] * 86400000;
     return state.commits.filter(c => Date.parse(c.commit?.author?.date || c.commit?.committer?.date) >= cutoff);
   }
+  function renderActivityCalendar(parent) {
+    const wrap = add(parent, 'section', 'repo-recent');
+    add(wrap, 'h2', '', 'Recent commit calendar');
+    add(wrap, 'p', 'repo-muted', 'Shows dates from the latest fetched 100 commits only. This is not the GitHub profile contribution calendar.');
+    const days = state.period === '7d' ? 7 : 28;
+    const counts = new Map();
+    selectedCommits().forEach(commit => {
+      const key = String(commit.commit?.author?.date || commit.commit?.committer?.date || '').slice(0,10);
+      if (key) counts.set(key,(counts.get(key)||0)+1);
+    });
+    const grid = add(wrap, 'div', 'repo-calendar');
+    for (let n = days - 1; n >= 0; n--) {
+      const day = new Date();
+      day.setHours(12,0,0,0);
+      day.setDate(day.getDate()-n);
+      const key = [day.getFullYear(),String(day.getMonth()+1).padStart(2,'0'),String(day.getDate()).padStart(2,'0')].join('-');
+      const count = counts.get(key)||0;
+      const cell=add(grid,'span','repo-day repo-day-'+Math.min(4,count));
+      cell.title=key+': '+count+' sampled commits';
+      cell.setAttribute('aria-label',cell.title);
+    }
+  }
+
   function render() {
     const repo = state.repository;
     if (!repo) return;
@@ -94,6 +117,7 @@
       const p = add(meta, 'div', 'repo-meta-item'); add(p, 'span', '', label); add(p, 'strong', '', value);
     });
     if (Array.isArray(repo.topics) && repo.topics.length) add(section, 'p', 'repo-topics', 'Topics: ' + repo.topics.join(' · '));
+    renderActivityCalendar(section);
     const commits = add(section, 'section', 'repo-recent');
     add(commits, 'h2', '', 'Recent repository activity');
     add(commits, 'p', 'repo-muted', 'GitHub public commits, capped at 100 returned records. Counts are not full-history totals and may be incomplete for busy repositories.');
