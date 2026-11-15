@@ -119,15 +119,6 @@
   outline-offset: 2px;
 }
 
-.gitbrag-ext-period-arrow {
-  width: 34px;
-  height: 32px;
-  padding: 0;
-  flex: none;
-  font-size: 20px !important;
-  line-height: 1 !important;
-}
-.gitbrag-ext-period-arrow:disabled { opacity: .35; cursor: default; border-color: var(--gitbrag-border); }
 .gitbrag-ext-period-current {
   min-width: 0;
   flex: 1;
@@ -338,3 +329,10 @@
 @media (prefers-reduced-motion: reduce) {
   .gitbrag-ext-skeleton { animation: none; }
 }
+
+/* Repository card controls */
+.gitbrag-ext-repo-period { display:block;width:100%;padding:9px;margin:7px 0 12px;background:var(--gitbrag-bg-strong);border:1px solid var(--gitbrag-border);border-radius:7px;color:var(--gitbrag-text);font:inherit; }
+.gitbrag-ext-repo-period:focus-visible {outline:2px solid var(--gitbrag-accent);outline-offset:2px}
+.gitbrag-ext-repo-commits {display:grid;gap:10px;min-width:0}
+.gitbrag-ext-repo-commits a {display:block;color:var(--gitbrag-accent);text-decoration:none;overflow-wrap:anywhere}
+.gitbrag-ext-repo-commits .gitbrag-ext-stat {margin-bottom:4px}
