@@ -24,6 +24,7 @@ const elements = {
     search: qs('#searchView'),
     loading: qs('#loadingView'),
     profile: qs('#profileView'),
+    repo: qs('#repoView'),
     shared: qs('#sharedView'),
     error: qs('#errorView'),
   },
@@ -748,6 +749,16 @@ function navigateToProfile(username) {
 
 function handleCurrentRoute() {
   try {
+    const repoMatch = location.hash.match(/^#\/repo\/([^/?]+)\/([^/?]+)(?:\?([^#]*))?$/);
+    if (repoMatch) {
+      const owner = decodeURIComponent(repoMatch[1]);
+      const name = decodeURIComponent(repoMatch[2]);
+      const target = window.GitbragRepo?.parse(owner + '/' + name);
+      if (!target) throw new Error('Invalid GitHub repository route.');
+      const period = new URLSearchParams(repoMatch[3] || '').get('p');
+      window.GitbragRepo.load(target, period);
+      return;
+    }
     const route = parseRoute();
     if (!route) {
       resetToSearch({ focus: false });
@@ -762,7 +773,11 @@ function handleCurrentRoute() {
 elements.searchForm.addEventListener('submit', (event) => {
   event.preventDefault();
   try {
-    navigateToProfile(parseUserInput(elements.username.value));
+    const repo = window.GitbragRepo?.parse(elements.username.value);
+    if (repo) {
+      history.pushState(null, '', window.GitbragRepo.route(repo, '30d'));
+      window.GitbragRepo.load(repo, '30d');
+    } else navigateToProfile(parseUserInput(elements.username.value));
   } catch (error) {
     showError(error);
   }
@@ -823,4 +838,4 @@ window.GitbragApp = Object.freeze({
 
 window.addEventListener('hashchange', handleCurrentRoute);
 
-handleCurrentRoute();
+setTimeout(handleCurrentRoute, 0);
