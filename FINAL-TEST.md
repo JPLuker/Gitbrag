@@ -236,7 +236,8 @@ These checks cannot be proven by static source inspection alone. Load the reposi
 
 - [ ] Public repository URLs / `owner/repo` inputs open a repository dashboard without breaking user profile routing.
 - [ ] Repository metadata and available activity values match public GitHub data, with unsupported statistics clearly identified.
-- [ ] Repository share links, PNG and embeds work, while existing profile links remain compatible.
+- [ ] Repository share links preserve selected period, enabled modules, and accent across page reloads; profile share links remain compatible.
+- [ ] Repository PNG is 1080×1080 and honors section toggles and accent; embed code opens the correct repo view.
 - [ ] The Chrome extension displays a repo summary on repository routes, not on unrelated routes.
 - [ ] Repository views work on mobile, keyboard navigation, and browser zoom.
 
