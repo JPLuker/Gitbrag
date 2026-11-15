@@ -145,22 +145,13 @@
   function createPeriodPicker(card, data) {
     const wrap = create('div', 'gitbrag-ext-period-wrap');
     const control = create('div', 'gitbrag-ext-period-control');
-    const previous = create('button', 'gitbrag-ext-period-arrow', '‹');
-    previous.type = 'button';
-    previous.dataset.gitbragPeriodPrevious = 'true';
-    previous.setAttribute('aria-label', 'Previous calendar month');
-
     const current = create('button', 'gitbrag-ext-period-current');
     current.type = 'button';
     current.dataset.gitbragPeriodCurrent = 'true';
     current.setAttribute('aria-haspopup', 'dialog');
     current.setAttribute('aria-expanded', 'false');
 
-    const next = create('button', 'gitbrag-ext-period-arrow', '›');
-    next.type = 'button';
-    next.dataset.gitbragPeriodNext = 'true';
-    next.setAttribute('aria-label', 'Next calendar month');
-    control.append(previous, current, next);
+    control.append(current);
 
     const panel = create('div', 'gitbrag-ext-period-picker is-hidden');
     panel.dataset.gitbragPeriodPicker = 'true';
@@ -241,16 +232,6 @@
       current.setAttribute('aria-expanded', String(opening));
     });
 
-    previous.addEventListener('click', () => {
-      const value = Stats.stepMonth(activePeriod, -1, data.user.createdAt);
-      if (value) setPeriod(card, data, value);
-    });
-
-    next.addEventListener('click', () => {
-      const value = Stats.stepMonth(activePeriod, 1, data.user.createdAt);
-      if (value) setPeriod(card, data, value);
-    });
-
     quick.addEventListener('click', (event) => {
       const button = event.target.closest('button[data-gitbrag-quick-period]');
       if (!button) return;
@@ -299,15 +280,7 @@
   function syncPeriodControl(card, data, period) {
     const parsed = Stats.parse(period);
     const current = $('[data-gitbrag-period-current]', card);
-    const previous = $('[data-gitbrag-period-previous]', card);
-    const next = $('[data-gitbrag-period-next]', card);
     if (current) current.textContent = Stats.label(period, new Date(), data.contributions.records || []);
-
-    const month = parsed?.type === 'calendar-month';
-    const previousValue = month ? Stats.stepMonth(period, -1, data.user.createdAt) : null;
-    const nextValue = month ? Stats.stepMonth(period, 1, data.user.createdAt) : null;
-    if (previous) previous.disabled = !previousValue;
-    if (next) next.disabled = !nextValue;
 
     const options = Stats.datedOptions(data.user.createdAt);
     const monthYear = $('[data-gitbrag-month-year-select]', card);
