@@ -27,6 +27,10 @@ unverified, not automatically broken or automatically passed.
 - Ran the four existing test suites and all root/extension JS syntax checks.
   New verification also checks version consistency and bundled HTML assets.
 
+## Owner's final test results (2026-11-15)
+
+10 of 12 simplified real-user tests passed (website, profile data, period dropdown, share links, PNG, mobile layout, bad user, extension overlay/navigation/controls). Extension upgrade was skipped and remains unverified. Keyboard/zoom failed at an unspecified higher zoom threshold. The owner requested removal of activity arrows in favor of the dropdown, and a repository-level counterpart to the profile experience (issue #3). These changes and their post-change regression testing are required before 1.0 acceptance. Do not treat the simplified test as equivalent to every detailed check in FINAL-TEST.md.
+
 ## Required before 1.0
 
 - [x] Joseph approved open-source licensing after MIT was proposed on 2026-10-22.
