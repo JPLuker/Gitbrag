@@ -1,8 +1,8 @@
 # Gitbrag for GitHub
 
-A Manifest V3 Chrome extension that adds a compact Gitbrag overlay to public GitHub profile and repository pages.
+A Manifest V3 Chrome extension that adds a compact Gitbrag overlay to public GitHub profile pages.
 
-**v0.9.10** adds MIT license notices to the nonvisual maintenance candidate. The preceding v0.9.9 update is the nonvisual maintenance-preparation candidate following the website-parity pass. The overlay now mirrors the core Gitbrag experience while staying compact enough to live inside GitHub.
+**v1.0.0 source:** Profile-only overlay, with a unified activity-period dropdown and top public repositories. The standalone repository-page overlay was removed after owner acceptance testing.
 
 ## What it shows
 
@@ -97,7 +97,7 @@ The pure tests cover route validation, cache behavior, contribution normalizatio
 
 ## Still requires real-browser testing
 
-See the repository-level `FINAL-TEST.md`. The release gate includes current GitHub placement, light/dark themes, period-picker interaction, heatmap sizing, repository parity, SPA navigation/reinjection, popup behavior, and visible failure states.
+See the repository-level `FINAL-TEST.md`. The release gate includes current GitHub placement, light/dark themes, period-picker interaction, heatmap sizing, profile parity, SPA navigation/reinjection, popup behavior, and visible failure states.
 
 ## Support and release status
 
