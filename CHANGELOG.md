@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0] — release candidate
+## [1.0.0] — 2026-11-17
 
 ### Added
 - Profile-focused dashboards, share links, PNG exports, embeds, and Chrome extension profile summaries.
