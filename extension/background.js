@@ -188,13 +188,6 @@ async function loadRepository(owner, name, { force = false } = {}) {
         updatedAt: repository.pushed_at, archived: Boolean(repository.archived),
         license: repository.license?.spdx_id || null,
       },
-      commits: commits.status === 'fulfilled' && Array.isArray(commits.value) ? commits.value.map(c => ({
-        message: (c.commit?.message || '').split('\n')[0],
-        date: c.commit?.author?.date || c.commit?.committer?.date,
-        url: c.html_url,
-      })) : [],
-      contributors: contributors.status === 'fulfilled' && Array.isArray(contributors.value) ? contributors.value.length : null,
-      activityAvailable: commits.status === 'fulfilled',
     };
     await saveProfile(key, data);
     return { ok: true, cached: false, ...data };
