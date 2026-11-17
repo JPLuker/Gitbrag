@@ -18,9 +18,9 @@ A Manifest V3 Chrome extension that adds a compact Gitbrag overlay to public Git
 
 The extension uses public data only. It does not request a GitHub login or token.
 
-## Repository mode (v0.9.11 candidate)
+## GitHub repository pages
 
-On a public `github.com/owner/repo` route, Gitbrag shows stars, forks, subscribers, combined open issue/PR count, primary language, capped contributor count, and sampled recent commits. The period selector filters the fetched 100-commit sample; it does not represent a complete repository contribution history. The Open in Gitbrag link opens the repository dashboard with sharing, selected module/accent customization, image export, and embed options. Repository extension rendering and over-install preservation require browser testing before v1.0.
+Standalone repository overlays were removed from v1.0 following failed acceptance tests. The extension continues to show profile summaries on GitHub user profile pages; profile summaries may include top repositories.
 
 ## Install locally
 
