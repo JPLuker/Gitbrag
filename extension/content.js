@@ -24,10 +24,7 @@
   function profileUsername() {
     return Core.profileUsernameFromPath(location.pathname);
   }
-  function currentIdentifier() {
-    const r = Core.repositoryFromPath(location.pathname);
-    return r ? r.owner + '/' + r.name : profileUsername();
-  }
+  function currentIdentifier() { return profileUsername(); }
 
   async function readSettings() {
     try {
@@ -86,9 +83,7 @@
     brandWrap.append(brand);
 
     const open = create('a', 'gitbrag-ext-open', 'Open in Gitbrag ↗');
-    open.href = username.includes('/')
-      ? SITE_URL + '#/repo/' + username.split('/').map(encodeURIComponent).join('/')
-      : `${SITE_URL}#/${encodeURIComponent(username)}`;
+    open.href = `${SITE_URL}#/${encodeURIComponent(username)}`;
     open.target = '_blank';
     open.rel = 'noopener noreferrer';
     header.append(brandWrap, open);
@@ -453,51 +448,10 @@
     setPeriod(card, data, Stats.resolvePreference(preference));
   }
 
-  function renderRepositoryLoaded(card, data, preference) {
-    card.querySelector('.gitbrag-ext-loading')?.remove();
-    const repo = data.repository;
-    const brand = card.querySelector('.gitbrag-ext-brand-wrap');
-    if (data.cached && brand) brand.append(create('span', 'gitbrag-ext-cache-badge', 'cached'));
-    card.append(sectionTitle('Repository summary'));
-    card.append(create('b', 'gitbrag-ext-repo-name', repo.fullName));
-    if (repo.description) card.append(create('p', 'gitbrag-ext-notice', repo.description));
-    if (repo.archived) card.append(create('p', 'gitbrag-ext-notice', 'Archived repository'));
-    const stats = create('div', 'gitbrag-ext-stats');
-    stats.append(
-      statTile('Stars', formatNumber(repo.stars)),
-      statTile('Forks', formatNumber(repo.forks)),
-      statTile('Subscribers', repo.subscribers == null ? '—' : formatNumber(repo.subscribers)),
-      statTile('Issues + PRs', formatNumber(repo.openIssuesAndPRs)),
-      statTile('Contributors', repo.contributors == null ? (data.contributors == null ? '—' : formatNumber(data.contributors)) : formatNumber(repo.contributors)),
-      statTile('Language', repo.language || '—')
-    );
-    card.append(stats);
-    card.append(create('div','gitbrag-ext-footer','Public GitHub API · contributor counts may be limited to a sample'));
-  }
-
-  async function loadRepoForCurrentPage(target, { force = false } = {}) {
-    const identifier = target.owner + '/' + target.name;
-    if (!force && activeUsername?.toLowerCase() === identifier.toLowerCase() && document.getElementById(CARD_ID)) return;
-    activeUsername=identifier;activeData=null;activePeriod=null;
-    const sequence = ++requestSequence;
-    const card=mountCard(identifier);
-    if (!card) { retryTimer=root.setTimeout(()=>loadForCurrentPage({force}),350); return; }
-    let response;
-    try {
-      response=await chrome.runtime.sendMessage({type:'gitbrag:load-repository',owner:target.owner,name:target.name,force});
-    } catch { response={ok:false,error:'Gitbrag could not reach its background service.'}; }
-    if (sequence!==requestSequence || currentIdentifier()?.toLowerCase()!==identifier.toLowerCase()) return;
-    if (!response?.ok) { renderError(card,identifier,response?.error || 'Could not load repository.');return; }
-    activeData=response;
-    renderRepositoryLoaded(card,response,'30d');
-  }
-
   async function loadForCurrentPage({ force = false } = {}) {
     clearTimeout(retryTimer);
     const username = profileUsername();
-    const repository = Core.repositoryFromPath(location.pathname);
     const settings = await readSettings();
-    if (repository && settings.enabled) { await loadRepoForCurrentPage(repository,{force});return; }
     if (!username || !settings.enabled) {
       activeUsername = null;
       activeData = null;
