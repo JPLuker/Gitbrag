@@ -41,7 +41,7 @@ jobs:
       - name: Create and publish v1.0.0
         shell: bash
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           if gh api repos/JPLuker/Gitbrag/git/ref/tags/v1.0.0 >/dev/null 2>&1; then
