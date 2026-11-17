@@ -33,9 +33,9 @@ unverified, not automatically broken or automatically passed.
 
 ## Repository-mode source delivery (2026-11-15)
 
-The 0.9.11 candidate adds public repository URL/slug lookup, a standalone repository dashboard, API-sampled recent commit history and calendar, share links preserving modules/period/accent, a configurable 1080×1080 PNG, embed code, and Chrome extension repository overlays. All profile routes and legacy share-link parsing remain in source. The obsolete calendar-month arrows and their three-column layouts are removed. New route and arrow-regression tests are in automated verification.
+The 0.9.11 candidate adds public repository URL/slug lookup, a standalone repository dashboard, repository metadata and contributor samples, share links preserving modules/accent, a configurable 1080×1080 PNG, embed code, and Chrome extension repository overlays. All profile routes and legacy share-link parsing remain in source. The obsolete calendar-month arrows and their three-column layouts are removed. New route and arrow-regression tests are in automated verification.
 
-**This is code-complete for the requested features, not 1.0-accepted.** GitHub Actions verification passing only covers source/static tests. Browser/device verification on the exact deployed candidate, actual extension over-install with existing settings, zoom/keyboard recheck, and owner-controlled security settings remain separate required gates. Repository activity comes from bounded public API samples; exact historical repo contribution totals are not available without other data sources, and no such claim is made.
+**This is code-complete for the requested features, not 1.0-accepted.** GitHub Actions verification passing only covers source/static tests. Browser/device verification on the exact deployed candidate, actual extension over-install with existing settings, zoom/keyboard recheck, and owner-controlled security settings remain separate required gates. Repository commit counters, history and calendars were removed from the 1.0 candidate rather than presenting incomplete sampled counts.
 
 ## Required before 1.0
 

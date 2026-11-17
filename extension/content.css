@@ -12,6 +12,10 @@
   font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+.gitbrag-ext-card, .gitbrag-ext-card button, .gitbrag-ext-card select, .gitbrag-ext-card a, .gitbrag-ext-card input, .gitbrag-ext-card small, .gitbrag-ext-card p, .gitbrag-ext-card span, .gitbrag-ext-card strong {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
 .gitbrag-ext-card {
   position: relative;
   width: 100%;
@@ -331,8 +335,3 @@
 }
 
 /* Repository card controls */
-.gitbrag-ext-repo-period { display:block;width:100%;padding:9px;margin:7px 0 12px;background:var(--gitbrag-bg-strong);border:1px solid var(--gitbrag-border);border-radius:7px;color:var(--gitbrag-text);font:inherit; }
-.gitbrag-ext-repo-period:focus-visible {outline:2px solid var(--gitbrag-accent);outline-offset:2px}
-.gitbrag-ext-repo-commits {display:grid;gap:10px;min-width:0}
-.gitbrag-ext-repo-commits a {display:block;color:var(--gitbrag-accent);text-decoration:none;overflow-wrap:anywhere}
-.gitbrag-ext-repo-commits .gitbrag-ext-stat {margin-bottom:4px}

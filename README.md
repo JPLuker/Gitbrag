@@ -4,7 +4,7 @@ Gitbrag is a lightweight GitHub Pages app that turns public GitHub activity into
 
 **v0.9.10** licenses Gitbrag under MIT and completes the license notices. The preceding v0.9.9 update prepares the existing website and Chrome extension for the final 1.0 test gate. It bundles the existing Inter font locally, adds support/security documentation and links, and adds automated verification and draft-release packaging. The visual identity and feature scope remain unchanged.
 
-**v0.9.11 candidate:** adds repository-level public stats at `#/repo/owner/name`, a sampled recent-commit calendar, customizable shareable repository sections and accent, a 1080×1080 repo PNG, embed code, and a summary overlay on GitHub repository pages. Profile period arrows were removed in favor of the dropdown. Public commit samples are limited to the most recent 100 fetched records and must not be interpreted as full-history contribution data. Repository exports are simpler than the profile customization builder, and are not yet feature-for-feature identical.
+**v0.9.11 candidate:** adds repository-level public stats at `#/repo/owner/name`, customizable shareable repository statistics and accent, a 1080×1080 repo PNG, embed code, and a summary overlay on GitHub repository pages. Profile period arrows were removed in favor of the dropdown. Repository exports are simpler than the profile customization builder, and are not yet feature-for-feature identical.
 
 **1.0 is not published yet.** Follow [release issue #1](https://github.com/JPLuker/Gitbrag/issues/1), [the audit](MAINTENANCE-AUDIT.md), and [the browser checklist](FINAL-TEST.md).
 

@@ -472,33 +472,7 @@
       statTile('Language', repo.language || '—')
     );
     card.append(stats);
-    card.append(sectionTitle('Recent commits'));
-    const select = create('select', 'gitbrag-ext-repo-period');
-    select.setAttribute('aria-label', 'Repository activity period');
-    [['7d','Last 7 days'],['30d','Last 30 days'],['90d','Last 90 days'],['1y','Last year'],['recent','Most recent 100']].forEach(([value,label]) => {
-      const item=create('option','',label); item.value=value; select.append(item);
-    });
-    select.value = ['7d','30d','90d','1y','recent'].includes(preference) ? preference : '30d';
-    const activity = create('div', 'gitbrag-ext-repo-commits');
-    function update() {
-      activity.replaceChildren();
-      const days = { '7d':7, '30d':30, '90d':90, '1y':365, recent:null }[select.value];
-      const min = days === null ? -Infinity : Date.now() - days * 86400000;
-      const records = data.commits.filter(item => Date.parse(item.date) >= min);
-      activity.append(statTile('Recent commits', data.activityAvailable ? formatNumber(records.length) : '—', 'Up to 100 fetched, not full history'));
-      records.slice(0, 3).forEach(item => {
-        const link = create('a','gitbrag-ext-repo-name',item.message || 'Commit');
-        link.href=safeGitHubUrl(item.url);link.target='_blank';link.rel='noopener noreferrer';
-        activity.append(link);
-      });
-      if (!records.length) activity.append(create('small','gitbrag-ext-stat-note','No commits in the fetched sample for this period.'));
-      const open = card.querySelector('.gitbrag-ext-open');
-      if (open) open.href = SITE_URL + '#/repo/' + repo.fullName.split('/').map(encodeURIComponent).join('/') + '?p=' + select.value;
-    }
-    select.addEventListener('change',update);
-    card.append(select,activity);
-    card.append(create('div','gitbrag-ext-footer','Public GitHub API · recent commits and contributors are capped samples'));
-    update();
+    card.append(create('div','gitbrag-ext-footer','Public GitHub API · contributor counts may be limited to a sample'));
   }
 
   async function loadRepoForCurrentPage(target, { force = false } = {}) {
