@@ -1,13 +1,19 @@
-## 0.9.11 — repository mode candidate (unreleased)
-
-- Add public repository dashboards, sampled commit calendar, share link, 1080×1080 PNG, and embed code.
-- Add GitHub repository summary overlay in the Chrome extension, reusing the existing cache and navigation detection.
-- Remove month-step arrows from the website dashboard, PNG period selector, and extension in favor of dropdown controls.
-- Preserve profile routes and existing profile share tokens; pending browser regression and extension over-install tests.
-
 # Changelog
 
-## [Unreleased]
+## [1.0.0] — release candidate
+
+### Added
+- Public repository dashboards, customizable repository share links, PNG exports, embeds, and Chrome extension repository summaries.
+- Unified activity-period dropdowns for GitHub profile statistics.
+
+### Changed
+- Removed incomplete sampled repository commit counts, calendars, and commit-history displays before release.
+- Preserved existing profile activity statistics and legacy profile share links.
+- Improved extension typography consistency on GitHub pages.
+
+### Security and maintenance
+- MIT licensing, local Inter font, CSP, support/security documentation, and automated release verification.
+- Chrome Web Store submission is separate from the GitHub release.
 
 ## [0.9.10] — 2026-10-22
 
