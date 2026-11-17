@@ -3,7 +3,7 @@
   "name": "Gitbrag for GitHub",
   "short_name": "Gitbrag",
   "description": "Show Gitbrag summaries on public GitHub profiles and repositories.",
-  "version": "0.9.11",
+  "version": "1.0.0",
   "homepage_url": "https://jpluker.github.io/Gitbrag/",
   "permissions": [
     "storage"
