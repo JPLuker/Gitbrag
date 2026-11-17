@@ -16,6 +16,6 @@ assert.doesNotMatch(extension, /gitbragPeriod(?:Previous|Next)/);
 assert.match(datedCss,/\.period-stepper\.periods\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s);
 assert.match(pngCss,/\.png-unified-period-control\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/s);
 assert.doesNotMatch(html, /src="repo\.js\?v=/);
-assert.match(core, /repositoryFromPath/);
+assert.doesNotMatch(core, /repositoryFromPath/);
 assert.doesNotMatch(extension, /gitbrag:load-repository/);
 console.log('period controls and profile-only integration checks passed');
