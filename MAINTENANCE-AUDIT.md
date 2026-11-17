@@ -1,6 +1,6 @@
 # Gitbrag maintenance audit
 
-Audit date: 2026-10-22. Original audit candidate: 0.9.10; current repository-mode candidate: 0.9.11. Tracking: [release issue #1](https://github.com/JPLuker/Gitbrag/issues/1).
+Audit date: 2026-10-22. Original audit candidate: 0.9.10; current profile-only source version: 1.0.0. Tracking: [release issue #1](https://github.com/JPLuker/Gitbrag/issues/1).
 
 **Status: preparation complete; 1.0 acceptance is still pending.**
 No visual redesign is in scope. AGENTS.md records Joseph's project-specific
@@ -48,7 +48,7 @@ The v1.0.0 candidate is profile-only after owner testing rejected the standalone
   reporting, and automatic security fixes where supported. The GitHub connector
   does not expose these settings; a link in SECURITY.md does not enable them.
   No npm/runtime dependencies currently exist; Dependabot covers Actions.
-- [ ] CI passes on the pushed commit. Local checks alone do not prove CI ran.
+- [x] CI passed on the profile-only merge commit `a0e5037` (GitHub Actions Verify run 43993789726). Re-run verification on any subsequent changes.
 - [ ] Applicable FINAL-TEST.md website, output, keyboard, zoom and live extension
   checks pass on the exact candidate. Include extension upgrade with existing
   preferences/cache, rather than only fresh installation.
