@@ -22,8 +22,6 @@
 .repo-recent{background:var(--panel);border:1px solid var(--line);padding:22px;border-radius:14px}
 .repo-recent h2{margin:0 0 8px}
 .repo-muted,#repoStatus{color:var(--muted);line-height:1.5;font-size:13px}
-.repo-commit{display:flex;justify-content:space-between;align-items:start;gap:15px;padding:13px 0;border-top:1px solid var(--line)}
-.repo-commit small{color:var(--muted);white-space:nowrap}
 .repo-topics{color:var(--muted);overflow-wrap:anywhere}
 .repo-view button:focus-visible,.repo-view a:focus-visible,.repo-view select:focus-visible {outline:2px solid var(--repo-accent, var(--accent));outline-offset:3px}
 @media(max-width:680px){.repo-stats,.repo-view .repo-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.repo-commit{flex-direction:column;gap:5px}.repo-view{width:calc(100% - 24px)}}
