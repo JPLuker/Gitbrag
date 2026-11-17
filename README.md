@@ -2,9 +2,9 @@
 
 Gitbrag is a lightweight GitHub Pages app that turns public GitHub activity into a focused stats dashboard with share links, social PNGs, website embeds, and an optional Chrome extension.
 
-**v1.0.0 source is ready for release packaging.** Gitbrag is MIT-licensed, bundles its Inter font, and includes automated verification and release packaging. The product remains profile-focused; standalone repository dashboards and repository extension overlays were removed after owner testing. GitHub publication and remaining manual browser/security checks are tracked separately.
+**[v1.0.0 has been published](https://github.com/JPLuker/Gitbrag/releases/tag/v1.0.0).** Gitbrag is MIT-licensed, bundles its Inter font, and includes automated verification and release packaging. The product remains profile-focused; standalone repository dashboards and repository extension overlays were removed after owner testing. The 1.0.0 release includes website and unpacked Chrome-extension ZIPs plus SHA-256 checksums. Remaining manual browser/security audit checks are tracked separately.
 
-**Release tracking:** Follow [release issue #1](https://github.com/JPLuker/Gitbrag/issues/1), [the audit](MAINTENANCE-AUDIT.md), and [the browser checklist](FINAL-TEST.md).
+**Maintenance and audit tracking:** Follow [release issue #1](https://github.com/JPLuker/Gitbrag/issues/1), [the audit](MAINTENANCE-AUDIT.md), and [the browser checklist](FINAL-TEST.md).
 
 ## Current features
 
@@ -196,7 +196,7 @@ See [extension privacy](extension/PRIVACY.md) for the extension-specific disclos
 
 ## Support
 
-Issues are monitored. [Report bugs or request features](https://github.com/JPLuker/Gitbrag/issues/new/choose). The 1.0 feature scope is frozen. After stable release, maintenance covers bugs, security and compatibility; new feature requests do not imply planned development. New reports should be acknowledged within 7 days.
+Issues are monitored. [Report bugs or request features](https://github.com/JPLuker/Gitbrag/issues/new/choose). The 1.0 feature scope is frozen. Maintenance mode covers bugs, security and compatibility; new feature requests do not imply planned development. New reports should be acknowledged within 7 days.
 
 Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md), never in public issues.
 
@@ -212,7 +212,7 @@ python3 scripts/verify.py
 
 This runs the four existing suites, JS syntax checks, version consistency checks and local HTML asset checks. It does not prove real-browser behavior. Change `VERSION`, then run `python3 scripts/sync-version.py` to update the static website/cache/popup/manifest references together.
 
-Tagged CI verifies the version and LICENSE, runs the checks, and prepares website/Chrome ZIPs plus `SHA256SUMS.txt` in a **draft** GitHub release. It never automatically publishes a stable release. Complete the manual gate before publishing. Local package runs are for inspection only; published assets come from tagged CI.
+The standard tag-triggered workflow prepares a draft release. **For v1.0.0**, a one-time GitHub Actions job checked out verified commit `619824e`, reran automated checks, packaged the website/extension ZIPs, verified SHA-256 checksums, created the `v1.0.0` tag and published the release. Manual extension upgrade, browser accessibility, and security-setting checks remain open in issue #1; CI success does not prove those tests passed.
 
 ## Tests
 
@@ -259,7 +259,7 @@ Then open `http://localhost:8000`.
 - Public GitHub contribution data
 - GitHub Pages
 
-## Roadmap to 1.0
+## Release history and maintenance
 
 - **0.6** — versioned share-config foundation
 - **0.7** — responsive custom-link sharing
