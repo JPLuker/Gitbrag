@@ -12,6 +12,10 @@
   font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+.gitbrag-ext-card, .gitbrag-ext-card button, .gitbrag-ext-card select, .gitbrag-ext-card a, .gitbrag-ext-card input, .gitbrag-ext-card small, .gitbrag-ext-card p, .gitbrag-ext-card span, .gitbrag-ext-card strong {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
 .gitbrag-ext-card {
   position: relative;
   width: 100%;
