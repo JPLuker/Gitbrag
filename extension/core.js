@@ -33,17 +33,6 @@
     return username;
   }
 
-  function repositoryFromPath(pathname) {
-    const match = String(pathname || '').match(/^\/([^/]+)\/([^/]+)\/?$/);
-    if (!match) return null;
-    let owner, name;
-    try { owner = decodeURIComponent(match[1]); name = decodeURIComponent(match[2]); }
-    catch { return null; }
-    if (!normalizeUsername(owner) || RESERVED_ROOTS.has(owner.toLowerCase())) return null;
-    if (!/^[A-Za-z0-9_.-]{1,100}$/.test(name) || name === '.' || name === '..') return null;
-    return { owner, name };
-  }
-
   function isFresh(savedAt, ttlMs, now = Date.now()) {
     const saved = Number(savedAt);
     const ttl = Number(ttlMs);
@@ -81,7 +70,6 @@
     RESERVED_ROOTS,
     normalizeUsername,
     profileUsernameFromPath,
-    repositoryFromPath,
     isFresh,
     pruneCache,
     normalizeContributionRecords,

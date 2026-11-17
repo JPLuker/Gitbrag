@@ -232,15 +232,11 @@ These checks cannot be proven by static source inspection alone. Load the reposi
 
 ---
 
-## 8. Repository experience (issue #3)
+## 8. Profile-only release scope
 
-- [ ] Public repository URLs / `owner/repo` inputs open a repository dashboard without breaking user profile routing.
-- [ ] Repository metadata and contributor sample match public GitHub data, with unsupported statistics clearly identified.
-- [ ] Repository dashboard, extension, and PNG contain no recent-commit counter, commit calendar, or commit-period picker.
-- [ ] Repository share links preserve enabled modules and accent across page reloads; profile share links remain compatible.
-- [ ] Repository PNG is 1080×1080 and honors section toggles and accent; embed code opens the correct repo view.
-- [ ] The Chrome extension displays a repo summary on repository routes, not on unrelated routes.
-- [ ] Repository views work on mobile, keyboard navigation, and browser zoom.
+- [ ] Profile statistics and top public repositories remain available.
+- [ ] Standalone repository routes, repository-specific share/export/embed, and repository extension overlays are absent.
+- [ ] GitHub profile extension overlay still opens the correct profile dashboard.
 
 ## 9. Final 1.0 release gate
 

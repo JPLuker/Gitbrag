@@ -3,11 +3,11 @@
 ## [1.0.0] — release candidate
 
 ### Added
-- Public repository dashboards, customizable repository share links, PNG exports, embeds, and Chrome extension repository summaries.
+- Profile-focused dashboards, share links, PNG exports, embeds, and Chrome extension profile summaries.
 - Unified activity-period dropdowns for GitHub profile statistics.
 
 ### Changed
-- Removed incomplete sampled repository commit counts, calendars, and commit-history displays before release.
+- Removed standalone repository dashboards, repository share/export/embed controls, and extension repository overlays after failed owner acceptance.
 - Preserved existing profile activity statistics and legacy profile share links.
 - Improved extension typography consistency on GitHub pages.
 

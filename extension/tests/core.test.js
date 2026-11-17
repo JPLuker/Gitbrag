@@ -14,13 +14,6 @@ assert.equal(Core.profileUsernameFromPath('/settings'), null);
 assert.equal(Core.profileUsernameFromPath('/orgs/openai'), null);
 assert.equal(Core.profileUsernameFromPath('/search?q=test'), null);
 
-assert.deepEqual(Core.repositoryFromPath('/JPLuker/Gitbrag'), { owner: 'JPLuker', name: 'Gitbrag' });
-assert.deepEqual(Core.repositoryFromPath('/octocat/Hello-World/'), { owner: 'octocat', name: 'Hello-World' });
-assert.equal(Core.repositoryFromPath('/settings/profile'), null);
-assert.equal(Core.repositoryFromPath('/orgs/openai'), null);
-assert.equal(Core.repositoryFromPath('/JPLuker/Gitbrag/issues'), null);
-assert.equal(Core.repositoryFromPath('/octocat'), null);
-assert.equal(Core.repositoryFromPath('/octocat/repo%2Fbad'), null);
 
 const now = 100000;
 assert.equal(Core.isFresh(now - 1000, 2000, now), true);

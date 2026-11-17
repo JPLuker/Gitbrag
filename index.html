@@ -15,7 +15,6 @@
   <link rel="stylesheet" href="png.css?v=1.0.0">
   <link rel="stylesheet" href="landing.css?v=1.0.0">
   <link rel="stylesheet" href="dated.css?v=1.0.0">
-  <link rel="stylesheet" href="repo.css?v=1.0.0">
 </head>
 <body>
   <main class="app">
@@ -34,8 +33,8 @@
               <label class="input-wrap" for="username">
                 <span aria-hidden="true">@</span>
                 <input id="username" autocomplete="off" autocapitalize="none" spellcheck="false"
-                       placeholder="username, owner/repo or GitHub URL"
-                       aria-label="GitHub username, repository or URL" required>
+                       placeholder="GitHub username or profile URL"
+                       aria-label="GitHub username or profile URL" required>
               </label>
               <button type="submit">Generate Gitbrag</button>
             </form>
@@ -109,30 +108,6 @@
           <span>Static GitHub Pages app · public GitHub data</span>
         </div>
       </div>
-    </section>
-
-    <section id="repoView" class="repo-view hidden" aria-labelledby="repoTitle">
-      <header class="repo-toolbar">
-        <div class="brand small">GIT<span>BRAG</span></div>
-        <div class="repo-actions">
-          <button id="repoBack" type="button">← New search</button>
-          <button id="repoShare" type="button">Copy share link</button>
-          <button id="repoPng" type="button">Download PNG</button>
-          <button id="repoEmbed" type="button">Copy embed code</button>
-        </div>
-      </header>
-
-      <details class="repo-custom" id="repoCustomize">
-        <summary>Customize repository view and sharing</summary>
-        <div class="repo-custom-controls">
-          <label><input type="checkbox" data-repo-module="metrics" checked> Statistics</label>
-          <label><input type="checkbox" data-repo-module="metadata" checked> Repository details</label>
-          <label for="repoAccent">Accent <select id="repoAccent"><option value="blue">Blue</option><option value="purple">Purple</option><option value="green">Green</option><option value="red">Red</option></select></label>
-        </div>
-      </details>
-      <h2 id="repoTitle" tabindex="-1" class="sr-only">Repository statistics</h2>
-      <p id="repoStatus" role="status" aria-live="polite"></p>
-      <div id="repoDetails"></div>
     </section>
 
     <section id="loadingView" class="loading hidden" role="status" aria-live="polite">
@@ -367,6 +342,5 @@
   <script src="landing.js?v=1.0.0"></script>
   <script src="embed.js?v=1.0.0"></script>
   <script src="png.js?v=1.0.0"></script>
-  <script src="repo.js?v=1.0.0"></script>
 </body>
 </html>
