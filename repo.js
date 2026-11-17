@@ -1,12 +1,10 @@
 (function () {
   'use strict';
   const $ = (s) => document.querySelector(s);
-  const periods = { '7d': 7, '30d': 30, '90d': 90, '1y': 365, 'recent': null };
-  const state = { repository: null, contributors: [], contributorsAvailable: false, period: '30d', modules: ['metrics','metadata'], accent: 'blue', controller: null, sequence: 0 };
+  const state = { repository: null, contributors: [], contributorsAvailable: false, modules: ['metrics','metadata'], accent: 'blue', controller: null, sequence: 0 };
   const view = $('#repoView');
   const section = $('#repoDetails');
   const note = $('#repoStatus');
-  const picker = $('#repoPeriod');
   const repoRegex = /^[A-Za-z0-9_.-]{1,100}$/;
   const ownerRegex = /^(?!-)[A-Za-z0-9-]{1,39}(?<!-)$/;
 
@@ -23,9 +21,8 @@
     if (segments.length !== 2 || !ownerRegex.test(segments[0]) || !repoRegex.test(segments[1]) || segments[1] === '.' || segments[1] === '..') return null;
     return { owner: segments[0], name: segments[1] };
   }
-  function route({owner, name}, period) {
-    const p = Object.hasOwn(periods, period) ? period : '30d';
-    return '#/repo/' + encodeURIComponent(owner) + '/' + encodeURIComponent(name) + '?p=' + encodeURIComponent(p);
+  function route({owner, name}) {
+    return '#/repo/' + encodeURIComponent(owner) + '/' + encodeURIComponent(name);
   }
   function e(tag, cls, text) {
     const el = document.createElement(tag);
@@ -68,7 +65,7 @@
   function shareHash() {
     const repo = state.repository;
     if (!repo) return '';
-    return route({owner:repo.owner.login,name:repo.name},state.period)
+    return route({owner:repo.owner.login,name:repo.name})
       + '&m=' + encodeURIComponent(state.modules.join(','))
       + '&a=' + encodeURIComponent(state.accent);
   }
@@ -109,14 +106,13 @@
     }
     note.textContent = 'Public GitHub data · contributor counts are limited to the returned API sample.';
   }
-  async function load(input, requestedPeriod) {
+  async function load(input) {
     const target = typeof input === 'string' ? parse(input) : input;
     if (!target) { showError('Enter a valid owner/repository name or GitHub repository URL.'); return; }
     state.controller?.abort();
     const controller = new AbortController();
     state.controller = controller;
     const sequence = ++state.sequence;
-    state.period = Object.hasOwn(periods, requestedPeriod) ? requestedPeriod : '30d';
     const params = new URLSearchParams(location.hash.split('?')[1] || '');
     const requestedModules = params.get('m');
     state.modules = requestedModules === null ? [...moduleKeys] : requestedModules.split(',').filter(value => moduleKeys.includes(value));
