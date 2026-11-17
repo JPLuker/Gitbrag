@@ -31,6 +31,6 @@ assert.equal(Repo.parse('https://github.com/owner/repo/issues'), null);
 assert.equal(Repo.parse('settings'), null);
 assert.equal(Repo.parse('bad owner/repo'), null);
 assert.equal(Repo.parse('owner/repo/extra'), null);
-assert.equal(Repo.route({ owner: 'JPLuker', name: 'Gitbrag' }, '7d'), '#/repo/JPLuker/Gitbrag?p=7d');
-assert.equal(Repo.route({ owner: 'JPLuker', name: 'Gitbrag' }, 'unknown'), '#/repo/JPLuker/Gitbrag?p=30d');
+assert.equal(Repo.route({ owner: 'JPLuker', name: 'Gitbrag' }), '#/repo/JPLuker/Gitbrag');
+assert.equal(Repo.route({ owner: 'JPLuker', name: 'Gitbrag' }, 'unknown'), '#/repo/JPLuker/Gitbrag');
 console.log('repository routes tests passed');
