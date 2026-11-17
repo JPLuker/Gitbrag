@@ -2,15 +2,13 @@
 
 Gitbrag is a lightweight GitHub Pages app that turns public GitHub activity into a focused stats dashboard with share links, social PNGs, website embeds, and an optional Chrome extension.
 
-**v1.0.0 candidate** licenses Gitbrag under MIT and completes the license notices. The preceding v0.9.9 update prepares the existing website and Chrome extension for the final 1.0 test gate. It bundles the existing Inter font locally, adds support/security documentation and links, and adds automated verification and draft-release packaging. The visual identity and feature scope remain unchanged.
+**v1.0.0 source is ready for release packaging.** Gitbrag is MIT-licensed, bundles its Inter font, and includes automated verification and release packaging. The product remains profile-focused; standalone repository dashboards and repository extension overlays were removed after owner testing. GitHub publication and remaining manual browser/security checks are tracked separately.
 
-**v1.0.0 candidate:** Profile-focused GitHub statistics and sharing. Standalone repository dashboards and repository overlays were removed after owner acceptance testing. Profile repository lists remain available.
-
-**1.0 release candidate; publication pending final acceptance.** Follow [release issue #1](https://github.com/JPLuker/Gitbrag/issues/1), [the audit](MAINTENANCE-AUDIT.md), and [the browser checklist](FINAL-TEST.md).
+**Release tracking:** Follow [release issue #1](https://github.com/JPLuker/Gitbrag/issues/1), [the audit](MAINTENANCE-AUDIT.md), and [the browser checklist](FINAL-TEST.md).
 
 ## Current features
 
-- Search by GitHub username, `owner/repository`, or paste a matching GitHub profile/repository URL.
+- Search by GitHub username or a matching GitHub profile URL.
 - Open a profile directly with a hash route such as `#/octocat`.
 - Open profiles on the current calendar month by default, with the contribution calendar following the same month.
 - Select calendar months, years, and rolling windows using the period dropdown (no step arrows).
@@ -21,7 +19,7 @@ Gitbrag is a lightweight GitHub Pages app that turns public GitHub activity into
 - Generate a dedicated 1080 × 1080 social PNG from an isolated Canvas 2D renderer.
 - Customize PNG modules, activity period, up to four repositories, text size, accent, and card style.
 - Generate responsive website embed code from **Share → Embed**.
-- Use the optional Manifest V3 Chrome extension to surface Gitbrag stats on public GitHub profile and repository pages.
+- Use the optional Manifest V3 Chrome extension to surface Gitbrag stats on public GitHub profile pages.
 - Run the main website entirely as a static GitHub Pages app with no Gitbrag account backend or database.
 
 ## Landing page
@@ -40,7 +38,7 @@ The actual dashboard remains the primary place where users interact with Gitbrag
 
 Gitbrag uses one activity-period control for both statistics and the contribution calendar.
 
-The default view is the **current calendar month**. The left/right arrows step directly through available calendar months, while tapping the period label opens the full picker.
+The default view is the **current calendar month**. Select the period label to open the month/year/rolling-window dropdown; the previous/next arrows were removed.
 
 ### Calendar periods
 
@@ -143,7 +141,7 @@ The generated iframe can work by itself or with the included auto-height helper.
 
 ## Chrome extension
 
-The optional extension lives in `extension/` and uses Manifest V3. v0.9.8 is the website-parity pass.
+The optional extension lives in `extension/` and uses Manifest V3. The 1.0 release scope is profile-only.
 
 The GitHub overlay now includes:
 
@@ -169,7 +167,7 @@ To test locally:
 
 ## Data sources
 
-Basic profile and repository information comes from the public GitHub REST API. Gitbrag requests up to three repository pages of 100 repositories each for the full web dashboard and excludes forks from repository rankings/star aggregation.
+Profile information and the profile's public repository list come from the public GitHub REST API. Gitbrag requests up to three repository pages of 100 repositories each for the full web dashboard and excludes forks from repository rankings/star aggregation.
 
 Contribution history comes from `github-contributions-api.jogruber.de` and follows GitHub's public contribution graph. If contribution history cannot be loaded, Gitbrag keeps profile/repository data visible and marks contribution-dependent output unavailable rather than converting the failure to zero.
 
