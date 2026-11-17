@@ -1,7 +1,7 @@
 # Gitbrag
 
-Read open GitHub issues first. Issue #1 tracks the 1.0 release gate.
-Work on `main`; do not touch other projects. Feature scope for 1.0 is frozen. Standalone repository dashboards and extension repository overlays were removed after failed owner acceptance; retain profile-level repository lists and statistics. Activity period UI uses the dropdown without month-step arrows.
+Read open GitHub issues first. Issue #1 tracks remaining post-release browser, accessibility and security acceptance.
+Work on `main`; do not touch other projects. v1.0.0 was published on 2026-11-17; the repository is in maintenance mode. Do not add planned features; prioritize bugs, security and compatibility. Standalone repository dashboards and extension repository overlays were removed after failed owner acceptance; retain profile-level repository lists and statistics. Activity period UI uses the dropdown without month-step arrows.
 Run `python3 scripts/verify.py` before committing. `VERSION` is the source
 of truth; run `python3 scripts/sync-version.py` after changing it.
 Never mark a browser test complete based on source inspection or CI.
@@ -38,7 +38,7 @@ distributions and the bundled font's separate SIL Open Font License notice.
 
 ## Release scope
 
-Automated checks and a draft release do not establish real-browser acceptance.
+v1.0.0 has been published. Automated checks and a published release do not establish real-browser or security acceptance. Document unverified checks accurately.
 Use FINAL-TEST.md and MAINTENANCE-AUDIT.md. Chrome Web Store publication is a
 separate distribution task: icons, screenshots and store review are not proof
 of website/extension runtime correctness and must not be silently claimed done.
