@@ -1,6 +1,6 @@
-# Gitbrag — Final Manual Test Gate for 1.0
+# Gitbrag — Outstanding Manual Verification (v1.0.0)
 
-This file contains the checks that still require a real browser, live GitHub behavior, visual inspection, or failure-state simulation before Gitbrag can be tagged **v1.0.0**.
+This file contains the checks that still require a real browser, live GitHub behavior, visual inspection, or failure-state simulation for the **published v1.0.0** release. GitHub Actions verified and published the assets; browser-specific checks are not automatically passed.
 
 Run `python3 scripts/verify.py` before this document is used. Also complete [MAINTENANCE-AUDIT.md](MAINTENANCE-AUDIT.md) and release issue #1; this browser checklist alone does not establish standards compliance. Do not mark an item complete unless it was actually tested.
 
@@ -238,14 +238,14 @@ These checks cannot be proven by static source inspection alone. Load the reposi
 - [ ] Standalone repository routes, repository-specific share/export/embed, and repository extension overlays are absent.
 - [ ] GitHub profile extension overlay still opens the correct profile dashboard.
 
-## 9. Final 1.0 release gate
+## 9. v1.0.0 publication and remaining verification
 
-After every release-blocking item above passes:
+Publication is complete, but unchecked real-browser and security items above remain outstanding:
 
 - [ ] Freeze feature development.
-- [ ] Change visible version to `v1.0.0`.
-- [ ] Change all main-site cache-busting references to `?v=1.0.0`.
-- [ ] Set extension manifest version to `1.0.0` if included in the release.
+- [x] Change visible version to `v1.0.0`.
+- [x] Change all main-site cache-busting references to `?v=1.0.0`.
+- [x] Set extension manifest version to `1.0.0` if included in the release.
 - [ ] Rewrite/freeze README as final-product documentation.
 - [ ] Run all automated tests and syntax checks again.
 - [ ] Perform one final deployed GitHub Pages smoke test.
@@ -254,7 +254,7 @@ After every release-blocking item above passes:
 - [ ] Test extension upgrade with existing settings/cache, not just fresh install.
 - [ ] Confirm license, security settings and the nonvisual maintenance audit are complete.
 - [ ] Confirm deployed assets actually serve v1.0.0.
-- [ ] Tag `v1.0.0`.
-- [ ] Create the GitHub release and release notes.
+- [x] Tag `v1.0.0` at verified commit `619824e`.
+- [x] Publish GitHub release and release notes with website/Chrome ZIPs and checksums.
 
-When these pass, Gitbrag 1.0 is ready.
+Gitbrag 1.0 is published. Close the remaining checks only after actual owner/browser verification; do not infer accessibility or security compliance from CI.
