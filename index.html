@@ -121,20 +121,12 @@
           <button id="repoEmbed" type="button">Copy embed code</button>
         </div>
       </header>
-      <div class="repo-period"><label for="repoPeriod">Activity period</label>
-        <select id="repoPeriod">
-          <option value="7d">Last 7 days</option><option value="30d" selected>Last 30 days</option>
-          <option value="90d">Last 90 days</option><option value="1y">Last year</option>
-          <option value="recent">Most recent 100 commits</option>
-        </select>
-      </div>
+
       <details class="repo-custom" id="repoCustomize">
         <summary>Customize repository view and sharing</summary>
         <div class="repo-custom-controls">
           <label><input type="checkbox" data-repo-module="metrics" checked> Statistics</label>
           <label><input type="checkbox" data-repo-module="metadata" checked> Repository details</label>
-          <label><input type="checkbox" data-repo-module="calendar" checked> Commit calendar</label>
-          <label><input type="checkbox" data-repo-module="commits" checked> Recent commits</label>
           <label for="repoAccent">Accent <select id="repoAccent"><option value="blue">Blue</option><option value="purple">Purple</option><option value="green">Green</option><option value="red">Red</option></select></label>
         </div>
       </details>
